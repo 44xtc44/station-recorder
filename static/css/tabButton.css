@@ -1,0 +1,89 @@
+/**
+ *  This file is part of station-recorder. station-recorder is hereby called the app. 
+ *  The app is published to be a distributed database for public radio and
+ *  TV station URLs. The cached DB copy can be used also if
+ *  the public database fails. Additional features shall improve the 
+ *  value of the application. Example is the vote, click statistic feature.
+ *  Copyright (C) 2025 René Horn
+ *
+ *    The app is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    any later version.
+ *
+ *    The app is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with the app. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* Style tab and buttons */
+
+/* change to grid */
+.settingContainer {
+  background: #2c2c33;
+}
+
+.tab {
+  overflow: hidden;
+  background: #2c2c33;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  color: lightyellow;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 3px 8px 8px 12px; /* top right bottom left */
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #2b2a33;
+  color: lightyellow;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #2b2a33;
+  color: lightyellow;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+
+  -webkit-animation: fadeEffect 1s;
+  animation: fadeEffect 1s;
+}
+
+/* Fade in tabs */
+@-webkit-keyframes fadeEffect {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeEffect {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.upperRight {
+  float: right;
+  cursor: pointer;
+}

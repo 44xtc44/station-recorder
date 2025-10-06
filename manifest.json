@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "author": "René Horn",
+  "name": "Station Recorder - extra stark",
+  "short_name": "station-recorder",
+  "description": "Radio/TV local Database. Multi stream downloads. Genre, Station search. Uses radio-browser.info database.",
+  "manifest_version": 3,
+  "homepage_url": "https://github.com/44xtc44/station-recorder.git",
+  "action": {
+    "default_icon": {
+      "16": "/static/images/default_icon.svg",
+      "32": "/static/images/default_icon.svg",
+      "48": "/static/images/default_icon.svg",
+      "96": "/static/images/default_icon.svg",
+      "192": "/static/images/default_icon.svg",
+      "384": "/static/images/default_icon.svg",
+      "768": "/static/images/default_icon.svg",
+      "1536": "/static/images/default_icon.svg"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "station-recorder@extra-stark.1.0.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent", "websiteActivity", "browsingActivity"]
+      }
+    }
+  },
+
+  "background": {
+    "scripts": ["/static/js/background.js"]
+  },
+  "permissions": ["unlimitedStorage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "content_scripts": [
+    {
+      "js": [],
+      "matches": ["<all_urls>"],
+      "all_frames": true
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self';"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["/static/js/database/dbLoader.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

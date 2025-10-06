@@ -1,0 +1,5 @@
+sphinx
+sphinx-rtd-theme
+sphinxcontrib-napoleon
+sphinx-js
+sphinx-toolbox

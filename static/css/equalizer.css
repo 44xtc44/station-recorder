@@ -1,0 +1,27 @@
+.eqRange {
+  background-color: transparent;
+  border-color: transparent;
+  border: none;
+  width: 2.5em;
+  font-size: 96%;
+  font-weight: bold;
+  font-family: Abel, sans-serif;
+}
+.eqPresets {
+  background-color: transparent;
+  border-color: transparent;
+  border: none;
+
+  width: 5.5em;
+  font-size: 96%;
+  font-weight: bold;
+  font-family: Abel, sans-serif;
+}
+
+.divEqRange {
+  display: inline-block;
+}
+
+.divEqPresets {
+  display: inline-block;
+}
