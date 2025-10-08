@@ -13,7 +13,7 @@ Overview
 ---------
 | Vanilla JavaScript. 
 | This repository shows the source code of a distributed NoSQL frontend database browser extension/app.
-
+|
 
 * parallel stream downloads
 * play radio
@@ -240,9 +240,6 @@ Eslint linter is showing errors and warnings.
 To reveal errors use, for example, "npm exec eslint ./static/js/index.js".
 Some modules use "new Promise" and "async" in one function. 
 Eslint says that this could lead to not fire a "reject". 
-I don't buy that and I don't need that. 
-Smartasses from kindergarten (devs know about interpreter context). 
-Looking for another linter.
 
 IndexedDB (IDB) tests
 ^^^^^^^^^^^^^^^^^^^^^^^
