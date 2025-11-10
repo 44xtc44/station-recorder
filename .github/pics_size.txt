@@ -1,0 +1,10 @@
+app_first_time.png      wh 502, 657
+favorites_play.png      wh 497, 668
+record_play.png         wh 498, 642
+search_world.png        wh 498, 635
+selection_blacklist.png wh 500, 682
+selection_continent.png wh 497, 524
+selection_country.png   wh 498, 636
+selection_download.png  wh 500, 682
+selection_selection.png wh 501, 600
+
