@@ -1,0 +1,258 @@
+.grid_activity_bar {
+  display: grid;
+  /*grid-auto-rows: minmax(10px, auto);*/
+  grid-template-columns: repeat(3, 1fr);
+  /* grid-gap: 10px; */
+  row-gap: 4px;
+  column-gap: 10px;
+
+  border: 0px solid lightyellow;
+}
+.grid_activity_bar_item {
+  text-align: center;
+  vertical-align: baseline;
+  display: table-cell;
+  height: 32px;
+  line-height: 32px; /* same as height! to verical align */
+  font-size: 96%;
+  font-family: Abel, sans-serif; /* Abel, Verdana, Tahoma, */
+  font-weight: normal;
+  margin-bottom: 8px;
+  padding-right: 10px;
+  padding-left: 10px;
+
+  /* border-radius: 16px; */
+  -moz-box-shadow: inset 0 0 4px #f2f2ff;
+  box-shadow: inset 0 0 4px #f2f2ff;
+}
+.grid_activity_bar_player {
+  color: #000;
+  background-color: var(--monitor-color);
+}
+.grid_activity_bar_recorder {
+  /* border: 1px solid #0c3958; */
+  /* box-shadow: inset 0 0 10px #0c3958; */
+  background-color: rgba(247,183,51, 0.2);
+
+  cursor: pointer;
+}
+.grid_audio_bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+
+  border: 0px solid lightyellow;
+  cursor: pointer;
+}
+.grid_audio_bar_item {
+  text-align: center;
+  height: 32px;
+  line-height: 32px; /* same as height! to verical align */
+  font-size: 90%;
+  font-family: Arial, Consolas, monospace, "Courier New", Courier;
+  margin-bottom: 8px;
+  padding-right: 10px;
+  padding-left: 10px;
+
+  border-radius: 12px;
+}
+
+.grid_activity_icon_bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 6px;
+
+  border: 0px solid red;
+}
+.grid_activity_icon_bar_item {
+  text-align: center;
+  height: 32px;
+  line-height: 32px; /* same as height! to verical align */
+  font-size: 90%;
+  font-family: Arial, Consolas, monospace, "Courier New", Courier;
+  shape-outside: circle(50%);
+  /* background-color: var(--main-bg-color); */
+  background-color: transparent;
+}
+
+.grid_vol_buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 0px;
+}
+.grid_vol_buttons_item {
+  height: 32px;
+  line-height: 32px; /* same as height! to verical align */
+  font-size: 90%;
+  font-family: Arial, Consolas, monospace, "Courier New", Courier;
+  border: 0px solid red;
+}
+
+/* Favorites subFilter */
+.grid_sub_favorites {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+
+  padding: 2px;
+  border: 0px solid lightyellow;
+  width: 100%;
+}
+.grid_sub_favorites_items {
+  color: white;
+  background-color: #1b76ad; /* #313043; */
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #49bbaa;
+  border-radius: 5px;
+  height: 26px;
+}
+.grid_sub_favorites_items_active {
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+
+  color: white;
+  background: #1baeae6f; /* #165036; */
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+  -moz-box-shadow: inset 0 0 4px #000;
+  box-shadow: inset 0 0 4px #000;
+}
+
+/* World subFilter */
+.grid_sub_world {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+
+  padding: 2px;
+  border: 0px solid lightyellow;
+  width: 100%;
+}
+.grid_sub_world_items {
+  color: white;
+  background-color: #1b76ad;
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #49bbaa;
+  border-radius: 5px;
+  height: 26px;
+}
+.grid_sub_world_items_active {
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+
+  color: white;
+  background: #1baeae6f; /* #165036; */
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+  -moz-box-shadow: inset 0 0 4px #000;
+  box-shadow: inset 0 0 4px #000;
+}
+/* countries subFilter */
+.grid_sub_countries {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+
+  padding: 2px;
+  border: 0px solid lightyellow;
+  width: 100%;
+}
+.grid_sub_countries_items {
+  color: lightyellow;
+  background-color: #0c3958; /*  #313043; */
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+  height: 26px;
+}
+.grid_sub_countries_items_active {
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+
+  color: white;
+  background: #1baeae6f; /* #165036; */
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+  -moz-box-shadow: inset 0 0 4px #000;
+  box-shadow: inset 0 0 4px #000;
+}
+
+/* continents subFilter */
+.grid_sub_continents {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+
+  padding: 2px;
+  border: 0px solid lightyellow;
+  width: 100%;
+}
+.grid_sub_continents_items {
+  color: lightyellow;
+  background-color: #1b76ad;
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+  height: 26px;
+}
+.grid_sub_continents_items_active {
+  padding: 2px;
+  text-align: center;
+  border: 1px solid #5b5ab8;
+  border-radius: 5px;
+
+  color: white;
+  background: #1baeae6f; /* #165036; */
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+  -moz-box-shadow: inset 0 0 4px #000;
+  box-shadow: inset 0 0 4px #000;
+}
+
+/* continent groups */
+.grid-topFilterBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+
+  padding: 2px;
+  border: 0px solid #49bbaa;
+  width: 100%;
+
+  background-color: var(--main-bg-color);
+}
+/* continent groups */
+.grid-topFilterBar-item {
+  color: black; /* #1baeae; */
+  text-align: center;
+  font-size: 100%;
+
+  border: 1px solid var(--nav-bar-color);
+}
+.grid-topFilterBar-item-active {
+  border-width: 1px 1mm 2px 1px;
+  border-style: solid solid solid ridge;
+  border-color: rgb(54, 144, 130) rgb(54, 144, 130) rgb(54, 144, 130)
+    rgb(73, 187, 170);
+  color: #1baeae;
+
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 2px;
+  text-align: center;
+
+  color: #1c1e1f;
+  background: #1baeae; /* #165036; */
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
+  -moz-box-shadow: inset 0 0 4px #000;
+  box-shadow: inset 0 0 4px #000;
+}
+.grid-topFilterBar-item:hover {
+  color: #1c1e1f;
+}

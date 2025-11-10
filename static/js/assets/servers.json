@@ -1,0 +1,26 @@
+[
+    {
+        "ip": "2a03:4000:37:42:c4fe:4cff:fea7:8941",
+        "name": "de1.api.radio-browser.info"
+    },
+    {
+        "ip": "2a01:4f9:c011:bc25::1",
+        "name": "nl1.api.radio-browser.info"
+    },
+    {
+        "ip": "2a0a:4cc0:0:db9:282b:91ff:fed0:ddea",
+        "name": "at1.api.radio-browser.info"
+    },
+    {
+        "ip": "91.132.145.114",
+        "name": "de1.api.radio-browser.info"
+    },
+    {
+        "ip": "65.109.136.86",
+        "name": "nl1.api.radio-browser.info"
+    },
+    {
+        "ip": "89.58.16.19",
+        "name": "at1.api.radio-browser.info"
+    }
+]

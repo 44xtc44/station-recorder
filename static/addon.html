@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, target-densitydpi=device-dpi, initial-scale=0.8, maximum-scale=1, user-scalable=yes"
+    />
+    <title>Recorder</title>
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/subMenu.css" rel="stylesheet" />
+    <link href="css/equalizer.css" rel="stylesheet" />
+    <link href="css/activityGrids.css" rel="stylesheet" />
+    <link href="css/navbar.css" rel="stylesheet" />
+    <link href="css/intro.css" rel="stylesheet" />
+    <link href="css/fonts.css" rel="stylesheet" />
+    <link href="css/tabButton.css" rel="stylesheet" />
+    <link href="css/stationContainer.css" rel="stylesheet" />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="images/default_icon.svg"
+    />
+  </head>
+
+  <body>
+    <div id="mainContainer">
+      <div>
+        <div class="column500" id="divTopNav">
+          <section class="top-nav">
+            <div id="menuHome" class="toggleIcon handCursor">
+              <div id="menuName" style="z-index: 10">
+                <span id="reloader"> Reload </span>
+              </div>
+            </div>
+            <div id="logo"></div>
+            <input id="menu-toggle" type="checkbox" />
+            <label class="menu-button-container" for="menu-toggle">
+              <div class="menu-button" id="menu-button">
+                <div id="menu-button-overlay"></div>
+              </div>
+            </label>
+            <ul class="menu">
+              <li class="toggleIcon handCursor" id="liUpload">
+                Upload to local database
+              </li>
+              <li
+                class="toggleIcon handCursor"
+                id="liLogView"
+                data-shown="true"
+              >
+                show log monitor
+              </li>
+              <li class="toggleIcon handCursor" id="liAudio" data-shown="true">
+                show Volume
+              </li>
+              <li
+                class="toggleIcon handCursor"
+                id="liSettings"
+                data-shown="false"
+              >
+                show Settings, Backup
+              </li>
+              <li class="toggleIcon handCursor" id="liGit">
+                Help, license, source code
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <div class="fixedPosition" id="fixedPositionAnchor"></div>
+
+      <div id="blockAccess" class="blockAccess">
+        <canvas height="5px" width="5px"></canvas>
+      </div>
+
+      <canvas
+        class=""
+        id="lightningCanvas"
+        width="200"
+        height="100"
+        style="display: none"
+      ></canvas>
+
+      <!-- Settings buttons Main tabButtons.css - refac tablinks and its buttons to grid -->
+      <div id="settingContainer" class="column500 settingContainer">
+        <div id="divRowSettings" class="tab">
+          <button class="tablinks" id="settingsClicker">Settings</button>
+          <button class="tablinks" id="addUrlsClicker">Custom URL</button>
+          <button class="tablinks" id="blacklistUploadClicker">
+            Blacklist add
+          </button>
+          <button class="tablinks" id="blacklistDumpClicker">
+            Blacklist dump
+          </button>
+          <button class="tablinks" id="logHistoryClicker">Log</button>
+        </div>
+
+        <div class="tabcontent column500 settings" id="settings"></div>
+        <div class="tabcontent column500 settings" id="urlsAdd"></div>
+        <div class="tabcontent column500 settings" id="blacklistAdd"></div>
+        <div class="tabcontent column500 settings" id="blacklistDump"></div>
+        <div class="tabcontent column500 settings" id="logHistory"></div>
+      </div>
+
+      <!-- DB filter buttons -->
+      <div class="column500 spacerOneEmDefaultColor"></div>
+      <div id="filterBarContainer" class="column500">
+        <div id="bgTopFilterBar">
+          <div id="topFilterBar"></div>
+        </div>
+        <div id="subFilterBar"></div>
+      </div>
+
+      <!-- Monitor -->
+      <div class="column500 spacerOneEmDefaultColor"></div>
+      <div id="reportContainer" class="column500"></div>
+
+      <!-- Audio -->
+      <div id="audioBarContainer" class="column500">
+        <div id="audioBar" class="grid_activity_bar"></div>
+      </div>
+      <div id="videoBarContainer" class="column500">
+        <div id="videoBar" class="grid_activity_bar"></div>
+      </div>
+
+      <div class="column500 spacerWhiteZeroTwo"></div>
+
+      <!-- Activity -->
+      <div id="activityBarContainer" class="column500">
+        <div id="activityBar" class="grid_activity_bar"></div>
+      </div>
+      <div class="column500 spacerWhiteZeroTwo"></div>
+
+      <!-- DB Station buttons -->
+      <div id="stationContainer" class="column500"></div>
+
+      <!-- Audio Element helper bar to attach, but hide -->
+      <div id="audioElementHelperBar" class="column500"></div>
+
+      <!-- use extension internal or express server for npm package -->
+      <div id="useProxy" data-value="false"></div>
+    </div>
+    <script type="module" src="js/index.js"></script>
+  </body>
+</html>

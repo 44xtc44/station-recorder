@@ -1,0 +1,18 @@
+// dbInfo.txt
+
+/**
+ * Test needed for:
+ * Create, read, update, delete objects from indexedDB.
+ * 
+ * IndexedDB (IDB) can only be tested with UI tester, i.e Selenium or Puppeteer.
+ * See index creation. Mock pass, reality fail.
+ * fake-indexeddb npm package mocks only.
+ * Puppeteer:
+ * - problem with modules (import statement)
+ * - https://pptr.dev/api/puppeteer.coverage
+ * - may be slower but no mocks needed
+ * - can run tests parrallel in containers
+ * extension https://developer.chrome.com/docs/extensions/how-to/test/puppeteer
+ * https://blog.appsignal.com/2023/02/08/puppeteer-in-nodejs-common-mistakes-to-avoid.html
+ * https://scrnify.com/blog/puppeteer-script-injection-complete-guide
+ */

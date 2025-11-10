@@ -1,0 +1,42 @@
+{
+  "private": false,
+  "type": "module",
+  "name": "station-recorder",
+  "version": "1.0.0",
+  "author": "44xtc44@gmail.com",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/44xtc44/vanga"
+  },
+  "description": "The radio, audio, stream recorder. Blacklist feature.",
+  "keywords": [
+    "downloader",
+    "radio tv database"
+  ],
+  "main": "./index.js",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/44xtc44/station-recorder.git"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "jest": {
+    "verbose": true,
+    "automock": false,
+    "setupFiles": []
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
+    "jest": "^30.0.5",
+    "madge": "^8.0.0",
+    "web-ext": "^8.10.0"
+  },
+  "bin": {}
+}

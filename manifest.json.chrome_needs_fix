@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "author": "René Horn",
+  "name": "Vanga",
+  "short_name": "Vanga",
+  "description": "Radio downloader with blacklists. Vote a station. Local database URL search. Get updates from radio-browser.info database.",
+  "manifest_version": 3,
+  "homepage_url": "https://github.com/44xtc44/vanga.git",
+  "action": {
+    "default_icon": {
+      "16": "/static/images/default_icon.svg",
+      "32": "/static/images/default_icon.svg",
+      "48": "/static/images/default_icon.svg",
+      "96": "/static/images/default_icon.svg",
+      "192": "/static/images/default_icon.svg",
+      "384": "/static/images/default_icon.svg",
+      "768": "/static/images/default_icon.svg",
+      "1536": "/static/images/default_icon.svg"
+    }
+  },
+  "background": {
+    "service_worker": "/static/js/background.js"
+  },
+  "permissions": [
+    "unlimitedStorage",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "/static/js/database/dbLoader.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/static/js/database/dbLoader.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

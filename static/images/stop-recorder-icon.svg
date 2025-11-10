@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="100px"
+   height="100px"
+   fill="none"
+   version="1.1"
+   id="stop-recorder-icon"
+   sodipodi:docname="stop-recorder-icon.svg"
+   inkscape:version="1.4.1-rc (06eac75fbf, 2025-03-29)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#111111"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.8717847"
+     inkscape:cx="70.610674"
+     inkscape:cy="64.452766"
+     inkscape:current-layer="stop-recorder-icon"
+     inkscape:window-width="1366"
+     inkscape:window-height="736"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showgrid="false" />
+  <g
+     id="Page-1"
+     stroke="none"
+     stroke-width="1"
+     fill="none"
+     fill-rule="evenodd"
+     transform="scale(5)"
+     style="fill:#e15b64;fill-opacity:1">
+    <g
+       id="Dribbble-Light-Preview"
+       transform="translate(-380,-3839)"
+       fill="#000000"
+       style="fill:#e15b64;fill-opacity:1">
+      <g
+         id="icons"
+         transform="translate(56,160)"
+         style="fill:#e15b64;fill-opacity:1">
+        <path
+           d="m 338,3689 c 0,2.209 -1.791,4 -4,4 -2.209,0 -4,-1.791 -4,-4 0,-2.209 1.791,-4 4,-4 2.209,0 4,1.791 4,4 m -4,8 c -4.411,0 -8,-3.589 -8,-8 0,-4.411 3.589,-8 8,-8 4.411,0 8,3.589 8,8 0,4.411 -3.589,8 -8,8 m 0,-18 c -5.523,0 -10,4.477 -10,10 0,5.523 4.477,10 10,10 5.523,0 10,-4.477 10,-10 0,-5.523 -4.477,-10 -10,-10"
+           id="record-[#982]"
+           style="fill:#e15b64;fill-opacity:1" />
+      </g>
+    </g>
+  </g>
+</svg>
