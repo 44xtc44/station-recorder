@@ -34,6 +34,7 @@
 
 // https://palant.info/2022/08/17/impact-of-extension-privileges/
 
+import { initShakaApp } from "./mediaAnimation/shakaPlayer.js";
 import { sleep } from "./uiHelper.js";
 import { createUi } from "./ui.js";
 import { createReportConsole } from "./logMonitor/uiReport.js";
@@ -98,7 +99,7 @@ window.addEventListener("load", async () => {
 
   await setupDbs();
 
-  await createMediaElements(); // reads/writes settings to iDB
+  await createMediaElements(); // reads/writes also user settings to iDB
   const runAnimation = await getAnimationStatus();
   await sleep(200); // something wrong with status refac
   if (runAnimation) {
@@ -132,6 +133,7 @@ async function setupUi(runAnimation) {
     await createMainAudioLine();
     initEqualizer(); // switch EQ into the line, enables speaker
     await showUi();
+    initShakaApp();
   } else {
     await createMenuBarAnim();
     await prepAnimationMain(); // Call any longrunning animation in this module.
@@ -139,6 +141,7 @@ async function setupUi(runAnimation) {
     await showUi();
     initEqualizer(); // enables speaker after spashScreen anim
     launchNoFavPopup();
+    initShakaApp();
   }
 }
 

@@ -33,6 +33,7 @@ export {
   audioContext,
   analyser,
   audioSource,
+  videoSource,
   analyserInit,
   createMainAudioLine,
   connectAnalyserInit,
@@ -66,7 +67,7 @@ function createMediaElements() {
      * Video
      */
     const videoElem = await createVideoElement();
-    videoElem.style.display = "none";
+    // videoElem.style.display = "none";
     const videoBar = document.getElementById("videoBar");
     videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
 
@@ -82,12 +83,12 @@ function createMediaElements() {
     const audioHelper = document.getElementById("audioElementHelperBar");
     audioHelper.appendChild(audioElem); // attach to DOM tree, else its id not found
 
-    const audioVolume = await createVolumeSlider(audioElem);
+    const audioVolume = await createVolumeSlider(audioElem, videoElem);
     // sets also metaData.set()["audioVolume"]
-    await restoreAudioVolume(audioElem, audioVolume);
+    await restoreAudioVolume(audioElem, audioVolume, videoElem);
 
     const volBtns = await createVolumeBtns(); // ret dict
-    await createVolBtnListener(volBtns, audioElem, audioVolume);
+    await createVolBtnListener(volBtns, audioElem, audioVolume, videoElem);
 
     // Build a grid for audio UI elements.
     const audioVolumeContainer = document.createElement("div");
@@ -129,6 +130,7 @@ function createVideoElement() {
     video.setAttribute("autoplay", "");
     video.setAttribute("controls", "");
     video.volume = "0.7";
+    video.width = "500";
 
     resolve(video);
   });
@@ -203,9 +205,10 @@ function mediaConnectors(audio, video) {
  * @param {HTMLDivElement} volBtns
  * @param {HTMLAudioElement} audio
  * @param {HTMLInputElement} audioVolume
+ * @param {HTMLVideoElement} video
  * @returns {Promise<undefined>}
  */
-function createVolBtnListener(volBtns, audio, audioVolume) {
+function createVolBtnListener(volBtns, audio, audioVolume, video) {
   return new Promise((resolve, _) => {
     const delay = 150;
     const volMinus = volBtns.volMinus;
@@ -232,7 +235,7 @@ function createVolBtnListener(volBtns, audio, audioVolume) {
     volPlus.onmouseup = () => {
       count = metaData.get()["audioVolume"];
       audioVolume.value = count;
-      setAudioVolume(audio, audioVolume);
+      setAudioVolume(audio, audioVolume, video);
     };
 
     volMinus.onmousedown = (e) => {
@@ -249,7 +252,7 @@ function createVolBtnListener(volBtns, audio, audioVolume) {
     volMinus.onmouseup = () => {
       count = metaData.get()["audioVolume"];
       audioVolume.value = count;
-      setAudioVolume(audio, audioVolume);
+      setAudioVolume(audio, audioVolume, video);
     };
 
     resolve();
@@ -333,10 +336,10 @@ function createVolumeBtns() {
 
 /**
  * Audio volume slider for PC user. Android user use buttons.
- * @param {HTMLAudioElement} audio 
+ * @param {HTMLAudioElement} audio
  * @returns {Promise<HTMLInputElement>} audioVolume
  */
-function createVolumeSlider(audio) {
+function createVolumeSlider(audio, video) {
   return new Promise((resolve, _) => {
     // https://freefrontend.com/css-range-sliders/
     const audioVolume = document.createElement("input"); // slider
@@ -347,7 +350,7 @@ function createVolumeSlider(audio) {
     audioVolume.classList.add("slider_neutral");
 
     audioVolume.addEventListener("input", () => {
-      setAudioVolume(audio, audioVolume);
+      setAudioVolume(audio, audioVolume, video);
     });
     resolve(audioVolume);
   });
@@ -357,9 +360,10 @@ function createVolumeSlider(audio) {
  *
  * @param {HTMLAudioElement} audio
  * @param {HTMLInputElement} audioVolume
+ * @param {HTMLVideoElement} video
  * @returns {Promise<undefined>}
  */
-function restoreAudioVolume(audio, audioVolume) {
+function restoreAudioVolume(audio, audioVolume, video) {
   return new Promise(async (resolve, _) => {
     let elemDict = await getAppSettings({ id: audio.id });
     if (!elemDict) {
@@ -369,7 +373,7 @@ function restoreAudioVolume(audio, audioVolume) {
       metaData.set()["audioVolume"] = defaultVolume;
     } else {
       audioVolume.value = elemDict.volume;
-      setAudioVolume(audio, audioVolume);
+      setAudioVolume(audio, audioVolume, video);
       metaData.set()["audioVolume"] = audioVolume.value;
     }
     resolve();
@@ -381,11 +385,13 @@ function restoreAudioVolume(audio, audioVolume) {
  * metaData.set()["audioVolume"] to have both element in sync.
  * @param {HTMLAudioElement} audio
  * @param {HTMLInputElement} audioVolume
+ * @param {HTMLVideoElement} video
  */
-function setAudioVolume(audio, audioVolume) {
+function setAudioVolume(audio, audioVolume, video) {
   const volDisplay = document.getElementById("volDisplay");
 
   audio.volume = audioVolume.value / 100;
+  video.volume = audioVolume.value / 100;
   if (volDisplay !== null && volDisplay !== undefined) {
     volDisplay.innerText = audioVolume.value.toString();
   }
@@ -402,6 +408,7 @@ function setAudioVolume(audio, audioVolume) {
 function createMainAudioLine() {
   return new Promise((resolve, _) => {
     audioSource.connect(analyser);
+    videoSource.connect(analyser);
     analyser.connect(audioContext.destination); // speaker
     resolve();
   });
