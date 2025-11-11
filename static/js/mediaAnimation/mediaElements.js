@@ -1,4 +1,4 @@
-// audio.js
+// mediaElements.js
 "use strict";
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
@@ -28,7 +28,8 @@ import { providerUrlGet } from "../network/streamDetect.js";
 import { getAppSettings, setAppSettings } from "../database/idbAppSettings.js";
 
 export {
-  createAudio,
+  createMediaElements,
+  createVideoElement,
   audioContext,
   analyser,
   audioSource,
@@ -38,6 +39,7 @@ export {
 };
 let analyser = null;
 let audioSource = null;
+let videoSource = null;
 let analyserInit = null;
 let audioContext = null;
 
@@ -54,10 +56,29 @@ let audioContext = null;
  *
  */
 
-function createAudio() {
+/**
+ *
+ * @returns {Promise<undefined>}
+ */
+function createMediaElements() {
   return new Promise(async (resolve, _) => {
-    const audioElem = await createAudioElements();
+    /**
+     * Video
+     */
+    const videoElem = await createVideoElement();
+    videoElem.style.display = "none";
+    const videoBar = document.getElementById("videoBar");
+    videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
+
+    /**
+     * Audio
+     */
+    const audioElem = await createAudioElement();
     audioElem.style.display = "none";
+
+    await mediaConnectors(audioElem, videoElem);
+
+    // hidden div at end of HTML to not disturb div stack
     const audioHelper = document.getElementById("audioElementHelperBar");
     audioHelper.appendChild(audioElem); // attach to DOM tree, else its id not found
 
@@ -68,7 +89,6 @@ function createAudio() {
     const volBtns = await createVolumeBtns(); // ret dict
     await createVolBtnListener(volBtns, audioElem, audioVolume);
 
-    
     // Build a grid for audio UI elements.
     const audioVolumeContainer = document.createElement("div");
     audioVolumeContainer.id = "audioVolumeContainer";
@@ -81,7 +101,7 @@ function createAudio() {
     const audioBar = document.getElementById("audioBar");
     audioBar.appendChild(audioVolumeContainer);
     audioVolumeContainer.classList.add("grid_activity_bar_item");
-    // udioVolumeContainer.classList.add("grid_activity_bar_player");
+    // audioVolumeContainer.classList.add("grid_activity_bar_player");
 
     audioBar.appendChild(volBtns.volumeButtons);
     volBtns.volumeButtons.classList.add("grid_activity_bar_item");
@@ -93,10 +113,37 @@ function createAudio() {
   });
 }
 
-function createAudioElements() {
+/**
+ * Video
+ * video.onerror will return a network error so we can not detect
+ * FireFox's http-https mixed->switch to https failure.
+ * So a demand to attach equalizer also to a video element.
+ * @returns {Promise<HTMLVideoElement>}
+ */
+function createVideoElement() {
   return new Promise((resolve, _) => {
-    // Audio, no change here (Video play), else 'audio.onerror' fails!!!
-    // video.onerror will return a network error
+    const video = document.createElement("video");
+    video.setAttribute("id", "videoScreen");
+    video.setAttribute("crossorigin", "anonymous");
+    video.setAttribute("preload", "metadata");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("controls", "");
+    video.volume = "0.7";
+
+    resolve(video);
+  });
+}
+
+/**
+ * Audio
+ * --> No change here (Video player), else 'audio.onerror' fails!!!
+ * video.onerror will return a network error so we can not detect
+ * FireFox's http-https mixed->switch to https failure.
+ * So a demand to attach equalizer also to a video element.
+ * @returns {Promise<HTMLAudioElement>}
+ */
+function createAudioElement() {
+  return new Promise((resolve, _) => {
     const audio = document.createElement("audio");
     audio.setAttribute("id", "audioWithControls");
     audio.setAttribute("crossorigin", "anonymous");
@@ -105,6 +152,18 @@ function createAudioElements() {
     audio.setAttribute("controls", "");
     audio.volume = "0.7";
 
+    resolve(audio);
+  });
+}
+
+/**
+ * Plug the cables into the speaker.
+ * @param {HTMLAudioElement} audio
+ * @param {HTMLVideoElement} video
+ * @returns {Promise<undefined>}
+ */
+function mediaConnectors(audio, video) {
+  return new Promise((resolve, _) => {
     audioContext = new AudioContext();
     audioContext.onerror = (e) => {
       console.error("audioContext->", e); //nothing so far, may be needed if load stream
@@ -112,6 +171,7 @@ function createAudioElements() {
 
     // Plug for the connector chain. Ends in audioContext.destination (speaker).
     audioSource = audioContext.createMediaElementSource(audio);
+    videoSource = audioContext.createMediaElementSource(video);
     analyser = audioContext.createAnalyser(); // feeds main animation (fft)
     analyserInit = audioContext.createAnalyser(); // init screen, diff fftSizes for anim.
 
@@ -134,16 +194,16 @@ function createAudioElements() {
       }
     };
 
-    resolve(audio);
+    resolve();
   });
 }
 
 /**
  * Volume buttons for mobile user.
- * @param {*} volBtns
- * @param {*} audio
- * @param {*} audioVolume
- * @returns
+ * @param {HTMLDivElement} volBtns
+ * @param {HTMLAudioElement} audio
+ * @param {HTMLInputElement} audioVolume
+ * @returns {Promise<undefined>}
  */
 function createVolBtnListener(volBtns, audio, audioVolume) {
   return new Promise((resolve, _) => {
@@ -199,8 +259,12 @@ function createVolBtnListener(volBtns, audio, audioVolume) {
 /**
  * Buttons element for Android user.
  * Wrap all elements in container to show side by side.
- * @param {*} audio
- * @returns
+ * @param {HTMLAudioElement} audio
+ * @returns {Promise<Object>} dict
+ * @returns {Object<HTMLDivElement>} volMinus
+ * @returns {Object<HTMLDivElement>} volPlus
+ * @returns {Object<HTMLDivElement>} volDisplay
+ * @returns {Object<HTMLDivElement>} volumeButtons
  */
 function createVolumeBtns() {
   return new Promise((resolve, _) => {
@@ -267,8 +331,12 @@ function createVolumeBtns() {
   });
 }
 
-// split
-function createVolumeSlider(audioElem) {
+/**
+ * Audio volume slider for PC user. Android user use buttons.
+ * @param {HTMLAudioElement} audio 
+ * @returns {Promise<HTMLInputElement>} audioVolume
+ */
+function createVolumeSlider(audio) {
   return new Promise((resolve, _) => {
     // https://freefrontend.com/css-range-sliders/
     const audioVolume = document.createElement("input"); // slider
@@ -279,23 +347,29 @@ function createVolumeSlider(audioElem) {
     audioVolume.classList.add("slider_neutral");
 
     audioVolume.addEventListener("input", () => {
-      setAudioVolume(audioElem, audioVolume);
+      setAudioVolume(audio, audioVolume);
     });
     resolve(audioVolume);
   });
 }
 
-function restoreAudioVolume(audioElem, audioVolume) {
+/**
+ *
+ * @param {HTMLAudioElement} audio
+ * @param {HTMLInputElement} audioVolume
+ * @returns {Promise<undefined>}
+ */
+function restoreAudioVolume(audio, audioVolume) {
   return new Promise(async (resolve, _) => {
-    let elemDict = await getAppSettings({ id: audioElem.id });
+    let elemDict = await getAppSettings({ id: audio.id });
     if (!elemDict) {
       const defaultVolume = "75";
-      await setAppSettings({ id: audioElem.id, volume: defaultVolume });
+      await setAppSettings({ id: audio.id, volume: defaultVolume });
       audioVolume.value = defaultVolume;
       metaData.set()["audioVolume"] = defaultVolume;
     } else {
       audioVolume.value = elemDict.volume;
-      setAudioVolume(audioElem, audioVolume);
+      setAudioVolume(audio, audioVolume);
       metaData.set()["audioVolume"] = audioVolume.value;
     }
     resolve();
@@ -305,8 +379,8 @@ function restoreAudioVolume(audioElem, audioVolume) {
 /**
  * Either volume slider or button press updates also
  * metaData.set()["audioVolume"] to have both element in sync.
- * @param {*} audio
- * @param {*} audioVolume
+ * @param {HTMLAudioElement} audio
+ * @param {HTMLInputElement} audioVolume
  */
 function setAudioVolume(audio, audioVolume) {
   const volDisplay = document.getElementById("volDisplay");
@@ -322,7 +396,8 @@ function setAudioVolume(audio, audioVolume) {
 /**
  * Must have an analyzer for each animation.
  * Not only due to different fft size requirements.
- * Else one canvas will show distortions, if there are two canva s.
+ * Else one canvas will show distortions, if there are two canvas.
+ * @returns {Promise<undefined>}
  */
 function createMainAudioLine() {
   return new Promise((resolve, _) => {
@@ -332,10 +407,15 @@ function createMainAudioLine() {
   });
 }
 
+/**
+ * Late connect after splash screen to prevent loader sound to play,
+ * Sound drives the flash animation.
+ * @returns {Promise<undefined>}
+ */
 function connectAnalyserInit() {
   return new Promise((resolve, _) => {
-    // extra line for init screen
     audioSource.connect(analyserInit); // silent, then may .connect(audioContext.destination);
+    videoSource.connect(analyserInit);
     resolve();
   });
 }

@@ -24,7 +24,7 @@
 
 import { metaData } from "../central.js";
 import { getAppSettings, setAppSettings } from "../database/idbAppSettings.js";
-import { audioContext, audioSource } from "./audio.js";
+import { audioContext, audioSource } from "./mediaElements.js";
 import {
   equalizerPresets,
   equalizerRanges,

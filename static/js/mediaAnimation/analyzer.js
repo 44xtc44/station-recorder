@@ -21,7 +21,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { analyser, analyserInit } from "./audio.js";
+import { analyser, analyserInit } from "./mediaElements.js";
 
 export {
   drawAnalyzerInit,
