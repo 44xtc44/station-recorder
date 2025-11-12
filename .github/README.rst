@@ -34,7 +34,7 @@ Overview
 | 
 | The extension app can be used with FireFox on mobile Android devices and PC.
 | 
-| FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder/
+| FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder-extra-stark/
 |
 | It needs a feature upgrade to be also an npm package via express server to support 
 | all browsers out of the box. See my ''PROKIF'' project as an example.
