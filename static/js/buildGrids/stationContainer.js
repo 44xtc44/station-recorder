@@ -45,13 +45,13 @@ import {
   recordBoxListener,
   listenBoxListener,
   settingsBoxListener,
-} from "./createRadioListener.js";
+} from "../recordPlay/createRadioListener.js";
 import {
   getIdbValue,
   setIdbValue,
   delIdbValue,
 } from "../database/idbSetGetValues.js";
-import { recBtnColorOn } from "./radioOperation.js";
+import { recBtnColorOn } from "../recordPlay/radioOperation.js";
 
 export { stationClickerLinks, clickerLinkColor };
 

@@ -24,7 +24,7 @@
 
 import { recMsg } from "./messages.js";
 import { metaData } from "../central.js";
-import { switchRecorderState } from "../buildGrids/radioOperation.js";
+import { switchRecorderState } from "../recordPlay/radioOperation.js";
 export { createActivityPlayer, createActivityBar };
 
 /**

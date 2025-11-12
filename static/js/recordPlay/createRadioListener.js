@@ -25,13 +25,13 @@ import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 
 import { showDelMsg } from "../buildGrids/uiDelRadio.js";
-import { showBlacklist } from "./uiBlacklist.js";
+import { showBlacklist } from "../buildGrids/uiBlacklist.js";
 import { submitStationClicked } from "../network/publicDbCom.js";
 import { switchRecorderState } from "./radioOperation.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
-} from "./uiSubmenu.js";
+} from "../buildGrids/uiSubmenu.js";
 import { detectStream, providerUrlGet } from "../network/streamDetect.js";
 
 export {

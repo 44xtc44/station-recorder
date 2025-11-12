@@ -36,7 +36,7 @@ import { createActivityPlayer } from "./network/streamActivity.js";
 import { intervalGetOpenGridData } from "./network/publicDbCom.js";
 import { buildSettings } from "./menuSettings/uiSettings.js";
 import { shortCutIcons } from "./buildGrids/uiShortCutIcons.js";
-import { showRecorderActive } from "./buildGrids/radioOperation.js";
+import { showRecorderActive } from "./recordPlay/radioOperation.js";
 
 export { createUi };
 

@@ -27,6 +27,8 @@
  * ToDo: Save all active recorder display (grid) in an object
  * to avoid loosing DOM connection on long running recording.
  * Description; fail to remove the active recorder div.
+ * 
+ * --> Perhapsonly related to circular imports. Check first, try fixing.
  */
 
 import { recMsg } from "../network/messages.js";

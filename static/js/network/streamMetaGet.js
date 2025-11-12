@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { switchRecorderState } from "../buildGrids/radioOperation.js";
+import { switchRecorderState } from "../recordPlay/radioOperation.js";
 import { resolveFileExt } from "../fileStorage/fileStorage.js";
 import { recMsg, Queue } from "./messages.js";
 import { metaData } from "../central.js";
