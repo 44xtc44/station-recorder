@@ -130,7 +130,7 @@ function createVideoElement() {
     video.setAttribute("autoplay", "");
     video.setAttribute("controls", "");
     video.volume = "0.7";
-    video.width = "500";
+    video.width = "460";
 
     resolve(video);
   });
@@ -337,6 +337,7 @@ function createVolumeBtns() {
 /**
  * Audio volume slider for PC user. Android user use buttons.
  * @param {HTMLAudioElement} audio
+ * @param {HTMLVideoElement} video
  * @returns {Promise<HTMLInputElement>} audioVolume
  */
 function createVolumeSlider(audio, video) {
