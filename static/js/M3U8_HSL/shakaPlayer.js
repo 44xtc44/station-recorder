@@ -25,22 +25,11 @@
 /**
  * Shaka player is called in script mode, not module in HTML file.
  * So it is available in all modules.
- * 
+ *
  * load unload
  */
 export { shakaPlayer, initShakaApp };
-
 let shakaPlayer = null;
-
-const manifestUri =
-  //"https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd";
-  // "https://stream.revma.ihrhls.com/zc1289/hls.m3u8"
-  // "http://hls-tvsoyuz.cdnvideo.ru/tvsoyuz/soyuz/playlist.m3u8" // ru church
-  // "https://stream.technolovers.fm/vocal-trance"; // mp3 stream works check text
-  // "http://streamer.psyradio.org:8010/;listen.mp3" // not working in FF
-  //"https://h056.video-stream-hosting.de/medienasa-live/_definst_/mp4:BLKonline_high/playlist.m3u8" // burgenland
-  // "http://stream.revma.ihrhls.com/zc1289/hls.m3u8"
-  "https://wdrhf.akamaized.net/hls/live/2027995/wdr4/master.m3u8";
 
 function initShakaApp() {
   // Install built-in polyfills to patch browser incompatibilities.
@@ -55,13 +44,21 @@ function initShakaApp() {
     console.error("Browser not supported!");
   }
 }
+const manifestUri =
+  //"https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd";
+  // "https://stream.revma.ihrhls.com/zc1289/hls.m3u8"
+  // "http://hls-tvsoyuz.cdnvideo.ru/tvsoyuz/soyuz/playlist.m3u8" // ru church
+  // "https://stream.technolovers.fm/vocal-trance"; // mp3 stream works check text
+  // "http://streamer.psyradio.org:8010/;listen.mp3" // not working in FF
+  //"https://h056.video-stream-hosting.de/medienasa-live/_definst_/mp4:BLKonline_high/playlist.m3u8" // burgenland
+  // "http://stream.revma.ihrhls.com/zc1289/hls.m3u8"
+  "https://wdrhf.akamaized.net/hls/live/2027995/wdr4/master.m3u8";
 
 async function initPlayer() {
   // Create only "one" Player instance.
   const video = document.getElementById("videoScreen");
-  const shakaPlayer = new shaka.Player();
-  await shakaPlayer.attach(video);
-  debugger;
+  shakaPlayer = new shaka.Player();
+  // await shakaPlayer.attach(video);
 
   // Attach shakaPlayer to the window to make it easy to access in the JS console.
   window.shakaPlayer = shakaPlayer;
@@ -69,9 +66,11 @@ async function initPlayer() {
   // Listen for error events.
   shakaPlayer.addEventListener("error", onErrorEvent);
 
-  shakaPlayer.addEventListener("buffering", (event) => {
+/*   shakaPlayer.addEventListener("buffering", (event) => {
     console.log("Buffering state:", event.buffering);
   });
+ */
+  /* 
 
   // Try to load a manifest.
   // This is an asynchronous process.
@@ -96,6 +95,8 @@ async function initPlayer() {
     // onError is executed if the asynchronous load fails.
     onError(e);
   }
+ */
+
 }
 
 function onErrorEvent(event) {

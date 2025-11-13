@@ -67,7 +67,7 @@ function createMediaElements() {
      * Video
      */
     const videoElem = await createVideoElement();
-    // videoElem.style.display = "none";
+    //videoElem.style.display = "none";
     const videoBar = document.getElementById("videoBar");
     videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
 
@@ -128,9 +128,11 @@ function createVideoElement() {
     video.setAttribute("crossorigin", "anonymous");
     video.setAttribute("preload", "metadata");
     video.setAttribute("autoplay", "");
-    video.setAttribute("controls", "");
+    video.controls = false;
     video.volume = "0.7";
-    video.width = "460";
+    video.height = "50";
+    video.width = "460"; // 460
+    video.poster = "https://shaka-player-demo.appspot.com/assets/audioOnly.gif";
 
     resolve(video);
   });

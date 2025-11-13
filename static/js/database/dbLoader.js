@@ -356,7 +356,7 @@ function customTagOne(station) {
     let isPlaylist = isM3U || isPLS || isM3u8 || isAshx ? true : false;
 
     let tags = station.tags;
-    if (isM3u8) tags = tags.concat(",m3u8", ",HLS");
+    if (isM3u8) tags = tags.concat(",m3u8", ",HSL");
     if (isM3U) tags = tags.concat(",m3u");
     if (isPLS) tags = tags.concat(",pls");
     if (isAshx) tags = tags.concat(",ashx");
