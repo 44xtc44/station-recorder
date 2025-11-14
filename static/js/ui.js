@@ -32,11 +32,11 @@ import { buildUrlsAdd } from "./menuSettings/uiSettingsUrlsAdd.js";
 import { buildSettingsBlackAdd } from "./menuSettings/uiSettingsBlackAdd.js";
 import { buildSettingsBlackDump } from "./menuSettings/uiSettingsBlackDump.js";
 import { buildLogHistory } from "./menuSettings/logHistory.js";
-import { createActivityPlayer } from "./network/streamActivity.js";
+import { createActivityPlayer } from "./recordPlay/streamActivity.js";
 import { intervalGetOpenGridData } from "./network/publicDbCom.js";
 import { buildSettings } from "./menuSettings/uiSettings.js";
 import { shortCutIcons } from "./buildGrids/uiShortCutIcons.js";
-import { showRecorderActive } from "./recordPlay/radioOperation.js";
+import { showRecorderActive } from "./recordPlay/recordRadioStream.js";
 
 export { createUi };
 

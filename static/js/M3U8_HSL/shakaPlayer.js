@@ -66,6 +66,10 @@ async function initPlayer() {
   // Listen for error events.
   shakaPlayer.addEventListener("error", onErrorEvent);
 
+  shakaPlayer.addEventListener('buffering', function(event) {
+    spinner.style.display = event.buffering ? 'block' : 'none';
+  });
+
 /*   shakaPlayer.addEventListener("buffering", (event) => {
     console.log("Buffering state:", event.buffering);
   });
