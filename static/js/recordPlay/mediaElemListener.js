@@ -140,9 +140,7 @@ async function playerOn(stationuuid, stationName, playingUuid) {
   // If switched between continent or country station btn is gone. Other div stack shown.
   const hiddenBtn = document.getElementById(playingUuid + "_listenBox");
   if (hiddenBtn !== null) await playBtnColorOff(playingUuid);
-
   await playBtnColorOn(stationuuid, stationName);
-
   /**
    * Grid elem under monitor displays current audio elem connected station name.
    * Other button was pressed before.
@@ -151,22 +149,32 @@ async function playerOn(stationuuid, stationName, playingUuid) {
   const audio = document.getElementById("audioWithControls");
   if (audio.muted) audio.muted = !audio.muted;
 
-  /**
-   * Shaka player is used only for m3u8 streams in video element.
-   * Normal audio streams via audio element.
-   * Volume, analyzer and equalizer manage both audio and video element.
-   * Each stream type got its own streamDetect module. Audio rejects m3u8.
-   */
-  const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
-  console.error("playerOn->", isM3U8);
+  await streamConnect(stationuuid, audio, shakaPlayer); // shaka (module import)
+  submitStationClicked(stationuuid, stationName); // to inet public DB
+  // UI display - country 3char code
+  const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
+  recMsg(["play ", ccTo3char, stationName]);
+}
 
-  // FUN
+/**
+ * Shaka player is used only for m3u8 streams in video element.
+ * Normal audio streams via audio element.
+ * Volume, analyzer and equalizer manage both audio and video element.
+ * Each stream type got its own streamDetect module. Audio rejects m3u8.
+ * @param {string} stationuuid
+ * @param {HTMLAudioElement} audio audio element
+ * @param {object} shakaPlayer instance
+ */
+async function streamConnect(stationuuid, audio, shakaPlayer) {
+  const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
   if (isM3U8) {
-    // FUN
-    // HSL stream is online.
+    // HSL stream
     const playlistURL = metaData.get().infoDb[stationuuid].url;
     const url = await locateTarget(playlistURL); // possible redirect in .m3u8 file
-    if (url === false) return;
+    console.log("shaka locateTarget", url); // bug "90s90s Rock (HLS)" station
+    if (url === false) {
+      return;
+    }
 
     metaData.set().player.isM3U8 = true;
     const video = document.getElementById("videoScreen");
@@ -178,8 +186,9 @@ async function playerOn(stationuuid, stationName, playingUuid) {
       console.error("playerOn->shaka load", shakaError.code); // action!
       // video.poster error msg, or jpg or favicon or ...
     }
-  } else {
-    // FUN
+  }
+
+  if (!isM3U8) {
     // Audio stream is online, or resolve a playlist URL.
     const urlObj = await detectStream(stationuuid);
     if (urlObj.url === false) return;
@@ -187,12 +196,6 @@ async function playerOn(stationuuid, stationName, playingUuid) {
     metaData.set().player.isM3U8 = false;
     audio.src = urlObj.url; // can be empty str
   }
-
-  submitStationClicked(stationuuid, stationName); // to public DB
-  
-  // UI display - country 3char code
-  const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
-  recMsg(["play ", ccTo3char, stationName]);
 }
 
 function playBtnColorOn(stationuuid, stationName) {
