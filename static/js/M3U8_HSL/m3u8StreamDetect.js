@@ -24,7 +24,7 @@ async function connectM3u8(url) {
   }
 
   // Filter out errors and redirects.
-  if (response.status <= 200 && response.status >= 300) {
+  if (response.status < 200 || response.status > 300) {
     // false Server response
     console.error("detectStream->::SERVER_ERROR", url);
     return false;
