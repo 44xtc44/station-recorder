@@ -25,8 +25,6 @@
 /**
  * Shaka player is called in script mode, not module in HTML file.
  * So it is available in all modules.
- *
- * load unload
  */
 export { shakaPlayer, initShakaApp };
 let shakaPlayer = null;
@@ -44,21 +42,12 @@ function initShakaApp() {
     console.error("Browser not supported!");
   }
 }
-const manifestUri =
-  //"https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd";
-  // "https://stream.revma.ihrhls.com/zc1289/hls.m3u8"
-  // "http://hls-tvsoyuz.cdnvideo.ru/tvsoyuz/soyuz/playlist.m3u8" // ru church
-  // "https://stream.technolovers.fm/vocal-trance"; // mp3 stream works check text
-  // "http://streamer.psyradio.org:8010/;listen.mp3" // not working in FF
-  //"https://h056.video-stream-hosting.de/medienasa-live/_definst_/mp4:BLKonline_high/playlist.m3u8" // burgenland
-  // "http://stream.revma.ihrhls.com/zc1289/hls.m3u8"
-  "https://wdrhf.akamaized.net/hls/live/2027995/wdr4/master.m3u8";
 
 async function initPlayer() {
   // Create only "one" Player instance.
   const video = document.getElementById("videoScreen");
   shakaPlayer = new shaka.Player();
-  // await shakaPlayer.attach(video);
+  await shakaPlayer.attach(video);
 
   // Attach shakaPlayer to the window to make it easy to access in the JS console.
   window.shakaPlayer = shakaPlayer;
@@ -66,41 +55,10 @@ async function initPlayer() {
   // Listen for error events.
   shakaPlayer.addEventListener("error", onErrorEvent);
 
-  shakaPlayer.addEventListener('buffering', function(event) {
-    spinner.style.display = event.buffering ? 'block' : 'none';
+  // Remove nasty spinner.
+  shakaPlayer.addEventListener("buffering", function (event) {
+    spinner.style.display = event.buffering ? "block" : "none";
   });
-
-/*   shakaPlayer.addEventListener("buffering", (event) => {
-    console.log("Buffering state:", event.buffering);
-  });
- */
-  /* 
-
-  // Try to load a manifest.
-  // This is an asynchronous process.
-  try {
-    await shakaPlayer.load(manifestUri);
-    // This runs if the asynchronous load is successful.
-    console.log("The video has now been loaded!");
-    // shaka.media.SegmentReference to grab loaded chunks for ID3 check
-    // getSegmentData(allowDeleteOnSingleUseopt) → {BufferSource}
-    // const foo = shakaPlayer.getManifest() //SegmentReference.getSegmentData()
-    console.log("getConfiguration->", shakaPlayer.getConfiguration());
-    console.log("shaka->", shaka);
-    /// const foo1 = shakaPlayer.getSegmentData()
-    // save project, copy to uncompiled project and check shakaPlayer object for stream access
-    // https://github.com/shaka-project/shaka-shakaPlayer/issues/7763 request filter
-    console.log("The video has now been loaded!", shakaPlayer);
-    // debugger;
-    video.play(); // else stopped
-
-    console.log(shakaPlayer.selectTextTrack());
-  } catch (e) {
-    // onError is executed if the asynchronous load fails.
-    onError(e);
-  }
- */
-
 }
 
 function onErrorEvent(event) {
