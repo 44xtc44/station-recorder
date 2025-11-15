@@ -1,4 +1,4 @@
-// radioOperation.js
+// recordRadioStream.js
 "use strict";
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
@@ -27,6 +27,8 @@
  * ToDo: Save all active recorder display (grid) in an object
  * to avoid loosing DOM connection on long running recording.
  * Description; fail to remove the active recorder div.
+ * 
+ * --> Perhapsonly related to circular imports. Check first, try fixing.
  */
 
 import { recMsg } from "../network/messages.js";
@@ -88,9 +90,9 @@ function recBtnColorOn(recBtn, isActive) {
   } else {
     // refac Uncaught (in promise) TypeError: can't access property "style", recBtn is null
     /**
-     * recBtnColorOn moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/radioOperation.js:68
-    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/radioOperation.js:51
-    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/radioOperation.js:33
+     * recBtnColorOn moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:68
+    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:51
+    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:33
     createActivityBar moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/streamActivity.js:88
     createActivityBar moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/streamActivity.js:87
     prepDownload moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/streamDataGet.js:160
@@ -100,10 +102,10 @@ function recBtnColorOn(recBtn, isActive) {
     promise callback*streamData moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:106
     runMetaAndRecord moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:59
     setTimeout handler*runMetaAndRecord moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:57
-    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/radioOperation.js:43
-    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/radioOperation.js:33
-    recordBoxListener moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/createRadioListener.js:61
-    recordBoxListener moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/createRadioListener.js:60
+    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:43
+    switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:33
+    recordBoxListener moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/mediaElemListener.js:61
+    recordBoxListener moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/mediaElemListener.js:60
     waitGridReady moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/stationContainer.js:270
     populateOneGrid moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/stationContainer.js:288
     populateOneGrid moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/stationContainer.js:257

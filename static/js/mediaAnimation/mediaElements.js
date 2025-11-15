@@ -67,7 +67,7 @@ function createMediaElements() {
      * Video
      */
     const videoElem = await createVideoElement();
-    // videoElem.style.display = "none";
+    //videoElem.style.display = "none";
     const videoBar = document.getElementById("videoBar");
     videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
 
@@ -128,12 +128,39 @@ function createVideoElement() {
     video.setAttribute("crossorigin", "anonymous");
     video.setAttribute("preload", "metadata");
     video.setAttribute("autoplay", "");
-    video.setAttribute("controls", "");
+    // https://stackoverflow.com/questions/58625226/how-to-hide-video-loading-spinner-in-html5-video-tag
+    video.controls = false; // false means also no resizing, see link for fullscreen
     video.volume = "0.7";
-    video.width = "460";
+    // video.height = "50";
+    video.width = "460"; // 460
+    video.poster = "https://shaka-player-demo.appspot.com/assets/audioOnly.gif";
 
+    video.addEventListener("click", toggleFullscreen);
     resolve(video);
   });
+}
+
+function toggleFullscreen() {
+  const videoElement = document.getElementById("videoScreen");
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else if (videoElement.webkitExitFullscreen) {
+    // Safari
+    document.webkitExitFullscreen();
+  } else if (videoElement.msRequestFullscreen) {
+    // IE/Edge
+    document.msExitFullscreen();
+  }
+
+  if (!document.fullscreenElementl) {
+    videoElement.requestFullscreen();
+  } else if (videoElement.webkitRequestFullscreen) {
+    // Safari
+    videoElement.webkitRequestFullscreen();
+  } else if (videoElement.msRequestFullscreen) {
+    // IE/Edge
+    videoElement.msRequestFullscreen();
+  }
 }
 
 /**
