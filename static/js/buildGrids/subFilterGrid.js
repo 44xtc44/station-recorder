@@ -231,7 +231,6 @@ function countriesBtns(btn, countryName) {
  * @returns {Promise<undefined>} Promise undefined
  */
 function setEvtCountriesBtns(countryBtn, twoCharCode, btn) {
-  console.log("setEvtCountriesBtns btn->", btn.innerText);
   return new Promise((resolve, _) => {
     countryBtn.addEventListener("click", async () => {
       await accessBlock();
@@ -261,7 +260,6 @@ function setEvtCountriesBtns(countryBtn, twoCharCode, btn) {
  * @returns {Promise<Array>} Promise with array of stations
  */
 function countryStations(twoCharCode) {
-  console.log("countryStations->", twoCharCode)
   return new Promise((resovlve, _) => {
     const cc = twoCharCode.toUpperCase(); // constants.js has lower case
     let db = metaData.get().infoDb; //  !!! debugger !!! killa, whole DB
@@ -274,7 +272,6 @@ function countryStations(twoCharCode) {
       return accu;
     }, []);
     db = null;
-    console.log("countryStations->", countryStations)
     const countryName = metaData.get()["countryNames"][cc];
     recMsg([countryStations.length + " URLs " + countryName]);
     resovlve(countryStations.sort());
@@ -282,8 +279,11 @@ function countryStations(twoCharCode) {
 }
 
 /**
- * Produce array of country names for buttons and name to 2-char resolver dict.
+ * Produce array of country names for 
+ * buttons and name to 2-char resolver dict.
  * @returns {object} dict with countryNames and country to 2-char codes {germanistan: de}
+ * @returns {object<Array>} countryNames 
+ * @returns {object<object>} {Andorra: "AD", Angola: "AO", Anguilla: "AI", ...}
  */
 function resolveCountryStations() {
   return new Promise((resolve, _) => {
@@ -325,9 +325,10 @@ function resolveCountryStations() {
  * 50k+ divs high CPU kills recorder.
  *
  * As long as recorder is not a separate process - refac, upgrade to webWorker.
- * @param {string[]} areaNames continents + "world"
+ * @param {Array<string>} areaNames continents + "world"
  * @param {HTMLObjectElement} btn "World" button div
  * @param {string} worldName name value "World" button topFilter
+ * @returns {Promise<undefined>} Promise undefined
  */
 function worldAreasBtns(areaNames, btn, worldName) {
   return new Promise((resolve, _) => {
@@ -366,6 +367,13 @@ function worldAreasBtns(areaNames, btn, worldName) {
   });
 }
 
+/**
+ * 
+ * @param {HTMLDivElement} areaBtn 
+ * @param {string} areaName 
+ * @param {HTMLDivElement} btn 
+ * @returns {Promise<undefined>} Promise undefined
+ */
 function setEvtWorldAreasBtns(areaBtn, areaName, btn) {
   return new Promise((resolve, _) => {
     areaBtn.addEventListener("click", async () => {
@@ -394,7 +402,7 @@ function setEvtWorldAreasBtns(areaBtn, areaName, btn) {
  * Extract all stations belonging to an array of countries (area).
  * @param {string} areaName continent name or "World"
  * @param {Object} areaCountries dict {continent1: [countryCodes], continent2: [countryCodes] }
- * @returns {Array} stations belonging to a continent (or the whole world, stations dump)
+ * @returns {Promise<Array>} Promise array stations of a continent (or whole world stations dump)
  */
 function worldAreaStations(areaName, areaCountries) {
   return new Promise((resolve, _) => {
@@ -432,6 +440,7 @@ function worldAreaStations(areaName, areaCountries) {
  * @param {Array<string>} continents array
  * @param {HTMLDivElement} btn "Continent" topfilter button
  * @param {string} continentName name value "Continent" button topFilter
+ * @returns {Promise<undefined>} Promise undefined
  */
 function continentBtns(continents, btn, continentName) {
   return new Promise((resolve, _) => {
@@ -475,6 +484,7 @@ function continentBtns(continents, btn, continentName) {
  * @param {string} continent name
  * @param {Array<string>} countriesOfContinent 2-char codes of countries
  * @param {HTMLDivElement} btn topfilter button
+ * @returns {Promise<undefined>} Promise undefined
  */
 function setEvtContinentBtns(
   continentBtn,
@@ -520,9 +530,9 @@ function setEvtContinentBtns(
 /**
  * Container with an anchor to attach all stations.
  * Anchor can be removed, so no need for a remove loop.
- * @param {*} containerName
- * @param {*} anchorName
- * @returns
+ * @param {string} containerName div id
+ * @param {string} anchorName div id
+ * @returns {Promise<HTMLDivElement>} Promise anchor div
  */
 function createContainer(containerName, anchorName) {
   return new Promise(async (resolve, _) => {
@@ -538,7 +548,7 @@ function createContainer(containerName, anchorName) {
 
 /**
  * Fresh subFilterContainer.
- * @returns {HTMLObjectElement} anchor div
+ * @returns {HTMLDivElement} anchor div
  */
 async function subFilterContainer() {
   const parentName = "subFilterBar";
@@ -554,8 +564,8 @@ async function subFilterContainer() {
 
 /**
  * Can synchronous remove a DOM element, anchor.
- * @param {string} HTMLElement id
- * @returns {Promise} done
+ * @param {string} elementId HTML id
+ * @returns {Promise<undefined>} Promise undefined
  * @example
  * await removeElement(anchorName);
  */
@@ -575,6 +585,7 @@ function removeElement(elementId) {
  * stationGroup' it is used to detect and
  * create a delete button to remove 'Custom' URLs from object store.
  * @param {string} objStore
+ * @returns {Promise<undefined>} Promise undefined
  */
 function setActiveStationGroup(objStore) {
   return new Promise((resolve, _) => {
