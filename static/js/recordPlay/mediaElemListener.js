@@ -123,6 +123,8 @@ function playBtnState(stationuuid) {
 async function playerOff(playingUuid) {
   const audio = document.getElementById("audioWithControls");
   const video = document.getElementById("videoScreen");
+  video.style.display = "none";
+
   await shakaPlayer.unload();
   await shakaPlayer.detach(video);
   audio.pause(); // load a base64 audio silent string to get .onended
@@ -148,8 +150,9 @@ async function playerOn(stationuuid, stationName, playingUuid) {
    */
   const audio = document.getElementById("audioWithControls");
   if (audio.muted) audio.muted = !audio.muted;
+  const video = document.getElementById("videoScreen");
 
-  await streamConnect(stationuuid, audio, shakaPlayer); // shaka (module import)
+  await streamConnect(stationuuid, audio, video); // shaka is (module import)
   submitStationClicked(stationuuid, stationName); // to inet public DB
   // UI display - country 3char code
   const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
@@ -163,28 +166,32 @@ async function playerOn(stationuuid, stationName, playingUuid) {
  * Each stream type got its own streamDetect module. Audio rejects m3u8.
  * @param {string} stationuuid
  * @param {HTMLAudioElement} audio audio element
- * @param {object} shakaPlayer instance
+ * @param {HTMLVideoElement} video instance
  */
-async function streamConnect(stationuuid, audio, shakaPlayer) {
+async function streamConnect(stationuuid, audio, video) {
   const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
   if (isM3U8) {
     // HSL stream
     const playlistURL = metaData.get().infoDb[stationuuid].url;
     const url = await locateTarget(playlistURL); // possible redirect in .m3u8 file
-    console.log("shaka locateTarget", url); // bug "90s90s Rock (HLS)" station
     if (url === false) {
       return;
     }
 
     metaData.set().player.isM3U8 = true;
-    const video = document.getElementById("videoScreen");
     await shakaPlayer.attach(video);
+
     try {
-      // // --> memorize needed .isAudioOnly() screen resize audio only, read width in {}
       await shakaPlayer.load(url);
     } catch (shakaError) {
       console.error("playerOn->shaka load", shakaError.code); // action!
       // video.poster error msg, or jpg or favicon or ...
+      return;
+    }
+    const audioOnly = shakaPlayer.isAudioOnly();
+    const videoOnly = shakaPlayer.isVideoOnly();
+    if (videoOnly || (!audioOnly && !videoOnly)) {
+      video.style.display = "block";
     }
   }
 

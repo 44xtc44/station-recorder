@@ -1,5 +1,5 @@
 // m3u8Connect.js
-
+import { recMsg } from "../network/messages.js";
 export { connectM3u8 };
 
 async function connectM3u8(url) {
@@ -18,7 +18,7 @@ async function connectM3u8(url) {
   if (response !== "NETWORK_ERROR") {
     contentType = response.headers.get("Content-Type");
     if (contentType === null) {
-      console.error(["fail:: no header content-type"]);
+      recMsg(["fail ::M3U8_NO_CONTENT-TYPE", url]);
       return false;
     }
   }
@@ -27,10 +27,11 @@ async function connectM3u8(url) {
   if (response.status < 200 || response.status > 300) {
     // false Server response
     console.error("detectStream->::SERVER_ERROR", url);
+    recMsg(["fail ::M3U8_SERVER_ERROR", url]);
     return false;
   }
   if (response === "NETWORK_ERROR") {
-    console.error("connectM3u8->::NETWORK_ERROR", url);
+    recMsg(["fail ::M3U8_NETWORK_ERROR", url]);
     return false;
   }
 

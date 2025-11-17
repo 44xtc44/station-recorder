@@ -26,6 +26,7 @@ import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 import { providerUrlGet } from "../network/streamDetect.js";
 import { getAppSettings, setAppSettings } from "../database/idbAppSettings.js";
+import { shakaBGimg } from "../constants.js";
 
 export {
   createMediaElements,
@@ -67,7 +68,6 @@ function createMediaElements() {
      * Video
      */
     const videoElem = await createVideoElement();
-    //videoElem.style.display = "none";
     const videoBar = document.getElementById("videoBar");
     videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
 
@@ -75,7 +75,6 @@ function createMediaElements() {
      * Audio
      */
     const audioElem = await createAudioElement();
-    audioElem.style.display = "none";
 
     await mediaConnectors(audioElem, videoElem);
 
@@ -128,12 +127,12 @@ function createVideoElement() {
     video.setAttribute("crossorigin", "anonymous");
     video.setAttribute("preload", "metadata");
     video.setAttribute("autoplay", "");
-    // https://stackoverflow.com/questions/58625226/how-to-hide-video-loading-spinner-in-html5-video-tag
     video.controls = false; // false means also no resizing, see link for fullscreen
     video.volume = "0.7";
-    // video.height = "50";
-    video.width = "460"; // 460
-    video.poster = "https://shaka-player-demo.appspot.com/assets/audioOnly.gif";
+
+    video.poster = shakaBGimg.default;
+    video.width = "470";
+    video.style.display = "none";
 
     video.addEventListener("click", toggleFullscreen);
     resolve(video);
@@ -180,6 +179,8 @@ function createAudioElement() {
     audio.setAttribute("autoplay", "");
     audio.setAttribute("controls", "");
     audio.volume = "0.7";
+
+    audio.style.display = "none";
 
     resolve(audio);
   });
