@@ -123,6 +123,8 @@ function playBtnState(stationuuid) {
 async function playerOff(playingUuid) {
   const audio = document.getElementById("audioWithControls");
   const video = document.getElementById("videoScreen");
+  video.style.display = "none";
+
   await shakaPlayer.unload();
   await shakaPlayer.detach(video);
   audio.pause(); // load a base64 audio silent string to get .onended
@@ -140,9 +142,7 @@ async function playerOn(stationuuid, stationName, playingUuid) {
   // If switched between continent or country station btn is gone. Other div stack shown.
   const hiddenBtn = document.getElementById(playingUuid + "_listenBox");
   if (hiddenBtn !== null) await playBtnColorOff(playingUuid);
-
   await playBtnColorOn(stationuuid, stationName);
-
   /**
    * Grid elem under monitor displays current audio elem connected station name.
    * Other button was pressed before.
@@ -150,36 +150,52 @@ async function playerOn(stationuuid, stationName, playingUuid) {
    */
   const audio = document.getElementById("audioWithControls");
   if (audio.muted) audio.muted = !audio.muted;
+  const video = document.getElementById("videoScreen");
 
-  /**
-   * Shaka player is used only for m3u8 streams in video element.
-   * Normal audio streams via audio element.
-   * Volume, analyzer and equalizer manage both audio and video element.
-   * Each stream type got its own streamDetect module. Audio rejects m3u8.
-   */
+  await streamConnect(stationuuid, audio, video); // shaka is (module import)
+  submitStationClicked(stationuuid, stationName); // to inet public DB
+  // UI display - country 3char code
+  const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
+  recMsg(["play ", ccTo3char, stationName]);
+}
+
+/**
+ * Shaka player is used only for m3u8 streams in video element.
+ * Normal audio streams via audio element.
+ * Volume, analyzer and equalizer manage both audio and video element.
+ * Each stream type got its own streamDetect module. Audio rejects m3u8.
+ * @param {string} stationuuid
+ * @param {HTMLAudioElement} audio audio element
+ * @param {HTMLVideoElement} video instance
+ */
+async function streamConnect(stationuuid, audio, video) {
   const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
-  console.error("playerOn->", isM3U8);
-
-  // FUN
   if (isM3U8) {
-    // FUN
-    // HSL stream is online.
+    // HSL stream
     const playlistURL = metaData.get().infoDb[stationuuid].url;
     const url = await locateTarget(playlistURL); // possible redirect in .m3u8 file
-    if (url === false) return;
+    if (url === false) {
+      return;
+    }
 
     metaData.set().player.isM3U8 = true;
-    const video = document.getElementById("videoScreen");
     await shakaPlayer.attach(video);
+
     try {
-      // // --> memorize needed .isAudioOnly() screen resize audio only, read width in {}
       await shakaPlayer.load(url);
     } catch (shakaError) {
       console.error("playerOn->shaka load", shakaError.code); // action!
       // video.poster error msg, or jpg or favicon or ...
+      return;
     }
-  } else {
-    // FUN
+    const audioOnly = shakaPlayer.isAudioOnly();
+    const videoOnly = shakaPlayer.isVideoOnly();
+    if (videoOnly || (!audioOnly && !videoOnly)) {
+      video.style.display = "block";
+    }
+  }
+
+  if (!isM3U8) {
     // Audio stream is online, or resolve a playlist URL.
     const urlObj = await detectStream(stationuuid);
     if (urlObj.url === false) return;
@@ -187,12 +203,6 @@ async function playerOn(stationuuid, stationName, playingUuid) {
     metaData.set().player.isM3U8 = false;
     audio.src = urlObj.url; // can be empty str
   }
-
-  submitStationClicked(stationuuid, stationName); // to public DB
-  
-  // UI display - country 3char code
-  const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
-  recMsg(["play ", ccTo3char, stationName]);
 }
 
 function playBtnColorOn(stationuuid, stationName) {

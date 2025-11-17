@@ -352,8 +352,13 @@ function customTagOne(station) {
     let isM3U = plstExtThree.includes("m3u") ? true : false;
     let isPLS = plstExtThree.includes("pls") ? true : false;
     let isM3u8 = plstExtFour.includes("m3u8") ? true : false;
+    // part of URL in the middle
+    let isM3u8plus = station.url.includes(".m3u8") ? true : false;
+    if (isM3u8 || isM3u8plus) isM3u8 = true;
+
     let isAshx = station.url.includes("ashx") ? true : false; // full URL scan
-    let isPlaylist = isM3U || isPLS || isM3u8 || isAshx ? true : false;
+    let isPlaylist =
+      isM3U || isPLS || isM3u8 || isM3u8plus || isAshx ? true : false;
 
     let tags = station.tags;
     if (isM3u8) tags = tags.concat(",m3u8", ",HSL");

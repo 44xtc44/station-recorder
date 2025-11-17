@@ -606,6 +606,7 @@ function showHome(stationuuid, station) {
 function showFavicon(stationuuid, station) {
   return new Promise((resolve, _) => {
     const divFavicon = document.createElement("div");
+    const imgDefault = "./images/new-tab-stream-icon.svg";
     divFavicon.setAttribute("id", "divFavicon_" + stationuuid);
     divFavicon.classList.add("interactBar");
     divFavicon.classList.add("handCursor");
@@ -613,13 +614,14 @@ function showFavicon(stationuuid, station) {
     divFavicon.style.overflow = "visible";
     const imgFavicon = document.createElement("img");
     imgFavicon.id = "imgFavicon_" + stationuuid;
-    imgFavicon.src = "./images/new-tab-stream-icon.svg";
+    imgFavicon.src = imgDefault;
     imgFavicon.style.height = "30px";
     imgFavicon.style.width = "30px";
 
     const faviconSrc = station.favicon;
     if (faviconSrc.length > 0) {
       imgFavicon.src = faviconSrc;
+      imgFavicon.onerror = () => (imgFavicon.src = imgDefault);
     }
     divFavicon.appendChild(imgFavicon);
     // open stream in a new tab - play, fail safe option

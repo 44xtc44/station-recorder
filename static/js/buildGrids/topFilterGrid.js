@@ -30,6 +30,8 @@ import {
   localDbBtns,
   worldAreasBtns,
 } from "./subFilterGrid.js";
+import { metaData } from "../central.js";
+
 export { topFilterButtons };
 
 /**
@@ -41,6 +43,7 @@ export { topFilterButtons };
  */
 function topFilterButtons() {
   return new Promise((resolve, _) => {
+    subFilterVisibleState();
     const topFilterBar = document.getElementById("topFilterBar");
     const filterBarContainer = document.getElementById("filterBarContainer");
     filterBarContainer.classList.add("defaulColor");
@@ -74,4 +77,20 @@ function topFilterButtons() {
     }
     resolve();
   });
+}
+
+/**
+ * Exercise to keep track of pressed button state.
+ * shown - subfilter div is shown
+ * buttonName - Decide to show subfilter or replace existing with own content.
+ *              Impl. fun: Do not hide subfilter if area name is NOT the same.
+ */
+function subFilterVisibleState() {
+  const isRegistered = metaData.get().toggleSubFilter;
+  if (isRegistered === undefined) {
+    metaData.set()["toggleSubFilter"] = {
+      shown: false, 
+      buttonName: "",
+    };
+  }
 }

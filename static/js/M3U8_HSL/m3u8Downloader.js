@@ -8,13 +8,13 @@
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-basic-usage.html
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-debugging.html
  * dIST https://app.unpkg.com/shaka-player@2.5.4/files/dist
- * 
+ *
  * offline playback, storage https://dev.to/vanyaxk/shaka-player-for-media-playback-implementation-use-cases-pros-and-cons-3b87
  */
 
 import { artistReader } from "./m3u8ArtistReader.js";
 import { writeFileLocal } from "./fileStorage.js";
-import { connectM3u8 } from "./m3u8StreamDetect.js"; 
+import { connectM3u8 } from "./m3u8StreamDetect.js";
 import { processM3u8, responseTxtArray } from "./m3u8Reader.js";
 
 // import { media } from "./m3u8SharedMedia.js";
@@ -57,25 +57,11 @@ async function m3u8Download(playlistURL) {
  * @returns {Response}
  */
 async function locateTarget(url) {
-  // let url = "https://augsburgtv.iptv-playoutcenter.de/augsburgtv/augsburgtv.stream_1/playlist.m3u8"
-  // let url =
-  //   "https://swrswr3vr-hls.akamaized.net/hls/live/2018683/swr3vr/master.m3u8";
-  //let url =
-  //  "https://stream.revma.ihrhls.com/zc593/66_1jz3gmo0magf802/playlist.m3u8";
-  // let url = "https://wdrhf.akamaized.net/hls/live/2027995/wdr4/master.m3u8"; // multi redirects
-  // let url = "https://wdrhf.akamaized.net/hls/live/2027995/wdr4/96/seglist.m3u8"; // 1800 URLs in one playlist
-  // let url = "http://stream.mediawork.cz/retrotv/retrotvHQ1/playlist.m3u8"; // aborted Retro Music Television cz
-  // let url = "http://stream.revma.ihrhls.com/zc6951/hls.m3u8";
-  // let url = "http://stream.revma.ihrhls.com/zc1289/hls.m3u8"; // redirect aac
-  // let url = "http://hls-tvsoyuz.cdnvideo.ru/tvsoyuz/soyuz/playlist.m3u8" // ru church
-  // let url = "https://mcdn.hf.br.de/br/hf/br24/master-96000.m3u8"; // B24
-  // let url = "https://stream.technolovers.fm/vocal-trance" // mp3 stream nok -> no m3u8 here
-
   const response = await connectM3u8(url);
   if (response === false) return false;
 
-  const m3u8AsArray = await responseTxtArray(response);
-  const { isRedirect, redirectUrl } = await redirectUrlGet(m3u8AsArray);
+  const m3u8 = await processM3u8(response);
+  const { isRedirect, redirectUrl } = await redirectUrlGet(m3u8.chunkURLs);
   if (isRedirect) return redirectUrl; // central name server -> playlist server
   if (!isRedirect) return url;
 }
@@ -101,7 +87,9 @@ async function redirectUrlGet(urls) {
 /**
  * Stream chunk URL array writer.
  * @param {string} url
- * @param {Object} playlist
+ * @type {object} playlist
+ * @param {Array.<string>} URLs array of strings
+ * @param {Array.<string>} metadata array of strings
  */
 async function fetchURLs(url, playlist) {
   while (true) {
