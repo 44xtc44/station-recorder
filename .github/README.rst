@@ -175,35 +175,44 @@ The app pulls every few minutes the latest dataset from the public DB API,
 for all openend station container. A badge shows the current vote and click 
 counts for the station and the trend towards positive or negative numbers.
 
+HowTo Android - install on FireFox
+-----------------------------------
+| 1. open Hamburger Menu
+| 2. Select the puzzle icon, extensions
+| 3. Scroll to the bottom and select "Find more extensions"
+¼ 4. type the extension name and install
 
-HowTo user test Android
-------------------------
-Clone repo from GitHub. Go to it,
-install node.js and activate npm, red from package.json. 
-
-    foobar:~$  git clone https://github.com/44xtc44/vanga.git
-    foobar:~$ cd vanga
-    foobar:~$ npm install
-
-Install 'web-ext' "https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/".
-
-Install Android Studio latest and create a dummy project. The device manager is needed to run a Android Virtual Device (AVD).
-
-You then want to download the FireFox apk file and drag it onto the AVD. 
-Search "Firefox Nightly for Developers". If you find 'APKmirror' save, go there. Else use the registration
-process to enable PlayStore to pull FireFox Nightly, into every AVD.
-
-Open a terminal in the root of the repo clone, to load the Add-on into the AVD via USB.
-
-    @lab42$ adb devices -l
-    List of devices attached
-    emulator-5554   offline
-
-    @lab42$ web-ext run --target=firefox-android --android-device emulator-5554 --firefox-apk org.mozilla.fenix
-
-The AVD and FireFox Nightly must be USB enabled (Dev mode) then.
-
-Please be patient and wait until the extension popup notification appears on the device. 
+HowTo Android - Test extension
+-------------------------------
+| (A) Clone a branch from GitHub repo (SSH example). Use the exact branch name.
+| 
+|     foobar:~$ git clone -b station-recorder_1.0.0  --single-branch git@github.com:44xtc44/station-recorder.git
+|     foobar:~$ cd station-recorder_1.0.0
+| 
+| (B) Install node.js. 
+| 
+| (C) Install 'web-ext' "https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/".
+| 
+| (D) Install Android Studio latest and create a "dummy project" to get Android Studio device manager.
+| The device manager is needed to run a Android Virtual Device (AVD).
+| You can also use a Phone directly. But be aware that you might need to reset it 
+| to factory defaults on a "catastrophic" failure. I had to do this during another project.
+| 
+| (E) You then want to download the FireFox browser apk file and drag it onto the AVD. 
+| Search "Firefox Nightly for Developers". If you find 'APKmirror' save, go there. 
+| Else use the registration process to enable PlayStore to pull FireFox Nightly, into every AVD.
+| 
+| (F) Open a terminal in the root of the repo/branch clone, to load the Add-on into the AVD via USB.
+| 
+|     @lab42$ adb devices -l
+|     List of devices attached
+|     emulator-5554   offline
+| 
+|     @lab42$ web-ext run --target=firefox-android --android-device emulator-5554 --firefox-apk org.mozilla.fenix
+| 
+| The AVD and FireFox Nightly must be USB enabled (Dev mode) then.
+| 
+| Please be patient and wait until the extension popup notification appears on the device. 
 
 Known issues
 -------------
