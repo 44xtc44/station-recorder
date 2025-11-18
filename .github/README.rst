@@ -180,7 +180,7 @@ HowTo Android - install on FireFox
 | 1. open Hamburger Menu
 | 2. Select the puzzle icon, extensions
 | 3. Scroll to the bottom and select "Find more extensions"
-¼ 4. type the extension name and install
+| 4. type the extension name and install
 
 HowTo Android - Test extension
 -------------------------------
