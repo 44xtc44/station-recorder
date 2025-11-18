@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, target-densitydpi=device-dpi, initial-scale=0.8, maximum-scale=1, user-scalable=yes"
     />
-    <title>Recorder</title>
+    <title>Station Recorder</title>
     <link href="css/style.css" rel="stylesheet" />
     <link href="css/subMenu.css" rel="stylesheet" />
     <link href="css/equalizer.css" rel="stylesheet" />
@@ -121,6 +121,7 @@
       <div id="audioBarContainer" class="column500">
         <div id="audioBar" class="grid_activity_bar"></div>
       </div>
+      <!-- Video -->
       <div id="videoBarContainer" class="column500">
         <div id="videoBar" class="grid_activity_bar"></div>
       </div>
@@ -142,6 +143,7 @@
       <!-- use extension internal or express server for npm package -->
       <div id="useProxy" data-value="false"></div>
     </div>
+    <script src="./js/assets/shaka-player.compiled.js"></script>
     <script type="module" src="js/index.js"></script>
   </body>
 </html>

@@ -44,7 +44,7 @@ import {
 import { writeBlacklist } from "../fileStorage/blacklist.js";
 import { createIndexedDb, logAllDbVersions } from "../database/idbInitDb.js";
 import { writeFileLocal, storeBlobAsObj } from "../fileStorage/fileStorage.js";
-import { createActivityBar } from "./streamActivity.js";
+import { createActivityBar } from "../recordPlay/streamActivity.js";
 // import { runFeedMedia } from "./directAudio.js"; // import triggers setInterval
 
 export { consumeStream, stationDbCreate, dbRegisterStreamer };

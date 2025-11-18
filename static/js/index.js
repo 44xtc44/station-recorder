@@ -34,6 +34,7 @@
 
 // https://palant.info/2022/08/17/impact-of-extension-privileges/
 
+import { initShakaApp } from "./M3U8_HSL/shakaPlayer.js";
 import { sleep } from "./uiHelper.js";
 import { createUi } from "./ui.js";
 import { createReportConsole } from "./logMonitor/uiReport.js";
@@ -51,18 +52,18 @@ import {
 } from "./database/idbCreateDefaults.js";
 import { logAllDbVersions } from "./database/idbInitDb.js";
 // audio, animation
-import { initEqualizer } from "./audioAnimation/equalizer.js";
+import { initEqualizer } from "./mediaAnimation/equalizer.js";
 import {
   prepAnimationMain,
   getAnimationStatus,
-} from "./audioAnimation/animation.js";
+} from "./mediaAnimation/animation.js";
 
 import {
-  createAudio,
+  createMediaElements,
   createMainAudioLine,
   connectAnalyserInit,
-} from "./audioAnimation/audio.js";
-import { runIntroAnimation } from "./audioAnimation/intro.js";
+} from "./mediaAnimation/mediaElements.js";
+import { runIntroAnimation } from "./mediaAnimation/intro.js";
 import { runDbLoader } from "./central.js";
 import {
   waitMsgContainer,
@@ -72,7 +73,7 @@ import {
 import {
   createMenuBarAnim,
   reloaderLogo,
-} from "./audioAnimation/menuBarAnimation.js";
+} from "./mediaAnimation/menuBarAnimation.js";
 import { createAppMenu } from "./menuSettings/uiHamburger.js";
 import { showFavorites } from "./buildGrids/favoritesOnStart.js";
 import { launchNoFavPopup } from "./buildGrids/uiPopUpNoFavorites.js";
@@ -98,11 +99,11 @@ window.addEventListener("load", async () => {
 
   await setupDbs();
 
-  await createAudio(); // reads/writes settings to iDB
+  await createMediaElements(); // reads/writes also user settings to iDB
   const runAnimation = await getAnimationStatus();
   await sleep(200); // something wrong with status refac
   if (runAnimation) {
-    splashScreen(); // needs createAudio; runs beside DB data writer "pouplatepDbs"
+    splashScreen(); // needs createMediaElements; runs beside DB data writer "pouplatepDbs"
   }
 
   await createReportConsole(); // log monitor with red arrow
@@ -132,6 +133,7 @@ async function setupUi(runAnimation) {
     await createMainAudioLine();
     initEqualizer(); // switch EQ into the line, enables speaker
     await showUi();
+    initShakaApp();
   } else {
     await createMenuBarAnim();
     await prepAnimationMain(); // Call any longrunning animation in this module.
@@ -139,6 +141,7 @@ async function setupUi(runAnimation) {
     await showUi();
     initEqualizer(); // enables speaker after spashScreen anim
     launchNoFavPopup();
+    initShakaApp();
   }
 }
 

@@ -23,7 +23,7 @@
  */
 
 import { metaData } from "../central.js";
-import { runArrowAnimation } from "../audioAnimation/arrowAnimation.js";
+import { runArrowAnimation } from "../mediaAnimation/arrowAnimation.js";
 export {
   recMsg,
   Queue,

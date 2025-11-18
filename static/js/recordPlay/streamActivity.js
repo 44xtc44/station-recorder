@@ -22,14 +22,15 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { recMsg } from "./messages.js";
+import { shakaPlayer } from "../M3U8_HSL/shakaPlayer.js";
+import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-import { switchRecorderState } from "../buildGrids/radioOperation.js";
+import { switchRecorderState } from "./recordRadioStream.js";
 export { createActivityPlayer, createActivityBar };
 
 /**
- * Player
- * Div used in listenBoxListener.js.
+ * Player name display grid. (one element)
+ * Keep grid layout.
  */
 function createActivityPlayer() {
   return new Promise((resolve, _) => {
@@ -46,21 +47,28 @@ function createActivityPlayer() {
     parent.appendChild(gridItem);
 
     gridItem.addEventListener("click", () => {
-      if (gridItem.innerText === "---") return;
+      // idle? Do nothing.
+      if (gridItem.innerText === "---") return; // gridItem is hidden at page load
 
       const audio = document.getElementById("audioWithControls");
+      const video = document.getElementById("videoScreen");
       let stationName = gridItem.innerText;
+
+      //
       if (gridItem.innerText === "[ Pause ]") {
         stationName = metaData.get()["createActivityPlayer"];
+        video.play();
         audio.muted = !audio.muted;
         recMsg(["play ", stationName]);
         gridItem.innerText = stationName;
         return;
       }
+
+      video.pause();
+      audio.muted = true;
       metaData.set()["createActivityPlayer"] = stationName;
       recMsg(["pause ", stationName]);
       gridItem.innerText = "[ Pause ]";
-      audio.muted = true;
     });
 
     resolve();
@@ -70,8 +78,8 @@ function createActivityPlayer() {
 /**
  * Recorder buttons.
  * Used in streamDataGet.js.
- * 
- * Better use an anchor div . 
+ *
+ * Better use an anchor div .
  * Stop one of multiple recorder, remove anchor and recreate
  * remaining recorder buttons. Needs a dictionary for tracking names.
  * Only name of anchor is used all over the place.

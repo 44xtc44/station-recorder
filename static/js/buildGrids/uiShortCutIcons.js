@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { showFileDbUi } from "../menuSettings/uiFileDownload.js";
-import { removeAllRecorder } from "./radioOperation.js";
+import { removeAllRecorder } from "../recordPlay/recordRadioStream.js";
 import { updateRadioBrowserInfoDb } from "../database_update/update_radio_browser_info.js";
 export { shortCutIcons };
 
