@@ -481,6 +481,21 @@ function downloadStore(dlArrayObj, divStoreInfo) {
 }
 
 /**
+ * Needs manifest.js download permission.
+ * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/onChanged
+ * console.log("dl->",browser.downloads)
+ * Try async to fix Android download problem.
+ * @param {*} delta 
+ */
+function downloadsHandleChanged(delta) {
+  if (delta.state && delta.state.current === "complete") {
+    console.log(`Download ${delta.id} has completed.`);
+  }
+}
+browser.downloads.onChanged.addListener(downloadsHandleChanged);
+
+
+/**
  * Delete all blobs from store.
  * @param {*} store
  * @param {*} dlArrayObj
