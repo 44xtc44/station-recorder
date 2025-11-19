@@ -27,12 +27,12 @@ import { metaData } from "../central.js";
 import { detectStream, getStream } from "./streamDetect.js";
 import { consumeStream } from "./streamDataGet.js";
 import { consumeMetadata } from "./streamMetaGet.js";
-import { m3u8Download, locateTarget } from "../M3U8_HSL/m3u8Downloader.js";
+import { m3u8Download, locateTarget } from "../M3U8_HLS/m3u8Downloader.js";
 
 export { record };
 
 /**
- * Record legacy Audio or modern HSL Apple streams.
+ * Record legacy Audio or modern HLS Apple streams.
  * @param {string} stationuuid str
  */
 async function record(stationuuid) {

@@ -34,7 +34,7 @@
 
 // https://palant.info/2022/08/17/impact-of-extension-privileges/
 
-import { initShakaApp } from "./M3U8_HSL/shakaPlayer.js";
+import { initShakaApp } from "./M3U8_HLS/shakaPlayer.js";
 import { sleep } from "./uiHelper.js";
 import { createUi } from "./ui.js";
 import { createReportConsole } from "./logMonitor/uiReport.js";

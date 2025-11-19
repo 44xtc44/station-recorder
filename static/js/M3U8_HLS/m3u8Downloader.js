@@ -1,9 +1,8 @@
 // m3u8Downloader.js
 
 /**
- * Should be a webWorker.
- * Need runner to choose download, play or both
- * if possible, else msg to UI.
+ * Should be the webWorker caller, handle msg transfer (log), UI write.
+ * 
  * https://groups.google.com/g/shaka-player-users/c/WIia9KpWfIc
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-basic-usage.html
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-debugging.html
@@ -20,7 +19,7 @@ import { processM3u8 } from "./m3u8Reader.js";
 export { locateTarget, m3u8Download };
 
 /**
- * HSL M3U8 Downloader starter.
+ * HLS M3U8 Downloader starter.
  * Playlist dict for metadata, chunk URLs and chunk storage.
  * Start recorder threat loops.
  * @param {string} playlistURL
@@ -45,6 +44,11 @@ async function m3u8Download(playlistURL) {
   };
 
   const url = await locateTarget(playlistURL); // playlist server
+
+  // Write, refresh recorder state in indexedDB
+
+
+  // Migrate loops to webWorker process.
   fetchURLs(url, playlist); // from playlist server with metadata timeout
   fetchFiles(playlist); // chunk download
 }

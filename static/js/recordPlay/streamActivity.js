@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { shakaPlayer } from "../M3U8_HSL/shakaPlayer.js";
+import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 import { switchRecorderState } from "./recordRadioStream.js";

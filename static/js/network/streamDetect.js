@@ -89,7 +89,7 @@ function detectStream(stationuuid) {
     let url = stationObj.url;
 
     let isPlaylist = stationObj.isPlaylist;
-    let isM3u8 = stationObj.isM3u8; // work on breaking ts (hsl) protocol
+    let isM3u8 = stationObj.isM3u8; // work on breaking ts (HLS) protocol
     let isReady = false;
     let contentType = "audio/x-mpegurl";
 

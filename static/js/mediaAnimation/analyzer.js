@@ -134,7 +134,7 @@ class RotatingGalaxy {
       this.ctx.fillStyle = "gold";
       this.ctx.fillRect(0, this.canvas.height - barHeight - 60, barWidth, 4);
       let hue = 256 + (i * Math.PI) / 2;
-      this.ctx.fillStyle = "hsl(" + hue + ",100%,50%)";
+      this.ctx.fillStyle = "HLS(" + hue + ",100%,50%)";
       this.ctx.fillRect(0, 0, barWidth, barHeight);
       x += barWidth;
       this.ctx.restore(); // save, restore needed, we work in an existing transform

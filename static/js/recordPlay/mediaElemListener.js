@@ -21,7 +21,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { shakaPlayer } from "../M3U8_HSL/shakaPlayer.js";
+import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 
@@ -34,7 +34,7 @@ import {
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
 import { detectStream, providerUrlGet } from "../network/streamDetect.js";
-import { locateTarget } from "../M3U8_HSL/m3u8Downloader.js";
+import { locateTarget } from "../M3U8_HLS/m3u8Downloader.js";
 
 export {
   recordBoxListener,
@@ -117,7 +117,7 @@ function playBtnState(stationuuid) {
 }
 
 /**
- * Unload HSL or audio stream.
+ * Unload HLS or audio stream.
  * @param {string} playingUuid
  */
 async function playerOff(playingUuid) {
@@ -133,7 +133,7 @@ async function playerOff(playingUuid) {
 }
 
 /**
- * Connect HSL or audio stream.
+ * Connect HLS or audio stream.
  * @param {string} stationuuid needs to be played
  * @param {string} stationName needs to be played
  * @param {string} playingUuid current player can be "hidden" from UI (country selected)
@@ -171,7 +171,7 @@ async function playerOn(stationuuid, stationName, playingUuid) {
 async function streamConnect(stationuuid, audio, video) {
   const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
   if (isM3U8) {
-    // HSL stream
+    // HLS stream
     const playlistURL = metaData.get().infoDb[stationuuid].url;
     const url = await locateTarget(playlistURL); // possible redirect in .m3u8 file
     if (url === false) {
