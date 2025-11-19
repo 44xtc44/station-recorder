@@ -27,7 +27,7 @@ async function artistReader(playlist) {
    */
   const aInf = playlist.artistInfo;
   const aInfCopy = JSON.parse(JSON.stringify(aInf)); // deep clone nested dict
-  console.log("const->", aInf, aInfCopy);
+  console.log("artistInfo->parse", aInf, aInfCopy);
 
   const extInf = playlist.metadata["#EXTINF"];
   if (extInf !== undefined) {

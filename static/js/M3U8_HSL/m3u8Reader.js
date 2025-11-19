@@ -52,7 +52,7 @@ async function responseTxtArray(response) {
 }
 
 /**
- * Assamble a metadata dict.
+ * Assemble a metadata dict.
  * @param {Array<string>} m3u8AsArray
  * @returns {Promise<Object>} metadata dict may vary (duration, version)
  */
@@ -77,7 +77,7 @@ function extMarkerGet(m3u8AsArray) {
  * Resolve only URLs array without info #EXT marker.
  * Used .reduce() to dev/debug.
  * @param {Array<string>} m3u8AsArray
- * @returns {Promise<Array[string]>} of URLs (fragments)
+ * @returns {Promise<Array[string]>} array of URLs (file fragments)
  */
 function extMarkerRemove(m3u8AsArray) {
   return new Promise((resolve, _) => {

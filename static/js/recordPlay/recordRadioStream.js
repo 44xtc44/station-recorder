@@ -34,7 +34,7 @@
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 import { getIndex } from "../database/idbSetGetValues.js";
-import { runMetaAndRecord } from "../network/runner.js";
+import { record } from "../network/runner.js";
 import { submitStationClicked } from "../network/publicDbCom.js";
 
 export {
@@ -61,7 +61,7 @@ function switchRecorderState(stationuuid) {
 
       submitStationClicked(stationuuid, stationObj.id);
       // stream meta (text) and stream byte data (uint8array s)
-      runMetaAndRecord(stationuuid);
+      record(stationuuid);
       recBtnColorOn(recBtn, true);
       // Hide votes badge.
       document.getElementById("divVotesBadge_" + stationuuid).style.display =
@@ -100,8 +100,8 @@ function recBtnColorOn(recBtn, isActive) {
     consumeStream moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/streamDataGet.js:63
     res moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:107
     promise callback*streamData moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:106
-    runMetaAndRecord moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:59
-    setTimeout handler*runMetaAndRecord moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:57
+    record moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:59
+    setTimeout handler*record moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/network/runner.js:57
     switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:43
     switchRecorderState moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/recordRadioStream.js:33
     recordBoxListener moz-extension://6f22d837-66c4-4245-ad0c-d8922984e675/static/js/buildGrids/mediaElemListener.js:61
