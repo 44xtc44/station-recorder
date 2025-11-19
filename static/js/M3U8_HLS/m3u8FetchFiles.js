@@ -22,6 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { sleep } from "../uiHelper.js";
+import { metaData } from "../central.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
 import { writeFileLocal } from "./fileStorage.js";
 
@@ -31,11 +32,15 @@ let fin = { end: false }; // Dict allows ref to other module; var copies.
 /**
  * Walk along the "fetchURLs" filled array index.
  * If new idx (URL) download a file chunk, else idle (idx undefined).
- * @param {Object} playlist dict
- * @param {Object<Array[string]>} URLs captured chunk URLs array
- * @param {Object<Array[string]>} files dl file chunks array
+ * Fun args is a dict, key name defined vars receive their values.
+ * @typedef {Object} arguments dict
+ * @typedef {Object} playlist dict
+ * @param {Object<Array[string]>} playlist.URLs captured chunk URLs array
+ * @param {Object<Array[string]>} playlist.files dl file chunks array
+ * @typedef {boolean} dumpIncomplete UI setting, bool
+ * @typedef {HTMLDivElement} activityDiv grid to draw recorder name
  */
-async function fetchFiles(playlist) {
+async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
   let idx = 0;
 
   while (true) {
@@ -50,10 +55,20 @@ async function fetchFiles(playlist) {
         "no connection to ",
         playlist.URLs[idx]
       );
+      continue;
     }
     idx++;
 
-    const chunk = await response.body.getReader().read();
+    let chunk = undefined; // fetch URL dito
+    try {
+      chunk = await response.body.getReader().read();
+    } catch (e) {
+      continue;
+    }
+    if (response === undefined) {
+      console.error("fetchFiles-response.body.getReader->", playlist.URLs[idx]);
+      continue;
+    }
     if (chunk.done) {
       fin.end = true;
       console.error("fetchFiles-connectM3u8->chunk.done");

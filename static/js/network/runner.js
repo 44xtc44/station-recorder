@@ -75,7 +75,7 @@ function recorderM3U8(url, stationuuid) {
   if (station.isActive) return;
 
   metaData.set().infoDb[stationuuid].isActive = true;
-  m3u8Download(url);
+  m3u8Download(url, stationuuid);
 }
 
 /**

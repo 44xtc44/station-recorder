@@ -22,6 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { sleep } from "../uiHelper.js";
+import { metaData } from "../central.js";
 import { artistReader } from "./m3u8ArtistReader.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
 import { processM3u8 } from "./m3u8Reader.js";
@@ -45,6 +46,7 @@ async function fetchURLs(url, playlist) {
     const response = await connectM3u8(url);
     if (!response) {
       console.error("m3u8, fetchURLs->response error");
+      fin.end = true; // metadata
       break;
     }
 

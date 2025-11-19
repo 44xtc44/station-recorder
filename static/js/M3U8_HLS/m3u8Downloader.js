@@ -2,7 +2,7 @@
 
 /**
  * Should be the webWorker caller, handle msg transfer (log), UI write.
- * 
+ *
  * https://groups.google.com/g/shaka-player-users/c/WIia9KpWfIc
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-basic-usage.html
  * https://v2-0-0-beta3-dot-shaka-player-demo.appspot.com/docs/api/tutorial-debugging.html
@@ -10,11 +10,12 @@
  *
  * offline playback, storage https://dev.to/vanyaxk/shaka-player-for-media-playback-implementation-use-cases-pros-and-cons-3b87
  */
-
+import { metaData } from "../central.js";
 import { fetchURLs } from "./m3u8FetchURLs.js";
 import { fetchFiles } from "./m3u8FetchFiles.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
 import { processM3u8 } from "./m3u8Reader.js";
+import { prepDownload } from "../database/recorderState.js";
 
 export { locateTarget, m3u8Download };
 
@@ -22,10 +23,10 @@ export { locateTarget, m3u8Download };
  * HLS M3U8 Downloader starter.
  * Playlist dict for metadata, chunk URLs and chunk storage.
  * Start recorder threat loops.
- * @param {string} playlistURL
- * @returns {undefined} undefined -
+ * @param {string} playlistURL str
+ * @param {string} stationuuid str
  */
-async function m3u8Download(playlistURL) {
+async function m3u8Download(playlistURL, stationuuid) {
   /**
    * DEV Button end loop
    */
@@ -33,6 +34,7 @@ async function m3u8Download(playlistURL) {
   finBtn.addEventListener("click", () => {
     fin.end = true;
   }); */
+  const station = metaData.get().infoDb[stationuuid];
 
   let playlist = {
     URLs: [], // URL has mostly an ascending file names inside.
@@ -45,12 +47,19 @@ async function m3u8Download(playlistURL) {
 
   const url = await locateTarget(playlistURL); // playlist server
 
-  // Write, refresh recorder state in indexedDB
-
+  // Write recorder info to indexedDB, get grid to draw recorder name
+  const { dumpIncomplete, activityDiv } = await prepDownload(
+    stationuuid,
+    station.name
+  );
 
   // Migrate loops to webWorker process.
-  fetchURLs(url, playlist); // from playlist server with metadata timeout
-  fetchFiles(playlist); // chunk download
+  fetchURLs(url, playlist); //grab URLs playlist server
+  fetchFiles({
+    playlist: playlist,
+    dumpIncomplete: dumpIncomplete,
+    activityDiv: activityDiv,
+  }); // chunk download
 }
 
 /**
