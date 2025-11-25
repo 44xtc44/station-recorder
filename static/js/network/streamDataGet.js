@@ -35,29 +35,42 @@
 import { recMsg } from "./messages.js";
 import { metaData } from "../central.js";
 import { writeBlacklist } from "../fileStorage/blacklist.js";
-import { writeFileLocal, storeBlobAsObj } from "../fileStorage/fileStorage.js";
-import { prepDownload } from "../database/recorderState.js";
+import { storeBlobAsObj } from "../fileStorage/fileStorage.js";
 
 export { consumeStream };
 
 /**
  * Get stream to store.
- * @param {*} options
+ * Only first and last title can be "_incomplete".
+ * Other titles can be "blacklisted".
+ * Dump at:
  *
- * @returns
+ * count 0 means first time a text change happened or
+ *   if also "dumpIncomplete" is active dump the stream
+ *   ,at the end of the loop, if recorder reads .isRecording = false
+ *   assuming that there is no title to write,
+ *   the file gets "no_title" and a (UNIX) timestamp
+ *
+ * count 1 is the first prefix "_incomplete" title or
+ *   a text that stays forever in display,
+ *   dump at the end of the loop if recorder reads .isRecording = false
+ *
+ * count > 1 means first prefix "_incomplete" was skipped (default)
+ *   and the title is complete to dump; next title appeared in display
+ *     the last title will be dumped only with prefix "_incomplete"
+ *     if "dumpIncomplete" is active.
+ * @param {Object} param0 kwargs
+ * @param {string} stationuuid str
+ * @param {string} contentType str
+ * @param {streamReader} streamReader streamReader
  */
-async function consumeStream(o = {}) {
-  let stationuuid = o.stationuuid;
-  const stationObj = metaData.get().infoDb[stationuuid];
-  const stationName = stationObj.name;
-  let bitRate = stationObj.bitRate;
+async function consumeStream({ stationuuid, contentType, streamReader }) {
+  const station = metaData.get().infoDb[stationuuid];
+  const stationName = station.name;
+  let bitRate = station.bitRate;
   if (bitRate === null) bitRate = "";
-  let targetLen = stationObj.chunkSize;
+  let targetLen = station.chunkSize;
   if (targetLen === undefined || targetLen === null) targetLen = 16000;
-
-  const streamReader = o.streamReader;
-  const contentType = o.contentType;
-  const abortController = o.abortController;
 
   let chunkArray = [];
   let count = 0;
@@ -65,24 +78,12 @@ async function consumeStream(o = {}) {
   let titleToWrite = noTitleMsg;
 
   if (stationuuid === undefined) {
-    stationuuid = "sr-custom-" + stationName;
+    stationuuid = "sr-custom-" + stationName; // need a guuid generator here
   }
-
-  const prep = await prepDownload(stationuuid, stationName);
-  const dumpIncomplete = prep.dumpIncomplete;
-  const activityDiv = prep.activityDiv;
-
-  /* Media stream buffer to feed audio or video DOM element.
-    Planned is static object url with dynamic fed var of new responses.
-  */
-  // metaData.set().infoDb[stationuuid].mediaBucket = {
-  //   headers: o.headers,
-  //   streamChunks: [],
-  // };
-  // runFeedMedia(stationuuid); // workon feed audio from fetch stream
+  const dumpIncomplete = metaData.get().infoDb[stationuuid].dumpIncomplete;
 
   while (true) {
-    let nextChunk = await streamReader.read(targetLen); // chumk can be less than targeLen!
+    let nextChunk = await streamReader.read();
     if (nextChunk.done) {
       recMsg(["stream abort ::, connect rejected", stationName]);
       break; // radio killed our connection
@@ -90,65 +91,49 @@ async function consumeStream(o = {}) {
 
     let chunk = nextChunk.value;
     chunkArray.push(chunk);
-    /**
-     * Feed audio element directly from stream. Copy of the recorder chunks.
-     * Store it in station object to be independent from deleted recorder chunks.
-     * import { runFeedMedia } from "./directAudio.js"; processes the audio chunks
-     */
-    // metaData.set().infoDb[stationuuid].mediaBucket.streamChunks.push(chunk);
-
-    // refac if worker communication, check 'downloads' store or pub DB store, if ready
+    const kwargs = {
+      chunkArray: chunkArray,
+      contentType: contentType,
+      title: titleToWrite,
+      bitRate: bitRate,
+      radioName: stationName,
+      stationuuid: stationuuid,
+    };
     const titleInDisplay = metaData.get().infoDb[stationuuid].textMsg;
+
     if (titleToWrite !== titleInDisplay && titleInDisplay !== "") {
       if (titleToWrite !== noTitleMsg && count > 1) {
         const isBlacklisted = await writeBlacklist(stationuuid, titleToWrite);
-        if (isBlacklisted) {
-          // refac if worker communication, check 'downloads' store or pub DB store, if ready
+        if (isBlacklisted)
           recMsg(["skip-blacklisted  ", stationName, titleToWrite]);
-        }
-        if (!isBlacklisted) {
-          await storeBlobAsObj({
-            chunkArray: chunkArray,
-            contentType: contentType,
-            title: titleToWrite,
-            bitRate: bitRate,
-            radioName: stationName,
-            stationuuid: stationuuid,
-          });
-        }
-
+        if (!isBlacklisted) await storeBlobAsObj(kwargs);
         chunkArray = [];
-      } else {
-        // skip predefined dummy and incomplete first file,
-        recMsg(["skip incomplete ", stationName, titleToWrite]);
       }
+      if (count === 1) {
+        if (!dumpIncomplete)
+          recMsg(["skip incomplete ", stationName, titleToWrite]);
+        if (dumpIncomplete) {
+          kwargs.title = "_incomplete_" + titleToWrite;
+          await storeBlobAsObj(kwargs);
+        }
+      }
+
       titleToWrite = titleInDisplay;
       count += 1;
     }
+
     chunk = null;
     nextChunk = null;
 
-    // refac if worker communication, check 'downloads' store or pub DB store, if ready
     if (!metaData.get().infoDb[stationuuid].isRecording) {
-      activityDiv.remove();
-      abortController.abort();
-      deleteAsDownloder(stationuuid);
-      // refac if worker communication, check 'downloads' store or pub DB store, if ready
       recMsg(["exit stream ", stationName]);
-      if (dumpIncomplete.isActive === true) {
-        // forced in 'appsettings' 'fileIncomplete' menu
-        // refac if worker communication, dl is impossible from worker (DOM elem)
-        // better write to blob store
-        await writeFileLocal({
-          chunkArray: chunkArray,
-          contentType: contentType,
-          title: "_incomplete_" + Date.now(),
-          bitRate: bitRate,
-          radioName: stationName,
-        });
-        chunkArray = [];
-        break;
+      if (dumpIncomplete) {
+        kwargs.title = "_incomplete_" + titleToWrite + "_" + Date.now();
+        await storeBlobAsObj(kwargs);
       }
+
+      chunkArray = [];
+      break;
     }
   }
 }

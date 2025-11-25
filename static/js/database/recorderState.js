@@ -26,8 +26,6 @@
  * Write station name, uuid to object store to keep track of current downloaders.
  */
 
-import { recMsg } from "../network/messages.js";
-import { metaData } from "../central.js";
 import {
   getIdbValue,
   setIdbValue,
@@ -36,40 +34,24 @@ import {
   delPropIdb,
 } from "./idbSetGetValues.js";
 import { createIndexedDb, logAllDbVersions } from "./idbInitDb.js";
-import { createActivityBar } from "../recordPlay/streamActivity.js";
+import { activityBar } from "../recordPlay/streamActivity.js";
 
-export { prepDownload, stationDbCreate, dbRegisterStreamer };
-
-/**
- * Write station name, uuid to object store to keep track of current downloaders.
- * @param {string} stationuuid str
- * @param {string} stationName str
- */
-function prepDownload(stationuuid, stationName) {
-  return new Promise(async (resolve, _) => {
-    const created = await stationDbCreate(stationuuid);
-    if (!created) {
-      // refac if worker communication, mainthread writes
-      recMsg(["stream abort ::, DB creation fail", stationName]);
-      return;
-    } else {
-      // Permanent store uuid, name for backup of blackists.
-      await dbRegisterStreamer(stationuuid, stationName);
-      // Thread communication and UI messages via object store.
-      await registerAsDownloder(stationuuid);
-      //    Msg write now possible.
-    }
-    // refac if worker communication, mainthread writes
-    recMsg(["stream record ", stationName]);
-    const dumpIncomplete = await getDumpIncompleteFiles(); // is setting active
-    // refac if worker communication, mainthread loop check 'downloads' store, put in RUNNER
-    const activityDiv = createActivityBar(stationuuid, stationName); // rec name under monitor
-    resolve({ dumpIncomplete: dumpIncomplete, activityDiv: activityDiv });
-  });
-}
+export {
+  stationDbCreate,
+  dbRegisterStreamer,
+  registerAsDownloder,
+  deleteAsDownloder,
+  getDumpIncompleteFiles,
+};
 
 /**
- * Create a station store for file blobs and a store for blacklist.
+ * Need a DB for each recorder.
+ * A store for file blobs and a store for blacklist in the DB.
+ *
+ * Tried all recorder object store creation under a DB.
+ * But mass (2+) object store creation will block a long time until return.
+ * So the app is hanging around until writes to store are possible or
+ * the next recorder button press can be accepted.
  * @param {string} stationuuid str
  * @returns {Promise} ok
  */
@@ -161,7 +143,7 @@ function registerAsDownloder(stationuuid) {
     await setPropIdb({
       idbDb: "app_db",
       idbStore: "downloader",
-      idbData: metaData.get().infoDb[stationuuid], // whole object
+      idbData: { id: stationuuid },
     }).catch((e) => {
       console.error("registerAsDownloder->set", e);
       resolve(false);
@@ -194,17 +176,15 @@ function deleteAsDownloder(stationuuid) {
 
 /**
  * Ask if we should dump incomplete files.
- * @returns {Promise<Object>} Promise dict {fileIncomplete: false || true}
+ * @returns {Promise<Object>} Promise { id: "fileIncomplete", isActive: false }
  */
-function getDumpIncompleteFiles() {
-  return new Promise(async (resolve, _) => {
-    const dumpIncomplete = await getPropIdb({
-      idbDb: "app_db",
-      idbStore: "appSettings",
-      idbId: "fileIncomplete",
-    }).catch((e) => {
-      return e; // transaction error, key not in store
-    });
-    resolve(dumpIncomplete);
+async function getDumpIncompleteFiles() {
+  const dumpIncomplete = await getPropIdb({
+    idbDb: "app_db",
+    idbStore: "appSettings",
+    idbId: "fileIncomplete",
+  }).catch(() => {
+    return { id: "fileIncomplete", isActive: false }; // transaction error, key not in store
   });
+  return dumpIncomplete;
 }

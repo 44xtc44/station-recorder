@@ -24,11 +24,11 @@
 import { sleep } from "../uiHelper.js";
 import { metaData } from "../central.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
-import { writeFileLocal } from "./fileStorage.js";
+// import { writeFileLocal } from "./fileStorage.js";
+import { writeFileLocal, storeBlobAsObj } from "../fileStorage/fileStorage.js";
 
 export { fetchFiles };
 
-let fin = { end: false }; // Dict allows ref to other module; var copies.
 /**
  * Walk along the "fetchURLs" filled array index.
  * If new idx (URL) download a file chunk, else idle (idx undefined).
@@ -40,7 +40,8 @@ let fin = { end: false }; // Dict allows ref to other module; var copies.
  * @typedef {boolean} dumpIncomplete UI setting, bool
  * @typedef {HTMLDivElement} activityDiv grid to draw recorder name
  */
-async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
+async function fetchFiles( playlist ) {
+  const stationuuid = playlist.stationuuid;
   let idx = 0;
 
   while (true) {
@@ -70,7 +71,6 @@ async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
       continue;
     }
     if (chunk.done) {
-      fin.end = true;
       console.error("fetchFiles-connectM3u8->chunk.done");
       break; // .done; Not an endless stream, but file.
     }
@@ -96,10 +96,11 @@ async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
 
     playlist.files.push(chunk.value);
     // playlist.sourceBuffer.push(chunk.value); // not needed if shaka works
-    playlist.contentType = response.headers.get("content-type");
+    playlist.contentType = "audio/x-m4a" // response.headers.get("content-type");
 
     // UI var if we should break.
-    if (fin.end === true) {
+    /*     if (!metaData.get().infoDb[stationuuid].isRecording) {
+      console.log("foo->", playlist);
       await writeFileLocal({
         chunkArray: playlist.files,
         contentType: playlist.contentType,
@@ -108,7 +109,7 @@ async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
         radioName: "fileDl",
       });
       break;
-    }
+    } */
   }
 }
 
@@ -120,18 +121,32 @@ async function fetchFiles({ playlist, dumpIncomplete, activityDiv }) {
  * @returns {Object<boolean>} end - break, bool
  */
 async function urlReady(idx, playlist) {
-  await sleep(100);
+  const stationuuid = playlist.stationuuid;
   const rv = { idle: true, end: false };
+  await sleep(100);
 
-  if (fin.end === true) {
+  if (!metaData.get().infoDb[stationuuid].isRecording) {
     rv.end = true;
-    await writeFileLocal({
+    console.log("foo->", playlist);
+    const title =
+      playlist.artistInfo.current.artist +
+      " - " +
+      playlist.artistInfo.current.title;
+    await storeBlobAsObj({
+      chunkArray: playlist.files,
+      contentType: playlist.contentType,
+      title: title,
+      bitRate: "bitRate",
+      radioName: playlist.stationName,
+      stationuuid: stationuuid,
+    });
+    /*     await writeFileLocal({
       chunkArray: playlist.files,
       contentType: playlist.contentType,
       title: "_incomplete_" + Date.now(),
       bitRate: " ",
-      radioName: "idle",
-    });
+      radioName: playlist.stationName,
+    }); */
   }
   if (idx === undefined) return rv;
 

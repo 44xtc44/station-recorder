@@ -33,6 +33,7 @@ export { record };
 
 /**
  * Record legacy Audio or modern HLS Apple streams.
+ * Ckeck liveServer, start recorder endless loops.
  * @param {string} stationuuid str
  */
 async function record(stationuuid) {

@@ -28,7 +28,7 @@ import { metaData } from "../central.js";
 import { showDelMsg } from "../buildGrids/uiDelRadio.js";
 import { showBlacklist } from "../buildGrids/uiBlacklist.js";
 import { submitStationClicked } from "../network/publicDbCom.js";
-import { switchRecorderState } from "./recordRadioStream.js";
+import { switchRecorderState } from "./recordStream.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
@@ -72,11 +72,11 @@ function listenBoxListener({ name, stationuuid }, playBtn) {
   playBtn.addEventListener("click", async () => {
     const playingUuid = await playBtnState(stationuuid);
     if (playingUuid === "STOP") {
-      playerOff(stationuuid);
+      await playerOff(stationuuid);
       return;
     }
     await playerOff(playingUuid);
-    await playerOn(stationuuid, name, playingUuid);
+    await playerOn(stationuuid, name, playingUuid); // refac cleanup fun args
   });
 }
 
@@ -129,7 +129,10 @@ async function playerOff(playingUuid) {
   await shakaPlayer.detach(video);
   audio.pause(); // load a base64 audio silent string to get .onended
   // video.pause();
-  if (playingUuid !== "") await playBtnColorOff(playingUuid);
+  if (playingUuid !== "") {
+    metaData.set().infoDb[playingUuid].isPlaying = false;
+    await playBtnColorOff(playingUuid);
+  }
 }
 
 /**
@@ -139,6 +142,7 @@ async function playerOff(playingUuid) {
  * @param {string} playingUuid current player can be "hidden" from UI (country selected)
  */
 async function playerOn(stationuuid, stationName, playingUuid) {
+  metaData.set().infoDb[stationuuid].isPlaying = true;
   // If switched between continent or country station btn is gone. Other div stack shown.
   const hiddenBtn = document.getElementById(playingUuid + "_listenBox");
   if (hiddenBtn !== null) await playBtnColorOff(playingUuid);

@@ -25,8 +25,8 @@
 import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-import { switchRecorderState } from "./recordRadioStream.js";
-export { createActivityPlayer, createActivityBar };
+import { switchRecorderState } from "./recordStream.js";
+export { createActivityPlayer, activityBar };
 
 /**
  * Player name display grid. (one element)
@@ -86,7 +86,7 @@ function createActivityPlayer() {
  * @param {*}
  * @returns
  */
-function createActivityBar(stationuuid, stationName) {
+async function activityBar(stationuuid, stationName) {
   if (metaData.get()["activityBar"] === undefined)
     metaData.set()["activityBar"] = {};
   metaData.set()["activityBar"][stationName] = true;

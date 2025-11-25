@@ -1,10 +1,10 @@
 // streamMetaGet.js
 "use strict";
 /**
- *  This file is part of station-recorder. station-recorder is hereby called the app. 
+ *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
  *  TV station URLs. The cached DB copy can be used also if
- *  the public database fails. Additional features shall improve the 
+ *  the public database fails. Additional features shall improve the
  *  value of the application. Example is the vote, click statistic feature.
  *  Copyright (C) 2025 René Horn
  *
@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { switchRecorderState } from "../recordPlay/recordRadioStream.js";
+import { switchRecorderState } from "../recordPlay/recordStream.js";
 import { resolveFileExt } from "../fileStorage/fileStorage.js";
 import { recMsg, Queue } from "./messages.js";
 import { metaData } from "../central.js";
@@ -68,12 +68,14 @@ async function consumeMetadata(o = {}) {
   let icyIdx = undefined; // can be a counter, from promise resolved (returned)
 
   recMsg(["txt ", stationName]);
-  
+
   while (true) {
     // div element may be removed and new created in favorite store. Will trigger an exception!
-    const uiTitleDisplay = document.getElementById(stationuuid.concat("_titleBox"));
+    const uiTitleDisplay = document.getElementById(
+      stationuuid.concat("_titleBox")
+    );
     // if (uiTitleDisplay !== null) uiTitleDisplay.style.display = "inline-block";
-    let nextChunk =  await streamReader.read(targetLen);
+    let nextChunk = await streamReader.read(targetLen);
     if (nextChunk.done) {
       recMsg(["txt abort ::, connect rejected", stationName]);
       switchRecorderState(stationuuid); // just in streamMetaGet else call again
@@ -120,7 +122,7 @@ async function consumeMetadata(o = {}) {
           " [",
           o.bitRate,
           "kB ",
-          resolveFileExt(o.contentType),
+          await resolveFileExt(o.contentType),
           "]"
         );
     }
@@ -129,11 +131,13 @@ async function consumeMetadata(o = {}) {
     nextChunk = null;
 
     if (!metaData.get().infoDb[stationuuid].isListening) {
+      recMsg(["exit txt ", stationName]);
       try {
         uiTitleDisplay.innerText = "---";
-      } catch (e) {}
-      abortController.abort();
-      recMsg(["exit txt ", stationName]);
+      } catch (e) {
+        break;
+      }
+      // abortController.abort(); // got a break
       break;
     }
   }

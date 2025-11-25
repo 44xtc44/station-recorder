@@ -51,7 +51,7 @@ import {
   setIdbValue,
   delIdbValue,
 } from "../database/idbSetGetValues.js";
-import { recBtnColorOn } from "../recordPlay/recordRadioStream.js";
+import { recBtnColor } from "../recordPlay/recordStream.js";
 
 export { stationClickerLinks, clickerLinkColor };
 
@@ -123,6 +123,7 @@ function stationClickerLinks(o = {}) {
       // May be relevant if we fetch stream also play. Play from buffer.
       const isListening = metaData.get().infoDb[stationuuid].isListening;
       const isPlaying = metaData.get().infoDb[stationuuid].isPlaying;
+      
       if (isRecording || isListening || isPlaying) {
         await gridContainer(stationuuid, elem.container, gridObj, index);
       }
@@ -223,6 +224,12 @@ function createBoxTitle(gridTitleBox, station) {
   });
 }
 
+/**
+ * Play button.
+ * @param {*} station 
+ * @param {*} gridListenBox 
+ * @returns 
+ */
 function createBoxListen(station, gridListenBox) {
   return new Promise((resolve, _) => {
     gridListenBox.classList.add("handCursor");
@@ -235,7 +242,7 @@ function createBoxListen(station, gridListenBox) {
 
     // if we come back from another country button
     const isPlaying = metaData.get().infoDb[station.stationuuid].isPlaying;
-    if (isPlaying !== undefined && isPlaying) {
+    if (isPlaying === true) {
       gridListenBox.style.color = "#222222";
       gridListenBox.style.backgroundColor = "#49bbaa";
       playImg.src = "./images/speaker-icon-on.svg";
@@ -309,9 +316,9 @@ async function populateOneGrid(o = {}) {
 
     const waitGridReady = async () => {
       const boxRecorder = await createBoxName(station, gridNameBox);
-      await createBoxListen(station, gridListenBox);
-      await createBoxTitle(gridTitleBox, station);
-      await createBoxSettings(gridSettingsBox);
+      await createBoxListen(station, gridListenBox); // play button
+      await createBoxTitle(gridTitleBox, station); // record title
+      await createBoxSettings(gridSettingsBox); // blacklist, info
       recordBoxListener(station, boxRecorder);
       listenBoxListener(station, gridListenBox);
       gridSettingsBox.addEventListener(
@@ -334,21 +341,25 @@ async function populateOneGrid(o = {}) {
   });
 }
 
-function recordButton(stationuuid, station, stationName) {
-  return new Promise((resolve, _) => {
-    const boxRecorder = document.createElement("div");
-    boxRecorder.setAttribute("id", "divBoxRecord_" + stationuuid);
-    boxRecorder.classList.add("divBoxRecord");
-    boxRecorder.innerText = stationName;
+/**
+ * Record button.
+ * @param {string} stationuuid str
+ * @param {string} stationName str
+ * @returns {Promise<HTMLDivElement>} Promise record button
+ */
+async function recordButton(stationuuid, stationName) {
+  const boxRecorder = document.createElement("div");
+  boxRecorder.setAttribute("id", "divBoxRecord_" + stationuuid);
+  boxRecorder.classList.add("divBoxRecord");
+  boxRecorder.innerText = stationName;
 
-    // if we come back from another country button
-    const isRecording = metaData.get().infoDb[stationuuid].isRecording;
-    if (isRecording !== undefined && isRecording) {
-      recBtnColorOn(boxRecorder, true);
-    }
+  // if we come back from another country button
+  const isRecording = metaData.get().infoDb[stationuuid].isRecording;
+  if (isRecording === true) {
+    await recBtnColor(stationuuid, true, boxRecorder);
+  }
 
-    resolve(boxRecorder);
-  });
+  return boxRecorder;
 }
 
 function interactBar(stationuuid) {
@@ -739,7 +750,7 @@ async function createBoxName(station, gridNameBox) {
   const stationuuid = station.stationuuid;
   const stationName = station.name;
 
-  const boxRecorder = await recordButton(stationuuid, station, stationName);
+  const boxRecorder = await recordButton(stationuuid, stationName);
   // votes badge (on boxRecorder)
   const divVotesBadge = await votesBadge(stationuuid);
   // interaction bar for button and icons

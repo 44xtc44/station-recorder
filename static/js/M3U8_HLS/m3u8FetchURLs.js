@@ -29,7 +29,7 @@ import { processM3u8 } from "./m3u8Reader.js";
 
 export { fetchURLs };
 
-let fin = { end: false }; // Dict allows ref to other module; var copies.
+
 
 /**
  * Stream URLs array writer.
@@ -41,12 +41,15 @@ let fin = { end: false }; // Dict allows ref to other module; var copies.
  */
 async function fetchURLs(url, playlist) {
   while (true) {
+    const stationuuid = playlist.stationuuid;
+    if (!metaData.get().infoDb[stationuuid].isRecording) break;
+
     const delay = 1000; // multiply, some TARGETDURATION has single digits
     let lenChunkURLs = 2; // default multiply on error
     const response = await connectM3u8(url);
     if (!response) {
       console.error("m3u8, fetchURLs->response error");
-      fin.end = true; // metadata
+      metaData.set().infoDb[stationuuid].isRecording = false;
       break;
     }
 
@@ -72,7 +75,6 @@ async function fetchURLs(url, playlist) {
 
     await artistReader(playlist);
     // UI var if we should break.
-    if (fin.end === true) break;
 
     console.log("duration->", duration, playlist.URLs, playlist.files);
     await sleep(duration * lenChunkURLs);

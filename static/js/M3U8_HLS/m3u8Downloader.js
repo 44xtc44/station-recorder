@@ -9,13 +9,14 @@
  * dIST https://app.unpkg.com/shaka-player@2.5.4/files/dist
  *
  * offline playback, storage https://dev.to/vanyaxk/shaka-player-for-media-playback-implementation-use-cases-pros-and-cons-3b87
+ *
+ * https://blog.openreplay.com/how-to-use-client-and-server-side-web-workers/
  */
 import { metaData } from "../central.js";
 import { fetchURLs } from "./m3u8FetchURLs.js";
 import { fetchFiles } from "./m3u8FetchFiles.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
 import { processM3u8 } from "./m3u8Reader.js";
-import { prepDownload } from "../database/recorderState.js";
 
 export { locateTarget, m3u8Download };
 
@@ -27,39 +28,35 @@ export { locateTarget, m3u8Download };
  * @param {string} stationuuid str
  */
 async function m3u8Download(playlistURL, stationuuid) {
-  /**
-   * DEV Button end loop
-   */
-  /*   const finBtn = document.getElementById("fin");
-  finBtn.addEventListener("click", () => {
-    fin.end = true;
-  }); */
   const station = metaData.get().infoDb[stationuuid];
-
+  /**
+   * Migrate loops to webWorker process.
+   */
   let playlist = {
     URLs: [], // URL has mostly an ascending file names inside.
     files: [], // Fetched stream chunks from URLs.
     // sourceBuffer: [], // video/audio player buf feed queue->remove item
-    contentType: "",
+    contentType: "", // set from response header in "fetchFiles()" "audio/aac" blob bug FireFox
     // chromium.googlesource.com/external/w3c/web-platform-tests/+/refs/heads/master/media-source/mediasource-is-type-supported.html
     metadata: {}, // playlist options for dl/play control; +debug
+    stationuuid: stationuuid,
+    stationName: station.name,
+    artistInfo: {
+      current: { artist: "", title: "" },
+      archive: { artist: "foo", title: "bar" },
+    },
   };
 
   const url = await locateTarget(playlistURL); // playlist server
 
-  // Write recorder info to indexedDB, get grid to draw recorder name
-  const { dumpIncomplete, activityDiv } = await prepDownload(
-    stationuuid,
-    station.name
-  );
-
-  // Migrate loops to webWorker process.
-  fetchURLs(url, playlist); //grab URLs playlist server
-  fetchFiles({
-    playlist: playlist,
-    dumpIncomplete: dumpIncomplete,
-    activityDiv: activityDiv,
-  }); // chunk download
+  /**
+   * Worker gets playlist dict to share among its imported modules.
+   * Worker starts fetch loops and sends UI messages to Caller.
+   * Caller updates UI and closure (metadata).
+   * Caller tracks when to finish.
+   */
+  fetchURLs(url, playlist);
+  fetchFiles(playlist);
 }
 
 /**

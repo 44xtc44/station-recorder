@@ -365,6 +365,7 @@ function customTagOne(station) {
     if (isM3U) tags = tags.concat(",m3u");
     if (isPLS) tags = tags.concat(",pls");
     if (isAshx) tags = tags.concat(",ashx");
+    if (station.url.includes(".aac")) tags = tags.concat(",AAC");
 
     const cc = station.countrycode.toUpperCase();
     const ccTo3char = metaData.get()["countryCodes"][cc];

@@ -15,7 +15,7 @@ async function artistReader(playlist) {
   if (playlist.artistInfo === undefined) {
     playlist["artistInfo"] = {
       current: { artist: "", title: "" },
-      archive: { artist: "", title: "" },
+      archive: { artist: "What'll we get for ten dollars?", title: "Everything you want." },
     };
   }
 
