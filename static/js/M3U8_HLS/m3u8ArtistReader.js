@@ -15,7 +15,10 @@ async function artistReader(playlist) {
   if (playlist.artistInfo === undefined) {
     playlist["artistInfo"] = {
       current: { artist: "", title: "" },
-      archive: { artist: "What'll we get for ten dollars?", title: "Everything you want." },
+      archive: {
+        artist: "What'll we get for ten dollars?",
+        title: "Everything you want.",
+      },
     };
   }
 
@@ -27,7 +30,7 @@ async function artistReader(playlist) {
    */
   const aInf = playlist.artistInfo;
   const aInfCopy = JSON.parse(JSON.stringify(aInf)); // deep clone nested dict
-  console.log("artistInfo->parse", aInf, aInfCopy);
+  // console.log("artistInfo->parse", aInf, aInfCopy);
 
   const extInf = playlist.metadata["#EXTINF"];
   if (extInf !== undefined) {
@@ -40,7 +43,7 @@ async function artistReader(playlist) {
       if (line.includes("title=")) {
         const quotes = line.split("=")[1];
         aInf.current.title = quotes.substring(1, quotes.length - 1);
-        console.log("if->", aInf, aInfCopy);
+        // console.log("if->", aInf, aInfCopy);
       }
     }
   }
@@ -50,9 +53,9 @@ async function artistReader(playlist) {
 }
 
 /**
- * --> need better filter got / not filtered out. 
+ * --> need better filter got / not filtered out.
  *    File will not write to storage. Simple aA 0-9?
- * 
+ *
  * Assert, archive a <"changed"> artist/title nested dict.
  * "archive" key is used to get a writeable file name
  * from playlist.artistInfo.archive.artist and ...title.
@@ -75,9 +78,8 @@ function changed(aInf, aInfCopy) {
         /[`~!@#$%^&*_|+=?;:'",.<>\{\}\[\]\\\/]/gi,
         ""
       );
-      console.log("if->", aInf);
     }
-    console.log("changed->", aInf, aInfCopy);
+
     resolve();
   });
 }

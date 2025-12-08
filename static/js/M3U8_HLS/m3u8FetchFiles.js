@@ -21,18 +21,22 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
+import { recMsg } from "../network/messages.js";
 import { sleep } from "../uiHelper.js";
 import { metaData } from "../central.js";
 import { connectM3u8 } from "./m3u8StreamDetect.js";
-// import { writeFileLocal } from "./fileStorage.js";
-import { writeFileLocal, storeBlobAsObj } from "../fileStorage/fileStorage.js";
+import { storeBlobAsObj } from "../fileStorage/fileStorage.js";
+import { writeBlacklist } from "../fileStorage/blacklist.js";
+import { scan, toBin, detachID3, removeADTS } from "./m3u8ADTSripper.js";
 
 export { fetchFiles };
 
 /**
- * Walk along the "fetchURLs" filled array index.
- * If new idx (URL) download a file chunk, else idle (idx undefined).
- * Fun args is a dict, key name defined vars receive their values.
+ * Use some parts of streamDataGet.js, but not a real stream here.
+ * Walk along the "fetchURLs" filled URLs array index.
+ * If new urlIdx (URL) download a file chunk, else idle (urlIdx undefined).
+ *
+ * Chunk is (in this module) a complete downloaded file part of an URL endpoint.
  * @typedef {Object} arguments dict
  * @typedef {Object} playlist dict
  * @param {Object<Array[string]>} playlist.URLs captured chunk URLs array
@@ -40,25 +44,34 @@ export { fetchFiles };
  * @typedef {boolean} dumpIncomplete UI setting, bool
  * @typedef {HTMLDivElement} activityDiv grid to draw recorder name
  */
-async function fetchFiles( playlist ) {
+async function fetchFiles(playlist) {
   const stationuuid = playlist.stationuuid;
-  let idx = 0;
+  let urlIdx = 0;
+  let titleCount = 0; // 1, means first title is always incomplete
+  let titleToWrite = ""; // current title awaits end, so we can write blob
+  let ID3Frame = undefined; // file header for dump
+
+  // test if removable, DB init concats custom Station to in-mem DB --> streamDataGet.js
+  if (stationuuid === undefined) {
+    stationuuid = "sr-custom-" + playlist.stationName; // custom URL can not have uuid from public DB
+  }
 
   while (true) {
-    const { idle, end } = await urlReady(playlist.URLs[idx], playlist);
+    const { idle, end } = await urlReady(playlist.URLs[urlIdx], playlist);
     if (end) break;
     if (idle) continue;
 
-    const response = await connectM3u8(playlist.URLs[idx]); // completed download
+    const response = await connectM3u8(playlist.URLs[urlIdx]); // completed download
+
     if (response === undefined) {
       console.error(
         "fetchFiles-connectM3u8->",
         "no connection to ",
-        playlist.URLs[idx]
+        playlist.URLs[urlIdx]
       );
       continue;
     }
-    idx++;
+    urlIdx++;
 
     let chunk = undefined; // fetch URL dito
     try {
@@ -67,7 +80,10 @@ async function fetchFiles( playlist ) {
       continue;
     }
     if (response === undefined) {
-      console.error("fetchFiles-response.body.getReader->", playlist.URLs[idx]);
+      console.error(
+        "fetchFiles-response.body.getReader->",
+        playlist.URLs[urlIdx]
+      );
       continue;
     }
     if (chunk.done) {
@@ -75,81 +91,144 @@ async function fetchFiles( playlist ) {
       break; // .done; Not an endless stream, but file.
     }
 
-    /**
-     * Read ID3Data from uint8Array
+    const current = await title(playlist.artistInfo.current);
+    const { change } = await changed(current, titleToWrite);
+/* 
+    if (!change) {
+      // if (ID3Data.length > 0) ID3Frame = ID3Data;
+      // playlist.files.push(await removeADTS(chunk.value));
+      chunk.value = await removeADTS(chunk.value);
+      playlist.files.push(chunk.value);
+      continue;
+    }
+ */
+/*     if (change) {
+      titleCount++;
+      if (titleCount === 1) {
+        await incompleteDump(titleToWrite, playlist);
+      }
+      if (titleCount > 1) {
+        await completeDump(titleToWrite, playlist);
+      }
+    }
      */
-    // ID3 tags found in data starting at offset (0 is default)
-    const ID3Data = shaka.util.Id3Utils.getID3Data(chunk.value, 0);
-    // Returns "Array" of ID3 frames found in all of the ID3 tags
-    // "key" PRIV, TIT2, TPE1; "data" stream protocol, title, artist name, so far
-    // ID3Frames.lenght is 0 if no tags found
-    const ID3Frames = shaka.util.Id3Utils.getID3Frames(ID3Data);
-
-    // Offline boolean
-    const offline = shaka.offline.Storage.support();
-
-    // shaka.media.SegmentReference to grab loaded chunks for ID3 check
-    // getSegmentData(allowDeleteOnSingleUseopt) → {BufferSource}
-
-    // contentType - shaka.Player.stream.mimeType
-    // https://harmonicinc-com.github.io/shaka-player/v3.0.7+harmonic/docs/api/shaka.extern.html
-
+    // After change playlist.files is empty, dumped.
+    // if (ID3Data.length > 0) ID3Frame = ID3Data;
+    // playlist.files.push(await removeADTS(chunk.value));
+    chunk.value = await removeADTS(chunk.value);
     playlist.files.push(chunk.value);
-    // playlist.sourceBuffer.push(chunk.value); // not needed if shaka works
-    playlist.contentType = "audio/x-m4a" // response.headers.get("content-type");
-
-    // UI var if we should break.
-    /*     if (!metaData.get().infoDb[stationuuid].isRecording) {
-      console.log("foo->", playlist);
-      await writeFileLocal({
-        chunkArray: playlist.files,
-        contentType: playlist.contentType,
-        title: "_incomplete_" + Date.now(),
-        bitRate: " ",
-        radioName: "fileDl",
-      });
-      break;
-    } */
+    titleToWrite = current;
   }
 }
 
 /**
  * Helper for "fetchFiles".
- * @param {number} idx of URL array, num
+ * @param {number} urlIdx of URL array, num
  * @returns {Object}
  * @returns {Object<boolean>} idle - continue, bool
  * @returns {Object<boolean>} end - break, bool
  */
-async function urlReady(idx, playlist) {
+async function urlReady(urlIdx, playlist) {
   const stationuuid = playlist.stationuuid;
   const rv = { idle: true, end: false };
   await sleep(100);
 
   if (!metaData.get().infoDb[stationuuid].isRecording) {
     rv.end = true;
-    console.log("foo->", playlist);
-    const title =
-      playlist.artistInfo.current.artist +
-      " - " +
-      playlist.artistInfo.current.title;
+
+    const titleToWrite = await title(playlist.artistInfo.current);
     await storeBlobAsObj({
       chunkArray: playlist.files,
       contentType: playlist.contentType,
-      title: title,
-      bitRate: "bitRate",
+      title: "_incomplete_" + titleToWrite + "_" + Date.now(),
+      bitRate: "",
       radioName: playlist.stationName,
       stationuuid: stationuuid,
     });
-    /*     await writeFileLocal({
-      chunkArray: playlist.files,
-      contentType: playlist.contentType,
-      title: "_incomplete_" + Date.now(),
-      bitRate: " ",
-      radioName: playlist.stationName,
-    }); */
   }
-  if (idx === undefined) return rv;
+  if (urlIdx === undefined) return rv;
 
   rv.idle = false;
   return rv;
+}
+
+/**
+ * Custom title setup.
+ * Set artist - title style for file write.
+ * @param {object} param0 dict
+ * @param {string} artist str
+ * @param {string} title str
+ * @returns {Promise<string>} Promise str
+ */
+async function title({ artist, title }) {
+  const raw = artist.concat(" - ", title);
+  const artistTitle = await filterTitle(raw);
+  return artistTitle;
+}
+
+/**
+ * Cleanup string for file write.
+ * @param {string} raw str
+ * @returns {Promise<string>} Promise str
+ */
+function filterTitle(raw) {
+  return new Promise((resolve, _) => {
+    const titleFiltered = raw.replace(
+      /[`~!@#$%^&*_|+=?;:'",.<>\{\}\[\]\\\/]/gi,
+      ""
+    );
+    resolve(titleFiltered);
+  });
+}
+
+/**
+ * Should we write blob and blacklist?
+ * @param {string} current str title
+ * @param {string} titleToWrite str
+ * @returns {Promise<object>} Promise dict bool
+ */
+function changed(current, titleToWrite) {
+  return new Promise((resolve, _) => {
+    if (current === titleToWrite) resolve({ change: false });
+    if (current !== titleToWrite && current !== "") {
+      resolve({ change: true });
+    }
+
+    resolve({ change: false }); // should never
+  });
+}
+
+async function incompleteDump(titleToWrite, playlist) {
+  if (!playlist.dumpIncomplete)
+    recMsg(["skip incomplete ", playlist.stationName, titleToWrite]);
+  if (playlist.dumpIncomplete) {
+    await storeBlobAsObj({
+      chunkArray: playlist.files,
+      contentType: playlist.contentType,
+      title: "_incomplete_" + titleToWrite,
+      bitRate: "",
+      radioName: playlist.stationName,
+      stationuuid: playlist.stationuuid,
+    });
+  }
+}
+
+async function completeDump(titleToWrite, playlist) {
+  const isBlacklisted = await writeBlacklist(
+    playlist.stationuuid,
+    titleToWrite
+  );
+  if (isBlacklisted)
+    recMsg(["skip-blacklisted  ", playlist.stationName, titleToWrite]);
+  if (!isBlacklisted)
+    await storeBlobAsObj({
+      chunkArray: playlist.files,
+      contentType: playlist.contentType,
+      title: titleToWrite,
+      bitRate: "",
+      radioName: playlist.stationName,
+      stationuuid: playlist.stationuuid,
+    });
+
+  playlist.files = [];
 }

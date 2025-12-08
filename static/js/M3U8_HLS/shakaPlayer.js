@@ -23,6 +23,7 @@
  */
 
 /**
+ * Loaded on app init.
  * Shaka player is called in script mode, not module in HTML file.
  * So it is available in all modules.
  */

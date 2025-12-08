@@ -29,8 +29,6 @@ import { processM3u8 } from "./m3u8Reader.js";
 
 export { fetchURLs };
 
-
-
 /**
  * Stream URLs array writer.
  * Each file chunk has an own URL in the .m3u8 server response txt file.
@@ -74,9 +72,6 @@ async function fetchURLs(url, playlist) {
     }
 
     await artistReader(playlist);
-    // UI var if we should break.
-
-    console.log("duration->", duration, playlist.URLs, playlist.files);
-    await sleep(duration * lenChunkURLs);
+    await sleep(duration);
   }
 }
