@@ -78,7 +78,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
   let titleToWrite = noTitleMsg;
 
   if (stationuuid === undefined) {
-    stationuuid = "sr-custom-" + stationName; // need a guuid generator here
+    stationuuid = "sr-custom-" + stationName; // custom URL can not have uuid from public DB
   }
   const dumpIncomplete = metaData.get().infoDb[stationuuid].dumpIncomplete;
 
@@ -91,7 +91,8 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
 
     let chunk = nextChunk.value;
     chunkArray.push(chunk);
-    const kwargs = {
+    
+    const blobKwargs = {
       chunkArray: chunkArray,
       contentType: contentType,
       title: titleToWrite,
@@ -106,15 +107,15 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
         const isBlacklisted = await writeBlacklist(stationuuid, titleToWrite);
         if (isBlacklisted)
           recMsg(["skip-blacklisted  ", stationName, titleToWrite]);
-        if (!isBlacklisted) await storeBlobAsObj(kwargs);
+        if (!isBlacklisted) await storeBlobAsObj(blobKwargs);
         chunkArray = [];
       }
       if (count === 1) {
         if (!dumpIncomplete)
           recMsg(["skip incomplete ", stationName, titleToWrite]);
         if (dumpIncomplete) {
-          kwargs.title = "_incomplete_" + titleToWrite;
-          await storeBlobAsObj(kwargs);
+          blobKwargs.title = "_incomplete_" + titleToWrite;
+          await storeBlobAsObj(blobKwargs);
         }
       }
 
@@ -128,8 +129,8 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
     if (!metaData.get().infoDb[stationuuid].isRecording) {
       recMsg(["exit stream ", stationName]);
       if (dumpIncomplete) {
-        kwargs.title = "_incomplete_" + titleToWrite + "_" + Date.now();
-        await storeBlobAsObj(kwargs);
+        blobKwargs.title = "_incomplete_" + titleToWrite + "_" + Date.now();
+        await storeBlobAsObj(blobKwargs);
       }
 
       chunkArray = [];
