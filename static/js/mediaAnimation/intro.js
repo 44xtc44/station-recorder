@@ -63,11 +63,15 @@ function feedIntro() {
   });
 }
 
+/**
+ * Build own like 
+ * silence https://stackoverflow.com/questions/12150729/silent-sound-data-uri
+ */
 function stopIntro() {
   return new Promise((resolve, _) => {
     cancelAnimationFrame(introAanimationFrameCount);
     const audio = document.getElementById("audioWithControls");
-    audio.src = ""; // shows a warning in console, need a silence.mp3 from Audacity
+    audio.src = ""; 
     resolve();
   });
 }

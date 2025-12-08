@@ -34,39 +34,43 @@
 
 import { recMsg } from "./messages.js";
 import { metaData } from "../central.js";
-import {
-  getIdbValue,
-  setIdbValue,
-  setPropIdb,
-  getPropIdb,
-  delPropIdb,
-} from "../database/idbSetGetValues.js";
 import { writeBlacklist } from "../fileStorage/blacklist.js";
-import { createIndexedDb, logAllDbVersions } from "../database/idbInitDb.js";
-import { writeFileLocal, storeBlobAsObj } from "../fileStorage/fileStorage.js";
-import { createActivityBar } from "./streamActivity.js";
-// import { runFeedMedia } from "./directAudio.js"; // import triggers setInterval
+import { storeBlobAsObj } from "../fileStorage/fileStorage.js";
 
-export { consumeStream, stationDbCreate, dbRegisterStreamer };
+export { consumeStream };
 
 /**
  * Get stream to store.
- * @param {*} options
+ * Only first and last title can be "_incomplete".
+ * Other titles can be "blacklisted".
+ * Dump at:
  *
- * @returns
+ * count 0 means first time a text change happened or
+ *   if also "dumpIncomplete" is active dump the stream
+ *   ,at the end of the loop, if recorder reads .isRecording = false
+ *   assuming that there is no title to write,
+ *   the file gets "no_title" and a (UNIX) timestamp
+ *
+ * count 1 is the first prefix "_incomplete" title or
+ *   a text that stays forever in display,
+ *   dump at the end of the loop if recorder reads .isRecording = false
+ *
+ * count > 1 means first prefix "_incomplete" was skipped (default)
+ *   and the title is complete to dump; next title appeared in display
+ *     the last title will be dumped only with prefix "_incomplete"
+ *     if "dumpIncomplete" is active.
+ * @param {Object} param0 kwargs
+ * @param {string} stationuuid str
+ * @param {string} contentType str
+ * @param {streamReader} streamReader streamReader
  */
-async function consumeStream(o = {}) {
-  let stationuuid = o.stationuuid;
-  const stationObj = metaData.get().infoDb[stationuuid];
-  const stationName = stationObj.name;
-  let bitRate = stationObj.bitRate;
+async function consumeStream({ stationuuid, contentType, streamReader }) {
+  const station = metaData.get().infoDb[stationuuid];
+  const stationName = station.name;
+  let bitRate = station.bitRate;
   if (bitRate === null) bitRate = "";
-  let targetLen = stationObj.chunkSize;
+  let targetLen = station.chunkSize;
   if (targetLen === undefined || targetLen === null) targetLen = 16000;
-
-  const streamReader = o.streamReader;
-  const contentType = o.contentType;
-  const abortController = o.abortController;
 
   let chunkArray = [];
   let count = 0;
@@ -74,24 +78,12 @@ async function consumeStream(o = {}) {
   let titleToWrite = noTitleMsg;
 
   if (stationuuid === undefined) {
-    stationuuid = "sr-custom-" + stationName;
+    stationuuid = "sr-custom-" + stationName; // custom URL can not have uuid from public DB
   }
-
-  const prep = await prepDownload(stationuuid, stationName);
-  const dumpIncomplete = prep.dumpIncomplete;
-  const activityDiv = prep.activityDiv;
-
-  /* Media stream buffer to feed audio or video DOM element.
-    Planned is static object url with dynamic fed var of new responses.
-  */
-  // metaData.set().infoDb[stationuuid].mediaBucket = {
-  //   headers: o.headers,
-  //   streamChunks: [],
-  // };
-  // runFeedMedia(stationuuid); // workon feed audio from fetch stream
+  const dumpIncomplete = metaData.get().infoDb[stationuuid].dumpIncomplete;
 
   while (true) {
-    let nextChunk = await streamReader.read(targetLen); // chumk can be less than targeLen!
+    let nextChunk = await streamReader.read();
     if (nextChunk.done) {
       recMsg(["stream abort ::, connect rejected", stationName]);
       break; // radio killed our connection
@@ -99,231 +91,50 @@ async function consumeStream(o = {}) {
 
     let chunk = nextChunk.value;
     chunkArray.push(chunk);
-    /**
-     * Feed audio element directly from stream. Copy of the recorder chunks.
-     * Store it in station object to be independent from deleted recorder chunks.
-     * import { runFeedMedia } from "./directAudio.js"; processes the audio chunks
-     */
-    // metaData.set().infoDb[stationuuid].mediaBucket.streamChunks.push(chunk);
-
-    // refac if worker communication, check 'downloads' store or pub DB store, if ready
+    
+    const blobKwargs = {
+      chunkArray: chunkArray,
+      contentType: contentType,
+      title: titleToWrite,
+      bitRate: bitRate,
+      radioName: stationName,
+      stationuuid: stationuuid,
+    };
     const titleInDisplay = metaData.get().infoDb[stationuuid].textMsg;
+
     if (titleToWrite !== titleInDisplay && titleInDisplay !== "") {
       if (titleToWrite !== noTitleMsg && count > 1) {
         const isBlacklisted = await writeBlacklist(stationuuid, titleToWrite);
-        if (isBlacklisted) {
-          // refac if worker communication, check 'downloads' store or pub DB store, if ready
+        if (isBlacklisted)
           recMsg(["skip-blacklisted  ", stationName, titleToWrite]);
-        }
-        if (!isBlacklisted) {
-          await storeBlobAsObj({
-            chunkArray: chunkArray,
-            contentType: contentType,
-            title: titleToWrite,
-            bitRate: bitRate,
-            radioName: stationName,
-            stationuuid: stationuuid,
-          });
-        }
-
+        if (!isBlacklisted) await storeBlobAsObj(blobKwargs);
         chunkArray = [];
-      } else {
-        // skip predefined dummy and incomplete first file,
-        recMsg(["skip incomplete ", stationName, titleToWrite]);
       }
+      if (count === 1) {
+        if (!dumpIncomplete)
+          recMsg(["skip incomplete ", stationName, titleToWrite]);
+        if (dumpIncomplete) {
+          blobKwargs.title = "_incomplete_" + titleToWrite;
+          await storeBlobAsObj(blobKwargs);
+        }
+      }
+
       titleToWrite = titleInDisplay;
       count += 1;
     }
+
     chunk = null;
     nextChunk = null;
 
-    // refac if worker communication, check 'downloads' store or pub DB store, if ready
     if (!metaData.get().infoDb[stationuuid].isRecording) {
-      activityDiv.remove();
-      abortController.abort();
-      deleteAsDownloder(stationuuid);
-      // refac if worker communication, check 'downloads' store or pub DB store, if ready
       recMsg(["exit stream ", stationName]);
-      if (dumpIncomplete.isActive === true) {
-        // forced in 'appsettings' 'fileIncomplete' menu
-        // refac if worker communication, dl is impossible from worker (DOM elem)
-        // better write to blob store
-        await writeFileLocal({
-          chunkArray: chunkArray,
-          contentType: contentType,
-          title: "_incomplete_" + Date.now(),
-          bitRate: bitRate,
-          radioName: stationName,
-        });
-        chunkArray = [];
-        break;
+      if (dumpIncomplete) {
+        blobKwargs.title = "_incomplete_" + titleToWrite + "_" + Date.now();
+        await storeBlobAsObj(blobKwargs);
       }
+
+      chunkArray = [];
+      break;
     }
   }
-}
-
-function prepDownload(stationuuid, stationName) {
-  return new Promise(async (resolve, _) => {
-    const created = await stationDbCreate(stationuuid);
-    if (!created) {
-      // refac if worker communication, mainthread writes
-      recMsg(["stream abort ::, DB creation fail", stationName]);
-      return;
-    } else {
-      // Permanent store uuid, name for backup of blackists.
-      await dbRegisterStreamer(stationuuid, stationName);
-      // Thread communication and UI messages via object store.
-      await registerAsDownloder(stationuuid);
-      //    Msg write now possible.
-    }
-    // refac if worker communication, mainthread writes
-    recMsg(["stream record ", stationName]);
-    const dumpIncomplete = await getDumpIncompleteFiles(); // is setting active
-    // refac if worker communication, mainthread loop check 'downloads' store, put in RUNNER
-    const activityDiv = createActivityBar(stationuuid, stationName); // rec name under monitor
-    resolve({ dumpIncomplete: dumpIncomplete, activityDiv: activityDiv });
-  });
-}
-
-/**
- * Create a station store for file blobs and a store for blacklist.
- * @param {string} stationuuid
- * @returns {Promise} ok
- */
-function stationDbCreate(stationuuid) {
-  return new Promise(async (resolve, _) => {
-    // Get an object or transaction error from version DB. (all DB ver logged)
-    const created = await getIdbValue({
-      dbName: "versions_db",
-      dbVersion: 1,
-      objectStoreName: "dbVersions",
-      id: stationuuid,
-    }).catch((e) => {
-      return e;
-    });
-
-    if (created === "FAIL_NO_DATA_IN_STORE") {
-      // The two stores.
-      const objStores = [
-        {
-          storeName: "blacklist_names",
-          primaryKey: "id",
-          indexNames: ["blacklist_namesIdx", "id"],
-        },
-        {
-          storeName: "content_blobs",
-          primaryKey: "id",
-          indexNames: ["content_blobsIdx", "id"],
-        },
-      ];
-      await createIndexedDb({
-        dbName: stationuuid,
-        dbVersion: 1,
-        batchCreate: true,
-        objStores: objStores,
-      }).catch((e) => {
-        console.error("stationDbCreate->", e);
-        resolve(false);
-      });
-      // Write version of all DBs to 'versions_db' / 'dbVersions'.
-      await logAllDbVersions();
-      resolve(true); // db + stores created
-    }
-    resolve(true); // 'created' is an object, nothing to do
-  });
-}
-
-/**
- * Register the station name with uuid to have all stream reader in an array.
- * Needed for backup, restore of blacklists.
- * @param {string} stationuuid
- * @param {string} station name
- * @returns {Promise} ok
- */
-function dbRegisterStreamer(stationuuid, station) {
-  return new Promise(async (resolve, _) => {
-    const db = await getIdbValue({
-      dbName: "versions_db",
-      dbVersion: 1,
-      objectStoreName: "dbVersions",
-      id: "app_db",
-    }).catch((e) => {
-      console.error("dbRegisterStreamer->get", e);
-    });
-    await setIdbValue({
-      dbName: "app_db",
-      dbVersion: db.dbVersion,
-      objectStoreName: "uuid_name_dl",
-      data: { id: stationuuid, name: station },
-    }).catch((e) => {
-      console.error("dbRegisterStreamer->set", e);
-      resolve(false);
-    });
-    resolve(true);
-  });
-}
-
-/**
- * ---> worker setup and call in RUNNER
- * Current downloader stations.
- * (A) Communication with other threads and
- * to write messages and current title to the UI.
- *
- * (B) blockAccess to 'World' huge data filter,
- * as long as threre is no separate process for download.
- * @param {string} stationuuid
- * @param {string} station name
- * @returns {Promise} ok
- */
-function registerAsDownloder(stationuuid) {
-  return new Promise(async (resolve, _) => {
-    await setPropIdb({
-      idbDb: "app_db",
-      idbStore: "downloader",
-      idbData: metaData.get().infoDb[stationuuid], // whole object
-    }).catch((e) => {
-      console.error("registerAsDownloder->set", e);
-      resolve(false);
-    });
-    resolve(true);
-  });
-}
-
-/**
- * Current downloader stations.
- * Needed to blockAccess to 'World' huge data filter,
- * as long as threre is no separate process for network.
- * @param {string} stationuuid
- * @returns {Promise} ok
- */
-function deleteAsDownloder(stationuuid) {
-  return new Promise(async (resolve, _) => {
-    await delPropIdb({
-      idbDb: "app_db",
-      idbStore: "downloader",
-      idbData: { id: stationuuid }, // omit if clearAll
-      clearAll: false, // can also omit this prop
-    }).catch((e) => {
-      console.error("deleteAsDownloder->set", e);
-      resolve(false);
-    });
-    resolve(true);
-  });
-}
-
-/**
- * Ask if we should dump incomplete files.
- * @returns
- */
-function getDumpIncompleteFiles() {
-  return new Promise(async (resolve, _) => {
-    const dumpIncomplete = await getPropIdb({
-      idbDb: "app_db",
-      idbStore: "appSettings",
-      idbId: "fileIncomplete",
-    }).catch((e) => {
-      return e; // transaction error, key not in store
-    });
-    resolve(dumpIncomplete);
-  });
 }

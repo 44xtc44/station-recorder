@@ -458,27 +458,50 @@ function populateDlArray(objArray) {
  * @param {*} divStoreInfo
  * @returns
  */
-function downloadStore(dlArrayObj, divStoreInfo) {
-  return new Promise(async (resolve, _) => {
-    const statusBar = document.createElement("div");
-    statusBar.id = "_statusBar";
-    statusBar.style.backgroundColor = "#6261cb";
-    statusBar.style.boxShadow = "rgb(81, 48, 69) 0px 0px 10px inset";
-    statusBar.style.height = "20px";
-    statusBar.style.width = "0%";
-    divStoreInfo.appendChild(statusBar);
+async function downloadStore(dlArrayObj, divStoreInfo) {
+  const statusBar = document.createElement("div");
+  statusBar.id = "_statusBar";
+  statusBar.style.backgroundColor = "#6261cb";
+  statusBar.style.boxShadow = "rgb(81, 48, 69) 0px 0px 10px inset";
+  statusBar.style.height = "20px";
+  statusBar.style.width = "0%";
+  divStoreInfo.appendChild(statusBar);
 
-    // fun exec delayed store to /download folder
-    // sequ. for loop, map fires async so sleep not working!!!
-    const blobCount = dlArrayObj.length;
-    for (const [index, blob] of dlArrayObj.entries()) {
-      await sleep(250); // avoid browser skips dl
-      blob.anchor.click();
-      statusBar.style.width = ((index + 1) / blobCount) * 100 + "%";
+  // fun exec delayed store to /download folder
+  // sequ. for loop, map fires async so sleep not working!!!
+  const blobCount = dlArrayObj.length;
+
+  //browser.downloads.onChanged.addListener(downloadsHandleChanged); // works like MDN sample
+  for await (const [index, blob] of dlArrayObj.entries()) {
+    await sleep(100); // comment out if done
+    blob.anchor.click();
+    // await downloadsHandleChanged(); // Dl "complete" must trigger next dl.
+
+    statusBar.style.width = ((index + 1) / blobCount) * 100 + "%";
+  }
+}
+
+/**
+ * Needs manifest.js download permission. Done.
+ * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/onChanged
+ * https://developer.chrome.com/docs/extensions/reference/api/downloads
+ * https://codemia.io/knowledge-hub/path/how_can_i_await_an_event_listener_inside_a_function
+ * console.log("dl->",browser.downloads)
+ * Try async to fix Android download problem.
+ * @param {*} delta
+ */
+function downloadsHandleChanged(delta) {
+  // arg not avail if expression in promise
+  // supported browser (no FireFox for Android so far, v.79 removed)
+  // https://github.com/mdn/browser-compat-data/blob/main/webextensions/api/downloads.json
+  return new Promise((resolve, _) => {
+    if (delta.state && delta.state.current === "complete") {
+      console.log(`Download ${delta.id} has completed.`);
     }
-    resolve();
+    resolve(delta);
   });
 }
+// browser.downloads.onChanged.addListener(downloadsHandleChanged);
 
 /**
  * Delete all blobs from store.

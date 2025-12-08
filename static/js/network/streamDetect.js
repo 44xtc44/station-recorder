@@ -89,7 +89,7 @@ function detectStream(stationuuid) {
     let url = stationObj.url;
 
     let isPlaylist = stationObj.isPlaylist;
-    let isM3u8 = stationObj.isM3u8; // work on breaking ts (hsl) protocol
+    let isM3u8 = stationObj.isM3u8; // work on breaking ts (HLS) protocol
     let isReady = false;
     let contentType = "audio/x-mpegurl";
 
@@ -141,7 +141,7 @@ function detectStream(stationuuid) {
           isReady = true;
         }
       }
-      if (response.status <= 200 && response.status >= 300) {
+      if (response.status < 200 || response.status > 300) {
         // false Server response
         isReady = false;
         console.error("detectStream->::SERVER_ERROR", url);
@@ -172,7 +172,7 @@ function detectStream(stationuuid) {
         resolve({ url: false, text: false });
       }
       if (isM3u8) {
-        recMsg(["fail ::M3U8_CANT_PLAY", stationName]);
+        recMsg(["fail ::M3U8_CANT_RECORD", stationName]);
         resolve({ url: false, text: false });
       }
 

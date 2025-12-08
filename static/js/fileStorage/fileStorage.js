@@ -26,95 +26,88 @@ import { recMsg } from "../network/messages.js";
 import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
 export { writeFileLocal, storeBlobAsObj, resolveFileExt };
 
-function writeFileLocal(o = {}) {
-  return new Promise(async (resolve, _) => {
-    /**
-     * MEM leak in createObjectURL.
-     * Run as many streams you like to speed up the process.
-     */
-    const title = o.title;
-    const bitRate = o.bitRate;
-    const radioName = o.radioName;
-    const contentType = o.contentType;
-    let chunkArray = o.chunkArray;
+async function writeFileLocal({
+  title,
+  bitRate,
+  radioName,
+  contentType,
+  chunkArray,
+}) {
+  let arrayBuffer = await new Blob(chunkArray).arrayBuffer();
+  let blob = new Blob([arrayBuffer], { type: contentType });
+  const fileExt = await resolveFileExt(contentType);
+  const fileName = await buildFileName(title, bitRate, radioName, fileExt);
 
-    let arrayBuffer = await new Blob(chunkArray).arrayBuffer();
-    let blob = new Blob([arrayBuffer], { type: contentType });
-    const fileExt = resolveFileExt(contentType);
-    const fileName = buildFileName(title, bitRate, radioName, fileExt);
+  const anchorElement = document.createElement("a");
+  anchorElement.href = URL.createObjectURL(blob);
+  anchorElement.download = fileName;
+  anchorElement.style.display = "none";
+  document.body.appendChild(anchorElement);
+  recMsg(["write ", radioName, fileName]);
+  anchorElement.click();
 
-    const anchorElement = document.createElement("a");
-    anchorElement.href = URL.createObjectURL(blob);
-    anchorElement.download = fileName;
-    anchorElement.style.display = "none";
-    document.body.appendChild(anchorElement);
-    recMsg(["write ", radioName, fileName]);
-    anchorElement.click();
-
-    anchorElement.remove();
-    arrayBuffer = null;
-    blob = null;
-    chunkArray = [];
-    // 40sec objUrl remains, red somewhere, but keeps making trouble
-    setTimeout(() => URL.revokeObjectURL(anchorElement.href), 66666);
-    resolve();
-  });
+  anchorElement.remove();
+  arrayBuffer = null;
+  blob = null;
+  chunkArray = [];
+  // 40sec objUrl remains, red somewhere, but keeps making trouble
+  setTimeout(() => URL.revokeObjectURL(anchorElement.href), 66666);
 }
 
 /**
  * Store file as blob in object store to provide playlist.
  * @param {*} options
- * @returns
  */
-function storeBlobAsObj(o = {}) {
-  return new Promise(async (resolve, _) => {
-    const title = o.title;
-    const bitRate = o.bitRate;
-    const radioName = o.radioName;
-    const stationuuid = o.stationuuid;
-    const contentType = o.contentType;
-    let chunkArray = o.chunkArray;
+async function storeBlobAsObj({
+  title,
+  bitRate,
+  radioName,
+  stationuuid,
+  contentType,
+  chunkArray,
+}) {
+  let arrayBuffer = await new Blob(chunkArray).arrayBuffer();
+  let blob = new Blob([arrayBuffer], { type: contentType });
+  const fileExt = await resolveFileExt(contentType);
+  const fileName = await buildFileName(title, bitRate, radioName, fileExt);
+  recMsg(["write DB", radioName, fileName]);
 
-    let arrayBuffer = await new Blob(chunkArray).arrayBuffer();
-    let blob = new Blob([arrayBuffer], { type: contentType });
-    const fileExt = resolveFileExt(contentType);
-    const fileName = buildFileName(title, bitRate, radioName, fileExt);
-    recMsg(["write DB", radioName, fileName]);
-
-    const db = await getIdbValue({
-      dbName: "versions_db",
-      dbVersion: 1,
-      objectStoreName: "dbVersions",
-      id: stationuuid,
-    });
-    setIdbValue({
-      dbName: stationuuid,
-      dbVersion: db.dbVersion,
-      objectStoreName: "content_blobs",
-      data: {
-        id: fileName,
-        blob: blob,
-        title: title,
-        size: blob.size,
-        type: blob.type,
-      },
-    }).catch((e) => resolve(e));
-    arrayBuffer = null;
-    blob = null;
-    chunkArray = [];
-    resolve(true);
+  const db = await getIdbValue({
+    dbName: "versions_db",
+    dbVersion: 1,
+    objectStoreName: "dbVersions",
+    id: stationuuid,
   });
+  setIdbValue({
+    dbName: stationuuid,
+    dbVersion: db.dbVersion,
+    objectStoreName: "content_blobs",
+    data: {
+      id: fileName,
+      blob: blob,
+      title: title,
+      size: blob.size,
+      type: blob.type,
+    },
+  }).catch((e) => console.error("storeBlobAsObj->", e));
+  arrayBuffer = null;
+  blob = null;
+  chunkArray = [];
 }
 
 function buildFileName(title, bitRate, radioName, fileExt) {
-  return title.concat(
-    " [",
-    bitRate,
-    "kb ",
-    radioName.substring(0, 30),
-    "]",
-    fileExt
-  );
+  return new Promise((resolve, _) => {
+    resolve(
+      title.concat(
+        " [",
+        bitRate,
+        "kb ",
+        radioName.substring(0, 30),
+        "]",
+        fileExt
+      )
+    );
+  });
 }
 
 /**
@@ -123,11 +116,19 @@ function buildFileName(title, bitRate, radioName, fileExt) {
  * @returns
  */
 function resolveFileExt(contentType) {
-  if (contentType == "audio/aacp" || contentType == "application/aacp")
-    return ".aacp";
-  if (contentType == "audio/aac") return ".aac";
-  if (contentType == "audio/ogg" || contentType == "application/ogg")
-    return ".ogg";
-  if (contentType == "audio/mpeg") return ".mp3";
-  return ".mp3"; // fail
+  return new Promise((resolve, _) => {
+    if (contentType === "audio/aacp" || contentType === "application/aacp") {
+      resolve(".aacp");
+    }
+    if (contentType === "audio/aac") {
+      resolve(".aac");
+    }
+    if (contentType === "audio/ogg" || contentType === "application/ogg") {
+      resolve(".ogg");
+    }
+    if (contentType === "audio/mpeg") {
+      resolve(".mp3");
+    }
+    resolve(".mp3"); // fail
+  });
 }

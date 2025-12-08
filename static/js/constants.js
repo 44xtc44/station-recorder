@@ -50,6 +50,7 @@ export {
   radioBrowserInfoDict,
   fetchOpt,
   gzJsonBkpRadioBrowserInfo,
+  shakaBGimg,
 };
 
 const appUserAgent = "stationRecorder/1.0";
@@ -505,3 +506,12 @@ const filterTypesList = [
   { type: "peaking" }, // 8
   { type: "highshelf" },
 ];
+
+const shakaBGimg = {
+  maxBGwidth: "",
+  error: { imgSrc: "", heigth: "", width: "" },
+  default: { imgSrc: "../images/audioOnly.gif", heigth: "", width: "" },
+  audioOnly: { imgSrc: "", heigth: "", width: "" },
+  audioBuff: { imgSrc: "", heigth: "", width: "" },
+  videoBuff: { imgSrc: "", heigth: "", width: "" },
+};

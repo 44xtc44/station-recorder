@@ -74,8 +74,7 @@ async function showM3u8(o = {}) {
     childId: "hintM3u8",
   });
   hint.innerText =
-    "Copy URL of m3u8 stream (HSL TV, Radio) and load it in VLC as a stream.<br>" +
-    "Playlist (if any) is the current list of stream chunks. Future use, workon.";
+    "Recording is not possible at the moment. I will integrate m3u8 streams."
 
   const infoBlock = await createFeatureDivSection({
     parentId: "m3u8Outer",

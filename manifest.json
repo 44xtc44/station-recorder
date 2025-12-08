@@ -30,7 +30,7 @@
   "background": {
     "scripts": ["/static/js/background.js"]
   },
-  "permissions": ["unlimitedStorage"],
+  "permissions": ["unlimitedStorage", "downloads"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
     {

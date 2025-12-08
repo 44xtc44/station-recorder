@@ -73,7 +73,7 @@ html_css_files = [
 # path relative to the conf.py file.
 js_source_path = [
     '../../static/js/', 
-    '../../static/js/audioAnimation/',
+    '../../static/js/mediaAnimation/',
     '../../static/js/buildGrids',
     '../../static/js/database',
     '../../static/js/database_update',

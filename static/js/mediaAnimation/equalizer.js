@@ -22,9 +22,8 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { metaData } from "../central.js";
 import { getAppSettings, setAppSettings } from "../database/idbAppSettings.js";
-import { audioContext, audioSource } from "./audio.js";
+import { audioContext, audioSource, videoSource } from "./mediaElements.js";
 import {
   equalizerPresets,
   equalizerRanges,
@@ -157,6 +156,7 @@ function eqBandsSet(frequencies, presetIdx) {
 
     gainNode = audioContext.createGain();
     audioSource.connect(gainNode);
+    videoSource.connect(gainNode);
 
     const promiseArray = filterTypesList.map((_, idx) => {
       return new Promise((resolve, _) => {
