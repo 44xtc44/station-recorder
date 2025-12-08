@@ -67,7 +67,7 @@ function createMediaElements() {
     /**
      * Video
      */
-    const videoElem = await createVideoElement();
+    const videoElem = await createVideoElement("videoScreen");
     const videoBar = document.getElementById("videoBar");
     videoBar.appendChild(videoElem); // attach to DOM tree, else its id not found
 
@@ -120,10 +120,10 @@ function createMediaElements() {
  * So a demand to attach equalizer also to a video element.
  * @returns {Promise<HTMLVideoElement>}
  */
-function createVideoElement() {
+function createVideoElement(id) {
   return new Promise((resolve, _) => {
     const video = document.createElement("video");
-    video.setAttribute("id", "videoScreen");
+    video.setAttribute("id", id);
     video.setAttribute("crossorigin", "anonymous");
     video.setAttribute("preload", "metadata");
     video.setAttribute("autoplay", "");

@@ -163,6 +163,7 @@ async function oneIcyArrayMeta(o = {}) {
       qlength += item.length;
     });
     // Create a new array with total length and merge all source arrays (internet chunks) of streamQ.
+    // A uint8array index accomodates one byte. So in log we se 0-255 displayed as value.
     let mergedArray = new Uint8Array(qlength);
     let offset = 0;
     q.queue.forEach((item) => {
@@ -171,8 +172,10 @@ async function oneIcyArrayMeta(o = {}) {
     });
     // We can not splice. uint8array is a ^^view^^ and therefore read only.
     // We can destroy the view -> let view = []; but the buffer is phys. mem.
-    // View is two sided and needs a buffer.
-    // A new view needs 'let foo = new Arraybuffer(42)' allocates new (raw) memory.
+    // A view displays an underlying buffer area.
+    // A new view needs a size, clipping 'let foo = new Arraybuffer(42)' 
+    // which allocates a part of (raw) memory area, of the data block.
+    // View can be larger than the datablock. Which should lead to read problems.
     // View data size (i.e uint8 uint32 ...) behaves like a list with an overlay of byte size (8,16,32,64).
     // Onw row can contain more or less data, because of data size.
     // We can split the view (on parts of mem), like a list, but not the phys. mem.
