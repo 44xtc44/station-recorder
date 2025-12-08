@@ -22,6 +22,9 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * centralize
+ */
 import { metaData } from "../central.js";
 import { runArrowAnimation } from "../audioAnimation/arrowAnimation.js";
 export {
