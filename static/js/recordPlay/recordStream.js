@@ -72,11 +72,10 @@ async function switchRecorderState(stationuuid) {
     await switchOnState(stationuuid);
     await recBtnColor(stationuuid, true);
     await votesBadgeShow(stationuuid, false);
-
-    submitStationClicked(stationuuid, station.id); // to public DB if UI setting true
-    recMsg(["stream record ", station.name]);
     await record(stationuuid);
-    return;
+    
+    submitStationClicked(stationuuid, station.id); // to public DB if UI setting true
+    return; // switchOnState station.isRecording active
   }
   if (station.isRecording) {
     await switchOffState(stationuuid);
