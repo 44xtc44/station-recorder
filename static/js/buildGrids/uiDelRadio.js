@@ -112,7 +112,10 @@ async function showDelMsg(stationuuid, parentDiv) {
     }).catch((e) => console.error("delete station failed.", e));
 
     metaData.set().infoDb[stationuuid].isFavorite = false;
-    recMsg(["removed from Favorites ", stationObj.name]);
+    recMsg({
+      txt: "removed from Favorites " + stationObj.name,
+      level: "warning",
+    });
     divMsg.innerText = "Wait for deletion from page.";
     divMsg.style.color = "rgba(170, 51, 106,1)";
     await sleep(1000);

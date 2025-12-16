@@ -21,27 +21,17 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
-import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-
 import { showDelMsg } from "../buildGrids/uiDelRadio.js";
 import { showBlacklist } from "../buildGrids/uiBlacklist.js";
-import { submitStationClicked } from "../network/publicDbCom.js";
+import { switchPlayer } from "./playStream.js";
 import { switchRecorderState } from "./recordStream.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
-import { detectStream, providerUrlGet } from "../network/streamDetect.js";
-import { locateTarget } from "../M3U8_HLS/m3u8Downloader.js";
 
-export {
-  recordBoxListener,
-  listenBoxListener,
-  settingsBoxListener,
-  playBtnColorOn,
-};
+export { recordBoxListener, listenBoxListener, settingsBoxListener };
 
 const parser = new DOMParser(); // sanitize html, mixed html with dyn. vars
 
@@ -62,7 +52,6 @@ function recordBoxListener(station, recBtn) {
  * Play button (listenBox grid creation).
  * One button must ON/OFF/and SWITCH both audio and video elements.
  *
- * Alzheimer prevention exercise.
  * @param {Object} station
  * @param {Object<string>} name
  * @param {Object<string>} stationuuid
@@ -70,179 +59,15 @@ function recordBoxListener(station, recBtn) {
  */
 function listenBoxListener({ name, stationuuid }, playBtn) {
   playBtn.addEventListener("click", async () => {
-    const playingUuid = await playBtnState(stationuuid);
-    if (playingUuid === "STOP") {
-      await playerOff(stationuuid);
-      return;
-    }
-    await playerOff(playingUuid);
-    await playerOn(stationuuid, name, playingUuid); // refac cleanup fun args
-  });
-}
-
-function playBtnState(stationuuid) {
-  return new Promise((resolve, _) => {
-    metaData.set().infoDb[stationuuid].isPlaying = true; // station obj itself
-
-    /**
-     * Create an extra dict to switch player.
-     * Else loop over 50k objects to find out someone is playing.
-     * Need to switch grids and audio, video elements separate.
-     * {player: {stationuuid: ""}, {isM3U8: false}}
-     */
-    const isRegistered = metaData.get().player;
-    if (isRegistered === undefined) {
-      metaData.set()["player"] = {
-        stationuuid: "", // audio elem currently playing
-        isM3U8: false, // video elem stream needs .unload() command
-      };
-    }
-
-    const playingUuid = metaData.get().player.stationuuid;
-    // STOP playing. Same button press again.
-    if (playingUuid === stationuuid || playingUuid === "") {
-      metaData.set().player.stationuuid = "";
-      metaData.set().infoDb[stationuuid].isPlaying = false;
-    }
-    // Other station play button pressed.
-    if (playingUuid !== stationuuid) {
-      metaData.set().player.stationuuid = stationuuid;
-      if (playingUuid !== "") {
-        metaData.set().infoDb[playingUuid].isPlaying = false; // DB unregister prev. station
-      }
-      resolve(playingUuid);
-    }
-    resolve("STOP");
-  });
-}
-
-/**
- * Unload HLS or audio stream.
- * @param {string} playingUuid
- */
-async function playerOff(playingUuid) {
-  const audio = document.getElementById("audioWithControls");
-  const video = document.getElementById("videoScreen");
-  video.style.display = "none";
-
-  await shakaPlayer.unload();
-  await shakaPlayer.detach(video);
-  audio.pause(); // load a base64 audio silent string to get .onended
-  // video.pause();
-  if (playingUuid !== "") {
-    metaData.set().infoDb[playingUuid].isPlaying = false;
-    await playBtnColorOff(playingUuid);
-  }
-}
-
-/**
- * Connect HLS or audio stream.
- * @param {string} stationuuid needs to be played
- * @param {string} stationName needs to be played
- * @param {string} playingUuid current player can be "hidden" from UI (country selected)
- */
-async function playerOn(stationuuid, stationName, playingUuid) {
-  metaData.set().infoDb[stationuuid].isPlaying = true;
-  // If switched between continent or country station btn is gone. Other div stack shown.
-  const hiddenBtn = document.getElementById(playingUuid + "_listenBox");
-  if (hiddenBtn !== null) await playBtnColorOff(playingUuid);
-  await playBtnColorOn(stationuuid, stationName);
-  /**
-   * Grid elem under monitor displays current audio elem connected station name.
-   * Other button was pressed before.
-   * streamActivity.js can mute (pause)
-   */
-  const audio = document.getElementById("audioWithControls");
-  if (audio.muted) audio.muted = !audio.muted;
-  const video = document.getElementById("videoScreen");
-
-  await streamConnect(stationuuid, audio, video); // shaka is (module import)
-  submitStationClicked(stationuuid, stationName); // to inet public DB
-  // UI display - country 3char code
-  const ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
-  recMsg(["play ", ccTo3char, stationName]);
-}
-
-/**
- * Shaka player is used only for m3u8 streams in video element.
- * Normal audio streams via audio element.
- * Volume, analyzer and equalizer manage both audio and video element.
- * Each stream type got its own streamDetect module. Audio rejects m3u8.
- * @param {string} stationuuid
- * @param {HTMLAudioElement} audio audio element
- * @param {HTMLVideoElement} video instance
- */
-async function streamConnect(stationuuid, audio, video) {
-  const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
-  if (isM3U8) {
-    // HLS stream
-    const playlistURL = metaData.get().infoDb[stationuuid].url;
-    const url = await locateTarget(playlistURL); // possible redirect in .m3u8 file
-    if (url === false) {
-      return;
-    }
-
-    metaData.set().player.isM3U8 = true;
-    await shakaPlayer.attach(video);
-
-    try {
-      await shakaPlayer.load(url);
-    } catch (shakaError) {
-      console.error("playerOn->shaka load", shakaError.code); // action!
-      // video.poster error msg, or jpg or favicon or ...
-      return;
-    }
-    const audioOnly = shakaPlayer.isAudioOnly();
-    const videoOnly = shakaPlayer.isVideoOnly();
-    if (videoOnly || (!audioOnly && !videoOnly)) {
-      video.style.display = "block";
-    }
-  }
-
-  if (!isM3U8) {
-    // Audio stream is online, or resolve a playlist URL.
-    const urlObj = await detectStream(stationuuid);
-    if (urlObj.url === false) return;
-
-    metaData.set().player.isM3U8 = false;
-    audio.src = urlObj.url; // can be empty str
-  }
-}
-
-function playBtnColorOn(stationuuid, stationName) {
-  return new Promise((resolve, _) => {
-    const divActivityPlayer = document.getElementById("divActivityPlayer");
-    divActivityPlayer.innerText = stationName;
-    divActivityPlayer.style.visibility = "visible";
-    const playBtn = document.getElementById(stationuuid + "_listenBox");
-    // not yet created
-    if (playBtn !== null) {
-      playBtn.style.backgroundColor = "#49bbaa"; // #49bbaa
-      const playImg = document.getElementById("playImg_" + stationuuid);
-      playImg.src = "./images/speaker-icon-on.svg";
-    }
-    resolve();
-  });
-}
-
-function playBtnColorOff(stationuuid) {
-  return new Promise((resolve, _) => {
-    const divActivityPlayer = document.getElementById("divActivityPlayer");
-    divActivityPlayer.innerText = "---";
-    divActivityPlayer.style.visibility = "hidden";
-    document.getElementById(stationuuid + "_listenBox").style.backgroundColor =
-      "transparent";
-    const playImg = document.getElementById("playImg_" + stationuuid);
-    playImg.src = "./images/speaker-icon-off.svg";
-    resolve();
+    await switchPlayer(name, stationuuid);
   });
 }
 
 /**
  * Settings box.
- * @param {*} e
- * @param {*} station
- * @param {*} stationGroup
+ * @param {EventTarget} e event target
+ * @param {Object<{name: string, stationuuid: string}>} station
+ * @param {string} stationGroup favorites, custom, country
  */
 async function settingsBoxListener(e, station, stationGroup) {
   const stationName = station.name;

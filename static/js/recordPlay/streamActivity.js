@@ -22,10 +22,10 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
 import { switchRecorderState } from "./recordStream.js";
+
 export { createActivityPlayer, activityBar };
 
 /**
@@ -59,7 +59,10 @@ function createActivityPlayer() {
         stationName = metaData.get()["createActivityPlayer"];
         video.play();
         audio.muted = !audio.muted;
-        recMsg(["play ", stationName]);
+        recMsg({
+          txt: "play " + stationName,
+          level: "success",
+        });
         gridItem.innerText = stationName;
         return;
       }
@@ -67,7 +70,10 @@ function createActivityPlayer() {
       video.pause();
       audio.muted = true;
       metaData.set()["createActivityPlayer"] = stationName;
-      recMsg(["pause ", stationName]);
+      recMsg({
+        txt: "pause " + stationName,
+        level: "success",
+      });
       gridItem.innerText = "[ Pause ]";
     });
 

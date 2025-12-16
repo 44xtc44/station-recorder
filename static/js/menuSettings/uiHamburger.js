@@ -31,7 +31,7 @@ import { setUploadEvtListener } from "../uiHelper.js";
 
 export { createAppMenu, evtHamburgerMenu };
 
-/**
+/**-
  *
  */
 function createAppMenu() {
@@ -39,10 +39,14 @@ function createAppMenu() {
   const liUpload = document.getElementById("liUpload");
   liUpload.addEventListener("click", () => showFileUploadUi());
   liUpload.style.display = "none";
+  /**
+   * Android can not use .donwloads function to track dl's, see mozilla documentation
+   * https://github.com/mdn/browser-compat-data/blob/main/webextensions/api/downloads.json
+   */
   // Disable dev upload menu entry; FF android multi dl bug report.
   // const liUpload = document.getElementById("liUpload");
   // click 7-times red arrow, arrow is called in writeHelloMessage
-  setUploadEvtListener();
+  // setUploadEvtListener();
 
   // audio bar show/hide
   evtHamburgerMenu({ menuName: "liAudio", featureDivId: "audioBarContainer" });

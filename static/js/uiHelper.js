@@ -95,7 +95,7 @@ function setUploadEvtListener() {
       let count = metaData.get()["upload_dev"];
       if (count === 7) {
         menuUploadDev.style.display = "inline-block";
-        recMsg([":: upload menu available"]);
+        recMsg({ txt: ":: upload menu available", level: "error" });
       }
       count += 1;
       metaData.set()["upload_dev"] = count;

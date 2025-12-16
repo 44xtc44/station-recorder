@@ -30,15 +30,43 @@ import { getRandomIntInclusive } from "../uiHelper.js";
 export { detectStream, getStream, resolvePlaylist, urlAlive, providerUrlGet };
 
 /**
- * @param {*} url
- * @returns {Object} input object plus add keys (stream object)
+ * (A) Player, resolve server playlists for audio element. 
+ *  "detectStream"
+ * 
+ * (B) Recorder has a stream detector and grabber.
+ *  "detectStream" - resolve server playlists for recorder, 
+ *  "getStream" - pass response +add-info to recorder loop.
+ * 
+ * (C) Custom URL saver, UI settings and for database update. 
+ *  el Cheapo dead endpoint detector. 
+ *  "urlAlive"
+ * 
+ * (1) Playlists resolver
+ *  "resolvePlaylist" - called by "detectStream"
+ * (2) Provide a link to UI in case audio element fails (FireFox problem).
+ *  "providerUrlGet"
  */
-async function getStream(o = {}) {
-  const url = o.stationUrl;
+
+/**
+ * Recorder stream grabber.
+ * @param {string} url
+ * @param {number} icyMetaint station should send meta information 0 || 1
+ * @returns {Promise<{
+ *  abortController: AbortController,
+ *  abortSignal: AbortSignal,
+ *  response: Response,
+ *  streamReader: Function,
+ *  headers: Object,
+ *  contentType: string,
+ *  chunkSize: string,
+ *  bitRate: string
+ * }>}
+ */
+async function getStream({ url, icyMetaint }) {
   const abortController = new AbortController();
   const abortSignal = abortController.signal;
   abortSignal.addEventListener("abort", () => {});
-  const addHeaders = createHeaders({ icyMetaint: o.icyMetaint });
+  const addHeaders = createHeaders({ icyMetaint: icyMetaint });
 
   const fetchOpt = {
     method: "GET",
@@ -52,7 +80,6 @@ async function getStream(o = {}) {
     // prod fetch
     const response = await fetch(url, fetchOpt); // can be mod url
     if (response.status >= 200 && response.status <= 300) {
-      // refac - make object standalone
       const responseObj = {
         abortController: abortController,
         abortSignal: abortSignal,
@@ -73,189 +100,188 @@ async function getStream(o = {}) {
 }
 
 /**
- * Return obj to discover:
+ * Recorder stream detector.
+ * If server playlist, resolve first station available.
  * Stream is alive.
  * Stream is playlist.
  * Playlist content.
- * @param {*} stationuuid
+ * @param {string} stationuuid
+ * @returns {Promise<{ url: string, text: string } || false>}
  */
-function detectStream(stationuuid) {
-  return new Promise((resolve, _) => {
-    const stationObj = metaData.get().infoDb[stationuuid];
-    const stationName = stationObj.id;
-    const abortController = new AbortController();
-    const abortSignal = abortController.signal;
-    abortSignal.addEventListener("abort", () => {});
-    let url = stationObj.url;
+async function detectStream(stationuuid) {
+  const stationObj = metaData.get().infoDb[stationuuid];
+  const stationName = stationObj.id;
+  const abortController = new AbortController();
+  const abortSignal = abortController.signal;
+  abortSignal.addEventListener("abort", () => {});
+  let url = stationObj.url;
 
-    let isPlaylist = stationObj.isPlaylist;
-    let isM3u8 = stationObj.isM3u8; // work on breaking ts (HLS) protocol
-    let isReady = false;
-    let contentType = "audio/x-mpegurl";
+  let isPlaylist = stationObj.isPlaylist;
+  let isM3u8 = stationObj.isM3u8; // work on breaking ts (HLS) protocol
+  let isReady = false;
+  let contentType = "audio/x-mpegurl";
 
-    /**
-     * Run all async to get await, means resolve the promise at end of async block once!
-     */
-    const waitFetch = async () => {
-      const fetchOpt = {
-        method: "GET",
-        mode: "cors",
-        cache: "no-store",
-        signal: abortSignal,
-      };
+  const fetchOpt = {
+    method: "GET",
+    mode: "cors",
+    cache: "no-store",
+    signal: abortSignal,
+  };
 
-      // Response must be aborted, not set boolean or none! Kill external fetch.
-      const response = await fetch(url, fetchOpt).catch(() => {
-        return "NETWORK_ERROR";
-      });
-      if (response !== "NETWORK_ERROR") {
-        contentType = response.headers.get("Content-Type");
-        // async in a promise can also be use to return before next
-        // statement / expression, must resolve also.
-        // No return in a simple promise. Caught to the bitter end.
-        if (contentType === null) {
-          recMsg(["fail:: no header content-type", stationName]);
-          resolve({ url: false, text: false });
-          return;
-        }
-        // Have a look at in blacklist button "station details".
-        try {
-          // defective header prevention
-          const headersTxt = JSON.stringify([...response.headers]);
-          metaData.set().infoDb[stationuuid].headers = headersTxt;
-        } catch (e) {
-          console.log(
-            "err json store header in closure->",
-            response.headers,
-            e
-          );
-        }
-      }
-
-      if (response.status >= 200 && response.status <= 300) {
-        // ok, filter out playlist later
-        if (isPlaylist) {
-          isReady = true;
-        }
-        if (!isPlaylist) {
-          isReady = true;
-        }
-      }
-      if (response.status < 200 || response.status > 300) {
-        // false Server response
-        isReady = false;
-        console.error("detectStream->::SERVER_ERROR", url);
-        resolve({ url: false, text: false });
-      }
-
-      // Prepare return - abort, then resolve
-
-      // if pl, return url from playlist and content of playlist file
-      if (isPlaylist && isReady) {
-        let urlObj = await resolvePlaylist(stationObj, response);
-        resolve({ url: urlObj.url, text: urlObj.text });
-      }
-
-      if (response === "NETWORK_ERROR") {
-        isReady = false;
-        console.error("detectStream->::NETWORK_ERROR", url);
-        recMsg(["stream detect :: NETWORK_ERROR", url])
-        resolve({ url: false, text: false });
-      }
-      // if no pl, return url object; can contain text
-      if (!isPlaylist && isReady) {
-        resolve({ url: url, text: "" });
-      }
-      // filter
-      if (contentType.includes("text/html")) {
-        recMsg(["fail ::URL_IS_TEXT_NOT_STREAM", stationName]);
-        resolve({ url: false, text: false });
-      }
-      if (isM3u8) {
-        recMsg(["fail ::M3U8_CANT_RECORD", stationName]);
-        resolve({ url: false, text: false });
-      }
-
-      abortController.abort();
-      try {
-        await response.text();
-      } catch (e) {}
-    };
-    waitFetch();
+  // Response must be aborted, not set boolean or none! Kill external fetch.
+  const response = await fetch(url, fetchOpt).catch(() => {
+    return "NETWORK_ERROR";
   });
+  if (response !== "NETWORK_ERROR") {
+    contentType = response.headers.get("Content-Type");
+    if (contentType === null) {
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "No header content-type " + stationName,
+        level: "error",
+      });
+      return { url: false, text: false };
+    }
+    // Have a look at in blacklist button "station details".
+    try {
+      // defective header prevention
+      const headersTxt = JSON.stringify([...response.headers]);
+      metaData.set().infoDb[stationuuid].headers = headersTxt;
+    } catch (e) {
+      console.log("err json store header in closure->", response.headers, e);
+    }
+  }
+
+  if (response.status >= 200 && response.status <= 300) {
+    // ok, filter out playlist later
+    if (isPlaylist) {
+      isReady = true;
+    }
+    if (!isPlaylist) {
+      isReady = true;
+    }
+  }
+  if (response.status < 200 || response.status > 300) {
+    // false Server response
+    isReady = false;
+    console.error("detectStream->::SERVER_ERROR", url);
+    return { url: false, text: false };
+  }
+
+  // if pl, return url from playlist and content of playlist file
+  if (isPlaylist && isReady) {
+    let urlObj = await resolvePlaylist(stationObj, response);
+    return { url: urlObj.url, text: urlObj.text };
+  }
+
+  if (response === "NETWORK_ERROR") {
+    isReady = false;
+    console.error("detectStream->::NETWORK_ERROR", url);
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "stream detect, NETWORK_ERROR" + url,
+      level: "error",
+    });
+    return { url: false, text: false };
+  }
+  // if no pl, return url object; can contain text
+  if (!isPlaylist && isReady) {
+    return { url: url, text: "" };
+  }
+  // filter
+  if (contentType.includes("text/html")) {
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "stream detect, URL_IS_TEXT_NOT_STREAM" + stationName,
+      level: "error",
+    });
+    return { url: false, text: false };
+  }
+  if (isM3u8) {
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "stream detect, M3U8_CANT_RECORD" + stationName,
+      level: "error",
+    });
+    return { url: false, text: false };
+  }
+
+  abortController.abort();
+  try {
+    // Provoke an error to shurely cut.
+    await response.text();
+  } catch (e) {}
 }
 
 /**
- * URL alive checker.
+ * Player URL alive checker.
  * Filter out wrong configured, redirects and zombie server.
  * @param {string} url
- * @param {string} checkContenType i.e radio-browser.info DB server
- * @returns {boolean} true or false
+ * @param {boolean} checkContenType i.e radio-browser.info DB server
+ * @returns {Promise<boolean>} true or false
  */
-function urlAlive(url, checkContenType = true) {
-  return new Promise(async (resolve, _) => {
-    const abortController = new AbortController();
-    const abortSignal = abortController.signal;
-    // Break fetch if "abort" is called.
-    abortSignal.addEventListener("abort", () => {});
-    // Break fetch if timeout hits.
-    const timeoutSignal = AbortSignal.timeout(10_000);
-    // Combine both.
-    const signal = AbortSignal.any([timeoutSignal, abortSignal]);
+async function urlAlive(url, checkContenType = true) {
+  const abortController = new AbortController();
+  const abortSignal = abortController.signal;
+  // Break fetch if "abort" is called.
+  abortSignal.addEventListener("abort", () => {});
+  // Break fetch if timeout hits.
+  const timeoutSignal = AbortSignal.timeout(10_000);
+  // Combine both.
+  const signal = AbortSignal.any([timeoutSignal, abortSignal]);
 
-    let contentType = "audio/x-mpegurl"; // arbitrary, may help or not
-    let isServing = false;
+  let contentType = "audio/x-mpegurl"; // arbitrary, may help or not
+  let isServing = false;
 
-    const fetchOpt = {
-      method: "GET",
-      mode: "cors",
-      cache: "no-store",
-      signal: signal,
-    };
+  const fetchOpt = {
+    method: "GET",
+    mode: "cors",
+    cache: "no-store",
+    signal: signal,
+  };
 
-    const response = await fetch(url, fetchOpt).catch((e) => {
-      return "NETWORK_ERROR";
-    });
-
-    if (response !== "NETWORK_ERROR") {
-      contentType = response.headers.get("Content-Type");
-    }
-
-    if (response.status >= 200 && response.status <= 300) {
-      isServing = true;
-      abortController.abort();
-    }
-
-    if (
-      (response.status < 200 && response.status > 300) ||
-      response.status === undefined
-    ) {
-      console.error(
-        "status code not in range->code, url",
-        response.status,
-        url
-      );
-      isServing = false;
-      abortController.abort();
-    }
-
-    if (response === "NETWORK_ERROR") {
-      console.error("urlAlive->::NETWORK_ERROR", url);
-      isServing = false;
-      abortController.abort();
-    }
-    if (
-      checkContenType &&
-      contentType !== null &&
-      contentType.includes("text/html")
-    ) {
-      recMsg(["fail ::IS_TEXT_NOT_STREAM"]);
-      isServing = false;
-      abortController.abort();
-    }
-
-    resolve(isServing);
+  const response = await fetch(url, fetchOpt).catch((e) => {
+    return "NETWORK_ERROR";
   });
+
+  if (response !== "NETWORK_ERROR") {
+    contentType = response.headers.get("Content-Type");
+  }
+
+  if (response.status >= 200 && response.status <= 300) {
+    isServing = true;
+    abortController.abort();
+  }
+
+  if (
+    (response.status < 200 && response.status > 300) ||
+    response.status === undefined
+  ) {
+    console.error("status code not in range->code, url", response.status, url);
+    isServing = false;
+    abortController.abort();
+  }
+
+  if (response === "NETWORK_ERROR") {
+    console.error("urlAlive->::NETWORK_ERROR", url);
+    isServing = false;
+    abortController.abort();
+  }
+  if (
+    checkContenType &&
+    contentType !== null &&
+    contentType.includes("text/html")
+  ) {
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "stream detect, IS_TEXT_NOT_STREAM" + stationName,
+      level: "error",
+    });
+    isServing = false;
+    abortController.abort();
+  }
+
+  return isServing;
 }
 
 function createHeaders(o = {}) {
@@ -271,18 +297,19 @@ function createHeaders(o = {}) {
 }
 
 /**
- * Return dictionary with original URL, 
+ * Return dictionary with original URL,
  * or first station URL from playlist, plus whole list for UI choice.
  * Playlist has URLs of current streaming stations.
- * Wrong configured server have .m3u or .pls at end of endpoint 
+ * Wrong configured server have .m3u or .pls at end of endpoint
  * but send mp3, aac, ogg.
- * 
+ *
  * @param {*} stationObj
  * @param {*} response
  * @returns {Object} { url: radio_url, text: false } text is playlist text
  */
 async function resolvePlaylist(stationObj, response) {
   // radio play action needs resolved playlist URL, else silence
+  const stationuuid = stationObj.stationuuid;
   const isM3U = stationObj.isM3U; // audio/x-mpegurl
   const isPLS = stationObj.isPLS; // application/pls+xml audio/x-scpls
   const isAshx = stationObj.isAshx; // M$ IIS server, audio/x-mpegurl
@@ -316,7 +343,6 @@ async function resolvePlaylist(stationObj, response) {
         const protocol = urlLine.trim().substring(0, 4).toLowerCase();
         if (protocol === "http") {
           found = true;
-          recMsg(["all station URLs in log: ", linesArray]);
           return { url: urlLine, text: linesArray };
         }
       }
@@ -324,7 +350,7 @@ async function resolvePlaylist(stationObj, response) {
     // EBM-Radio DEU error - minor prio
     if (isPLS) {
       // line array row starts with File1=http....
-      const plsUrl = linesArray[idx].split("File1=")[1]; 
+      const plsUrl = linesArray[idx].split("File1=")[1];
       if (plsUrl !== undefined) {
         const protocol = plsUrl.trim().substring(0, 4).toLowerCase();
         if (protocol === "http") {

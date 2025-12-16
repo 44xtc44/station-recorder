@@ -307,20 +307,14 @@ input:focus {
 
   font-size: 90%;
 }
-.spanLogMessage {
+.logSuccess {
   color: black;
 }
-.spanLogWarning {
-  color: red;
+.logError {
+  color: #dc143c;
 }
-.spanLogSkip {
-  color: #f7bcff;
-}
-.spanLogWrite {
+.logWarning {
   color: blue;
-}
-.spanLogBlacklisted {
-  color: green;
 }
 
 .blacklist {

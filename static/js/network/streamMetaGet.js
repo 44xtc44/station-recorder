@@ -67,8 +67,6 @@ async function consumeMetadata(o = {}) {
   // const metaQ = new Queue(); // original chunk size from radio station, find text msg
   let icyIdx = undefined; // can be a counter, from promise resolved (returned)
 
-  recMsg(["txt ", stationName]);
-
   while (true) {
     // div element may be removed and new created in favorite store. Will trigger an exception!
     const uiTitleDisplay = document.getElementById(
@@ -77,7 +75,11 @@ async function consumeMetadata(o = {}) {
     // if (uiTitleDisplay !== null) uiTitleDisplay.style.display = "inline-block";
     let nextChunk = await streamReader.read(targetLen);
     if (nextChunk.done) {
-      recMsg(["txt abort ::, connect rejected", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "txt abort, connect rejected " + stationName,
+        level: "error",
+      });
       switchRecorderState(stationuuid); // just in streamMetaGet else call again
       break; // radio killed our connection
     }
@@ -131,7 +133,11 @@ async function consumeMetadata(o = {}) {
     nextChunk = null;
 
     if (!metaData.get().infoDb[stationuuid].isListening) {
-      recMsg(["exit txt ", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "exit txt " + stationName,
+        level: "success",
+      });
       try {
         uiTitleDisplay.innerText = "---";
       } catch (e) {
@@ -173,7 +179,7 @@ async function oneIcyArrayMeta(o = {}) {
     // We can not splice. uint8array is a ^^view^^ and therefore read only.
     // We can destroy the view -> let view = []; but the buffer is phys. mem.
     // A view displays an underlying buffer area.
-    // A new view needs a size, clipping 'let foo = new Arraybuffer(42)' 
+    // A new view needs a size, clipping 'let foo = new Arraybuffer(42)'
     // which allocates a part of (raw) memory area, of the data block.
     // View can be larger than the datablock. Which should lead to read problems.
     // View data size (i.e uint8 uint32 ...) behaves like a list with an overlay of byte size (8,16,32,64).

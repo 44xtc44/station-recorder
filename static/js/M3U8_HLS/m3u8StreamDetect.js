@@ -18,7 +18,7 @@ async function connectM3u8(url) {
   if (response !== "NETWORK_ERROR") {
     contentType = response.headers.get("Content-Type");
     if (contentType === null) {
-      recMsg(["fail ::M3U8_NO_CONTENT-TYPE", url]);
+      recMsg({ txt: "M3U8_NO_CONTENT-TYPE" + url, level: "error" });
       return false;
     }
   }
@@ -27,11 +27,11 @@ async function connectM3u8(url) {
   if (response.status < 200 || response.status > 300) {
     // false Server response
     console.error("detectStream->::SERVER_ERROR", url);
-    recMsg(["fail ::M3U8_SERVER_ERROR", url]);
+    recMsg({ txt: "M3U8_SERVER_ERROR-TYPE" + url, level: "error" });
     return false;
   }
   if (response === "NETWORK_ERROR") {
-    recMsg(["fail ::M3U8_NETWORK_ERROR", url]);
+    recMsg({ txt: "M3U8_NETWORK_ERROR" + url, level: "error" });
     return false;
   }
 

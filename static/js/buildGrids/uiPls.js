@@ -150,7 +150,7 @@ function createPlsInfoBlock(o = {}) {
           metaData.set().infoDb[stationuuid].url = url;
           // streamdetect should not resolve pls again
           metaData.set().infoDb[stationuuid].isPlaylist = false;
-          recMsg(["replace playlist URL with " + url]);
+          recMsg({ txt: "replace playlist URL with " + url, level: "success" });
 
           await sleep(100);
           document.getElementById("plsOuter").remove();

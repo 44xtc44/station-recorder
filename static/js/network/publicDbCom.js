@@ -303,27 +303,10 @@ async function postStationClick(stationuuid, radioName) {
     try {
       jsonSuccess = await response.json();
     } catch (e) {
-      /** 
+      /**
        * Korrupted network response.
-       * SyntaxError: JSON.parse: unexpected end of data at line 1 column 1 of the JSON data 
+       * SyntaxError: JSON.parse: unexpected end of data at line 1 column 1 of the JSON data
        */
-    }
-
-    if (jsonSuccess === undefined || jsonSuccess.ok === false) {
-      recMsg([
-        "fail click count response ::",
-        "radio-browser.info",
-        radioName,
-        stationuuid,
-      ]);
-      resolve(false);
-    } else {
-      recMsg([
-        "Click response OK (valid 24h)",
-        jsonSuccess.name,
-        // jsonSuccess.stationuuid,
-      ]);
-      resolve(jsonSuccess.ok);
     }
   });
 }
@@ -363,17 +346,29 @@ async function postStationVote(stationuuid, stationName) {
       return false;
     });
     if (response === false) {
-      recMsg(["Vote; radio-browser.info not responding.", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "Vote; radio-browser.info not responding. " + stationName,
+        level: "success",
+      });
       resolve();
       return;
     }
     const jsonSuccess = await response.json();
 
     if (jsonSuccess === undefined || jsonSuccess.ok === false) {
-      recMsg(["fail :: wait 30 min. for same station vote.", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "Wait 30 min. for same station vote. " + stationName,
+        level: "error",
+      });
       resolve(false);
     } else {
-      recMsg(["Vote count response OK for ", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "Vote count response OK for " + stationName,
+        level: "success",
+      });
       resolve(jsonSuccess.ok);
     }
   });

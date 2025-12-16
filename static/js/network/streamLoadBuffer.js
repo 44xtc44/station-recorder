@@ -23,3 +23,5 @@
  */
 
 // https://stackoverflow.com/questions/14908838/loading-an-audio-buffer-and-play-it-using-the-audio-tag
+// Stop, have Shaka player integration now. 
+// All HLS, .m3u8 streams are played via the player library.

@@ -288,6 +288,14 @@ Why? Thinking: On call error it returns, on running not.
 For now it's good enough. If migrate the recorder threats to webworker
 this can be fixed by keeping an eye on the workers send message (use uuid).
 
+Libraries
+-------------
+
+| Shaka player is used to play Video/Audio HLS streams. 
+| That is stream file type .m3u8.
+| Apache-2.0 license and file in the "/static/js/assets" folder.
+| https://github.com/shaka-project/shaka-player?tab=Apache-2.0-1-ov-file#readme
+
 Contributions
 -------------
 

@@ -93,7 +93,7 @@ async function fetchFiles(playlist) {
 
     const current = await title(playlist.artistInfo.current);
     const { change } = await changed(current, titleToWrite);
-/* 
+    /* 
     if (!change) {
       // if (ID3Data.length > 0) ID3Frame = ID3Data;
       // playlist.files.push(await removeADTS(chunk.value));
@@ -102,7 +102,7 @@ async function fetchFiles(playlist) {
       continue;
     }
  */
-/*     if (change) {
+    /*     if (change) {
       titleCount++;
       if (titleCount === 1) {
         await incompleteDump(titleToWrite, playlist);
@@ -200,7 +200,10 @@ function changed(current, titleToWrite) {
 
 async function incompleteDump(titleToWrite, playlist) {
   if (!playlist.dumpIncomplete)
-    recMsg(["skip incomplete ", playlist.stationName, titleToWrite]);
+    recMsg({
+      txt: "skip incomplete " + playlist.stationName + " " + titleToWrite,
+      level: "success",
+    });
   if (playlist.dumpIncomplete) {
     await storeBlobAsObj({
       chunkArray: playlist.files,
@@ -219,7 +222,10 @@ async function completeDump(titleToWrite, playlist) {
     titleToWrite
   );
   if (isBlacklisted)
-    recMsg(["skip-blacklisted  ", playlist.stationName, titleToWrite]);
+    recMsg({
+      txt: "skip-blacklisted  " + playlist.stationName + " " + titleToWrite,
+      level: "success",
+    });
   if (!isBlacklisted)
     await storeBlobAsObj({
       chunkArray: playlist.files,

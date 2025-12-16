@@ -141,9 +141,9 @@ function restoreSingleStore(o = {}) {
     const store = o.store;
     const contentArray = o.contentArray;
     if (contentArray.length === 0) {
-      recMsg(["nothing in ", store]);
+      recMsg({ txt: "nothing in " + store, level: "error" });
     } else {
-      recMsg(["restore ", store]);
+      recMsg({ txt: "restore " + store, level: "success" });
     }
 
     const ver = await getIdbValue({
@@ -161,7 +161,7 @@ function restoreSingleStore(o = {}) {
         data: keyVal,
         // bulkInsert: true,
       }).catch((e) => {
-        recMsg(["fail ::", store, e]);
+        recMsg({ txt: "fail " + store + e, level: "error" });
       });
     }
 
@@ -179,7 +179,7 @@ function restoreSingleStore(o = {}) {
 function restoreBlacklists(blacklistDbs) {
   return new Promise(async (resolve, _) => {
     if (blacklistDbs.length === 0) {
-      recMsg(["nothing in blacklists"]);
+      recMsg({ txt: "nothing in blacklists", level: "error" });
     }
     // Create the DBs for the blacklists. DB may exist already.
     for (const db of blacklistDbs) {
@@ -187,7 +187,7 @@ function restoreBlacklists(blacklistDbs) {
       const stationName = db.dbName; // for download, show readable name
 
       // Each DB has two stores; 'blacklist_names' and 'content_blobs'.
-      recMsg(["restore blacklist ", stationName]);
+      recMsg({ txt: "restore blacklist " + stationName, level: "success" });
       await stationDbCreate(stationuuid);
       await dbRegisterStreamer(stationuuid, stationName); // for blacklists mem loader
     }
@@ -215,7 +215,7 @@ function restoreBlacklists(blacklistDbs) {
         bulkInsert: true,
       });
       await loadOneBlacklist(stationuuid);
-      recMsg(["load blacklist ", stationName]);
+      recMsg({ txt: "load blacklist " + stationName, level: "success" });
     }
 
     resolve();
@@ -251,6 +251,12 @@ async function pushJsonToStores(jsonFile) {
     store: "Custom",
     contentArray: custom,
   });
-  recMsg(["restore done; blacklists loaded and ready"]);
-  recMsg(["Reload to apply Favorites and stored settings."]);
+  recMsg({
+    txt: "restore done; blacklists loaded and ready",
+    level: "success",
+  });
+  recMsg({
+    txt: "Reload to apply Favorites and stored settings.",
+    level: "success",
+  });
 }

@@ -74,10 +74,14 @@ async function m3u8Download(playlistURL, stationuuid) {
   const { contentType, error } = await streamType(url); // Will the dump be playable later?
   if (error) return;
   if (!contentType.includes("audio")) {
-    recMsg(["fail :: NO_RECORD_MPEG_TS ", contentType]);
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "NO_RECORD_MPEG_TS " + contentType,
+      level: "error",
+    });
     return;
   }
-  recMsg(["m3u8 ", contentType]);
+
   playlist.contentType = contentType;
 
   /**

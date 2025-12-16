@@ -209,18 +209,23 @@ function mediaConnectors(audio, video) {
       if (e.target.error.message === "Failed to open media") {
         const providerUrl = await providerUrlGet(e.target.src);
         if (!providerUrl.includes("http")) {
-          recMsg(["audio element fail :: try again"]);
+          recMsg({ txt: "audio element fail, try again", level: "error" });
           return;
         }
-        recMsg(["audio element ::", e.target.error.message]);
+        await recMsg({
+          txt: "audio element" + e.target.error.message,
+          level: "error",
+        });
         // old BUG again https://bugzilla.mozilla.org/show_bug.cgi?id=1354633
         // This error message will be blank when privacy.resistFingerprinting = true
         // spring-react https://github.com/pmndrs/react-spring/issues/664
-        recMsg([
-          "<a href=" +
+        await recMsg({
+          txt:
+            "<a href=" +
             e.target.src + // or providerUrl
             " target=_blank>-> Click to open stream in a new tab. (Volume in tab)</a>",
-        ]);
+          level: "warning",
+        });
       }
     };
 

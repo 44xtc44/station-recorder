@@ -43,7 +43,7 @@ async function writeFileLocal({
   anchorElement.download = fileName;
   anchorElement.style.display = "none";
   document.body.appendChild(anchorElement);
-  recMsg(["write ", radioName, fileName]);
+  recMsg({ txt: "write " + radioName + " " + fileName, level: "success" });
   anchorElement.click();
 
   anchorElement.remove();
@@ -70,7 +70,7 @@ async function storeBlobAsObj({
   let blob = new Blob([arrayBuffer], { type: contentType });
   const fileExt = await resolveFileExt(contentType);
   const fileName = await buildFileName(title, bitRate, radioName, fileExt);
-  recMsg(["write DB", radioName, fileName]);
+  recMsg({ txt: "write DB " + radioName + " " + fileName, level: "success" });
 
   const db = await getIdbValue({
     dbName: "versions_db",

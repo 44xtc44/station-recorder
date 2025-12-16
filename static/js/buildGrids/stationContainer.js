@@ -123,7 +123,7 @@ function stationClickerLinks(o = {}) {
       // May be relevant if we fetch stream also play. Play from buffer.
       const isListening = metaData.get().infoDb[stationuuid].isListening;
       const isPlaying = metaData.get().infoDb[stationuuid].isPlaying;
-      
+
       if (isRecording || isListening || isPlaying) {
         await gridContainer(stationuuid, elem.container, gridObj, index);
       }
@@ -226,9 +226,9 @@ function createBoxTitle(gridTitleBox, station) {
 
 /**
  * Play button.
- * @param {*} station 
- * @param {*} gridListenBox 
- * @returns 
+ * @param {*} station
+ * @param {*} gridListenBox
+ * @returns
  */
 function createBoxListen(station, gridListenBox) {
   return new Promise((resolve, _) => {
@@ -738,10 +738,18 @@ function delFavorite(stationuuid) {
       objectStoreName: storeName,
       data: stationObj,
     }).catch((e) => {
-      recMsg(["fail :: del Favorites ", stationObj.name, e]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "fail del Favorites " + stationObj.name + e,
+        level: "error",
+      });
       resolve(false);
     });
-    recMsg(["removed from Favorites ", stationObj.name]);
+    recMsg({
+      stationuuid: stationuuid,
+      txt: "removed from Favorites " + stationObj.name,
+      level: "warning",
+    });
     resolve();
   });
 }

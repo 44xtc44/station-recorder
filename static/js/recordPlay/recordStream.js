@@ -173,7 +173,10 @@ async function removeAllRecorder() {
   for await (const recorder of array) {
     await switchRecorderState(recorder.id);
   }
-  recMsg(["stop all recorder", array.length + " done"]);
+  recMsg({
+    txt: "stop all recorder " + array.length + " done",
+    level: "warning",
+  });
 }
 
 /**

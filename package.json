@@ -27,7 +27,10 @@
   "jest": {
     "verbose": true,
     "automock": false,
-    "setupFiles": []
+    "setupFiles": [
+      "jsdom-worker"
+    ],
+    "testEnvironment": "jsdom"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -35,6 +38,8 @@
     "@types/node": "^24.3.0",
     "eslint": "^9.34.0",
     "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.2.0",
+    "jsdom-worker": "^0.3.0",
     "madge": "^8.0.0",
     "web-ext": "^8.10.0"
   },

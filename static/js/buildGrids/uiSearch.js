@@ -118,7 +118,7 @@ function searchTag(e) {
 function searchRun(searchTag, uuidArray) {
   return new Promise(async (resolve, _) => {
     const switchedCount = await switchContainer(searchTag, uuidArray);
-    recMsg([searchTag.concat(": ", switchedCount)]);
+    recMsg({ txt: searchTag.concat(": ", switchedCount), level: "success" });
     resolve();
   });
 }

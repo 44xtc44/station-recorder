@@ -87,7 +87,7 @@ function localDbBtns(storeNames, btn, favoritesName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_favorites"); // grid layout, col, rows
-      recMsg(["area " + favoritesName]);
+      recMsg({ txt: "area " + favoritesName, level: "success" });
 
       let namesArray = [...storeNames];
       namesArray.reverse(); // "Favorites" before "Custom" button
@@ -108,7 +108,7 @@ function localDbBtns(storeNames, btn, favoritesName) {
 }
 
 /**
- * Show/hide the subFilter button grid while 
+ * Show/hide the subFilter button grid while
  * current stations stack keeps shown.
  * @param {string} buttonName topfilter button
  * @returns {Promise<boolean>} Promise true if now hidden
@@ -184,8 +184,11 @@ async function showFavoriteStores(storeName) {
     store: storeName,
     parent: anchor,
   });
-  // User info on fake screen.
-  recMsg([stationsArray.length + " URLs " + storeName]);
+  // User info on log screen.
+  recMsg({
+    txt: stationsArray.length + " URLs " + storeName,
+    level: "success",
+  });
 }
 
 // ------------------------------------------------------------------------------ Country ----
@@ -203,7 +206,7 @@ function countriesBtns(btn, countryName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg(["area " + countryName]); // show user selected country name
+      recMsg({ txt: "area " + countryName, level: "success" });
 
       const res = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }
 
@@ -273,16 +276,19 @@ function countryStations(twoCharCode) {
     }, []);
     db = null;
     const countryName = metaData.get()["countryNames"][cc];
-    recMsg([countryStations.length + " URLs " + countryName]);
+    recMsg({
+      txt: countryStations.length + " URLs " + countryName,
+      level: "success",
+    });
     resovlve(countryStations.sort());
   });
 }
 
 /**
- * Produce array of country names for 
+ * Produce array of country names for
  * buttons and name to 2-char resolver dict.
  * @returns {object} dict with countryNames and country to 2-char codes {germanistan: de}
- * @returns {object<Array>} countryNames 
+ * @returns {object<Array>} countryNames
  * @returns {object<object>} {Andorra: "AD", Angola: "AO", Anguilla: "AI", ...}
  */
 function resolveCountryStations() {
@@ -350,7 +356,7 @@ function worldAreasBtns(areaNames, btn, worldName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_world"); // grid layout, col, rows
-      recMsg(["area " + worldName]);
+      recMsg({ txt: "area " + worldName, level: "success" });
 
       for (const areaName of areaNames) {
         const areaBtn = document.createElement("div");
@@ -368,10 +374,10 @@ function worldAreasBtns(areaNames, btn, worldName) {
 }
 
 /**
- * 
- * @param {HTMLDivElement} areaBtn 
- * @param {string} areaName 
- * @param {HTMLDivElement} btn 
+ *
+ * @param {HTMLDivElement} areaBtn
+ * @param {string} areaName
+ * @param {HTMLDivElement} btn
  * @returns {Promise<undefined>} Promise undefined
  */
 function setEvtWorldAreasBtns(areaBtn, areaName, btn) {
@@ -424,7 +430,10 @@ function worldAreaStations(areaName, areaCountries) {
       return accu;
     }, []);
     db = null; // mem leak prevention
-    recMsg([continentStations.length + " URLs " + areaName]);
+    recMsg({
+      txt: continentStations.length + " URLs " + areaName,
+      level: "success",
+    });
     resolve(continentStations);
   });
 }
@@ -450,7 +459,7 @@ function continentBtns(continents, btn, continentName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_continents");
-      recMsg(["area " + continentName]);
+      recMsg({ txt: "area " + continentName, level: "success" });
 
       for (const continent of continents) {
         if (continent === "World") continue; // Filter out World.
@@ -497,7 +506,7 @@ function setEvtContinentBtns(
       const anchor = await subFilterContainer();
 
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg(["area " + continent]);
+      recMsg({ txt: "area " + continent,level: "success" });
 
       // input of fun should be 2-char code list
       const data = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }

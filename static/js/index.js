@@ -30,9 +30,10 @@
  * @version 1.0.0
  * @since 0.0.0
  * @license GPLv3 License (2024-2025), René Horn
+ * 
+ * Alzheimer prevention exercise.
+ * https://palant.info/2022/08/17/impact-of-extension-privileges/
  */
-
-// https://palant.info/2022/08/17/impact-of-extension-privileges/
 
 import { initShakaApp } from "./M3U8_HLS/shakaPlayer.js";
 import { sleep } from "./uiHelper.js";

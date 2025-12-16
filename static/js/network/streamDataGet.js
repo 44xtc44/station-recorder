@@ -82,16 +82,26 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
   }
   const dumpIncomplete = metaData.get().infoDb[stationuuid].dumpIncomplete;
 
+  recMsg({
+    stationuuid: stationuuid,
+    txt: "rec " + stationName,
+    level: "success",
+  });
+
   while (true) {
     let nextChunk = await streamReader.read();
     if (nextChunk.done) {
-      recMsg(["stream abort ::, connect rejected", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "stream abort, connect rejected" + stationName,
+        level: "error",
+      });
       break; // radio killed our connection
     }
 
     let chunk = nextChunk.value;
     chunkArray.push(chunk);
-    
+
     const blobKwargs = {
       chunkArray: chunkArray,
       contentType: contentType,
@@ -106,13 +116,21 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
       if (titleToWrite !== noTitleMsg && count > 1) {
         const isBlacklisted = await writeBlacklist(stationuuid, titleToWrite);
         if (isBlacklisted)
-          recMsg(["skip-blacklisted  ", stationName, titleToWrite]);
+          recMsg({
+            stationuuid: stationuuid,
+            txt: "skip-blacklisted  " + stationName + " " + titleToWrite,
+            level: "warning",
+          });
         if (!isBlacklisted) await storeBlobAsObj(blobKwargs);
         chunkArray = [];
       }
       if (count === 1) {
         if (!dumpIncomplete)
-          recMsg(["skip incomplete ", stationName, titleToWrite]);
+          recMsg({
+            stationuuid: stationuuid,
+            txt: "skip incomplete " + stationName + " " + titleToWrite,
+            level: "warning",
+          });
         if (dumpIncomplete) {
           blobKwargs.title = "_incomplete_" + titleToWrite;
           await storeBlobAsObj(blobKwargs);
@@ -127,7 +145,11 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
     nextChunk = null;
 
     if (!metaData.get().infoDb[stationuuid].isRecording) {
-      recMsg(["exit stream ", stationName]);
+      recMsg({
+        stationuuid: stationuuid,
+        txt: "exit stream " + stationName,
+        level: "success",
+      });
       if (dumpIncomplete) {
         blobKwargs.title = "_incomplete_" + titleToWrite + "_" + Date.now();
         await storeBlobAsObj(blobKwargs);

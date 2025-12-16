@@ -111,7 +111,7 @@ function streamTxt(stationUrl, stationuuid, icyMetaint) {
   const station = metaData.get().infoDb[stationuuid];
 
   const res = getStream({
-    stationUrl: stationUrl,
+    url: stationUrl,
     icyMetaint: icyMetaint,
   })
     .then((res) => {
@@ -132,7 +132,10 @@ function streamTxt(stationUrl, stationuuid, icyMetaint) {
       });
     })
     .catch((e) => {
-      recMsg(["fail getStream ::", station.id, e.message]);
+      recMsg({
+        txt: "fail getStream " + station.id + " " + e.message,
+        level: "error",
+      });
       return e;
     });
 }
@@ -142,7 +145,7 @@ function streamTxt(stationUrl, stationuuid, icyMetaint) {
  */
 function streamData(stationUrl, stationuuid, icyMetaint) {
   const res = getStream({
-    stationUrl: stationUrl,
+    url: stationUrl,
     icyMetaint: icyMetaint,
   })
     .then((res) => {
@@ -159,7 +162,10 @@ function streamData(stationUrl, stationuuid, icyMetaint) {
       });
     })
     .catch((e) => {
-      recMsg(["fail getStream ::", station.id, e.message]);
+      recMsg({
+        txt: "fail getStream " + station.id + " " + e.message,
+        level: "error",
+      });
       return e;
     });
 }
