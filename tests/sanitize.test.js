@@ -3,12 +3,11 @@
 
 /**
  * Jest has no integrated support for "module" style code.
- * 
- * resolve the issue -> package.json add
+ * Resolve the issue -> package.json add
  * (A) "type": "module",
  * (B) "test": "node --experimental-vm-modules node_modules/.bin/jest"
  */
-import { summe } from "./1sanitize.js";
+import { summe } from "./sanitize.js";
 
 describe("See if jest test runs on the system at all.", () => {
   test("adds 1 + 2 to equal 3", () => {

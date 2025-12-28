@@ -23,7 +23,7 @@
  */
 
 import { sleep } from "../uiHelper.js";
-import { getIndex, delOneKeyFromDbStore } from "../database/idbSetGetValues.js";
+import { getIndex, delOneKeyFromDbStore } from "../database/idbSetGetValues.mjs";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,

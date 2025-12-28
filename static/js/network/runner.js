@@ -131,8 +131,8 @@ function streamTxt(stationUrl, stationuuid, icyMetaint) {
         // message: "The operation was aborted. "  name: "AbortError"
       });
     })
-    .catch((e) => {
-      recMsg({
+    .catch(async (e) => {
+      await recMsg({
         txt: "fail getStream " + station.id + " " + e.message,
         level: "error",
       });
@@ -161,8 +161,8 @@ function streamData(stationUrl, stationuuid, icyMetaint) {
         // message: "The operation was aborted. "  name: "AbortError"
       });
     })
-    .catch((e) => {
-      recMsg({
+    .catch(async (e) => {
+      await recMsg({
         txt: "fail getStream " + station.id + " " + e.message,
         level: "error",
       });

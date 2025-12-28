@@ -1,4 +1,4 @@
-// objectToJsonFile.js
+// objectToJsonFile.mjs
 "use strict";
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
@@ -48,7 +48,7 @@ export { splitStoreDictArray, JSONToFile };
  * splitStoreDictArray(dictArray, 2000, 'dumpFile.json');
  */
 function splitStoreDictArray(dictArray, chunkSize, fileNameJson) {
-  return new Promise(async (resolve, _) => {
+  return new Promise((resolve, _) => {
     let chunkNum = 0;
     let start = 0;
     let end = chunkSize;

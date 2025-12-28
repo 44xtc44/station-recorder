@@ -82,7 +82,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
   }
   const dumpIncomplete = metaData.get().infoDb[stationuuid].dumpIncomplete;
 
-  recMsg({
+  await recMsg({
     stationuuid: stationuuid,
     txt: "rec " + stationName,
     level: "success",
@@ -91,7 +91,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
   while (true) {
     let nextChunk = await streamReader.read();
     if (nextChunk.done) {
-      recMsg({
+      await recMsg({
         stationuuid: stationuuid,
         txt: "stream abort, connect rejected" + stationName,
         level: "error",
@@ -116,7 +116,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
       if (titleToWrite !== noTitleMsg && count > 1) {
         const isBlacklisted = await writeBlacklist(stationuuid, titleToWrite);
         if (isBlacklisted)
-          recMsg({
+          await recMsg({
             stationuuid: stationuuid,
             txt: "skip-blacklisted  " + stationName + " " + titleToWrite,
             level: "warning",
@@ -126,7 +126,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
       }
       if (count === 1) {
         if (!dumpIncomplete)
-          recMsg({
+          await recMsg({
             stationuuid: stationuuid,
             txt: "skip incomplete " + stationName + " " + titleToWrite,
             level: "warning",
@@ -145,7 +145,7 @@ async function consumeStream({ stationuuid, contentType, streamReader }) {
     nextChunk = null;
 
     if (!metaData.get().infoDb[stationuuid].isRecording) {
-      recMsg({
+      await recMsg({
         stationuuid: stationuuid,
         txt: "exit stream " + stationName,
         level: "success",

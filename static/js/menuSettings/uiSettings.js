@@ -33,7 +33,7 @@ import {
   storeIncomplete,
   sendStationId,
 } from "./uiSettingsFeatures.js";
-import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,

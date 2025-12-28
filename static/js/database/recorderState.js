@@ -32,7 +32,7 @@ import {
   setPropIdb,
   getPropIdb,
   delPropIdb,
-} from "./idbSetGetValues.js";
+} from "./idbSetGetValues.mjs";
 import { createIndexedDb, logAllDbVersions } from "./idbInitDb.js";
 import { activityBar } from "../recordPlay/streamActivity.js";
 

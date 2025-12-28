@@ -1,4 +1,8 @@
-import { msgStyle, htmlFormat , sanitizeHTML} from "../../../static/js/network/messages";
+import {
+  msgStyle,
+  htmlFormat,
+  sanitizeHTML,
+} from "../../../static/js/network/messages";
 
 describe("Log messages to UI and log archive.", () => {
   test("HTML styles for different log levels.", async () => {
@@ -17,12 +21,21 @@ describe("Log messages to UI and log archive.", () => {
   });
 });
 
+//
 describe("HTML Parser, sanitizer.", () => {
   test("Pass all string item through.", async () => {
     expect(
+      await sanitizeHTML("<div><span class=logSuccess> jest test</span></div>")
+    ).toBe('<div><span class="logSuccess"> jest test</span></div>');
+  });
+  test("<script> filter out.", async () => {
+    expect(
       await sanitizeHTML(
-        "<div><span class=logSuccess> jest test</span></div>"
+        "<div><script>alert('XSS')</script><span class=logSuccess> jest test</span></div>"
       )
-    ).toBe("<div><span class=\"logSuccess\"> jest test</span></div>");
+    ).toBe("");
+  });
+  test("Senseless string.", async () => {
+    expect(await sanitizeHTML("foo")).toBe("");
   });
 });

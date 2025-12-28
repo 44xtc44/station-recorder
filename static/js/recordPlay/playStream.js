@@ -22,6 +22,12 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Separate switch logic from element styling.
+ * As far as possible. To keep track.
+ * switch is too complicated
+ */
+
 import { shakaPlayer } from "../M3U8_HLS/shakaPlayer.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
@@ -33,24 +39,52 @@ export { switchPlayer };
 
 /**
  * Player off, new player on.
- * @param {string} name 
- * @param {string} stationuuid 
+ * @param {string} name
+ * @param {string} stationuuid
  * @returns {Promise<undefined>}
  */
 async function switchPlayer(name, stationuuid) {
   const playingUuid = await playBtnState(stationuuid);
   if (playingUuid === "STOP") {
-    await playerOff(stationuuid);
+    console.log("-> STOP ");
+    await playerOff({ stationuuid: stationuuid, playingUuid: playingUuid });
     return;
   }
-  await playerOff(playingUuid);
+  console.log("-> REGULAR ");
+  await playerOff({ stationuuid: stationuuid, playingUuid: playingUuid });
   await playerOn(stationuuid, name, playingUuid);
 }
 
 /**
- * Play button press. 
+ * Unload HLS or audio stream.
+ * @type {Object} station id
+ * @param {string} stationuuid
+ * @param {string} playingUuid current player "stationuuid" || "STOP"
+ * @returns {Promise<undefined>}
+ */
+async function playerOff({ stationuuid, playingUuid }) {
+  const audio = document.getElementById("audioWithControls");
+  const video = document.getElementById("videoScreen");
+
+  await shakaPlayer.unload();
+  await shakaPlayer.detach(video);
+  video.style.display = "none";
+  video.pause();
+
+  metaData.set().infoDb[stationuuid].isPlaying = false;
+  await playBtnColorOff(stationuuid);
+  audio.pause(); // load a base64 audio silent string to get .onended
+  console.log("-> playerOff ", {
+    stationuuid: stationuuid,
+    playingUuid: playingUuid,
+    player: metaData.get().player,
+  });
+}
+
+/**
+ * Play button press.
  * Detect current player should stop or new player start.
- * @param {string} stationuuid 
+ * @param {string} stationuuid
  * @returns {Promise<string>} "STOP" || current player stationuuid
  */
 function playBtnState(stationuuid) {
@@ -90,32 +124,13 @@ function playBtnState(stationuuid) {
 }
 
 /**
- * Unload HLS or audio stream.
- * @param {string} playingUuid
- * @returns {Promise<undefined>}
- */
-async function playerOff(playingUuid) {
-  const audio = document.getElementById("audioWithControls");
-  const video = document.getElementById("videoScreen");
-  video.style.display = "none";
-
-  await shakaPlayer.unload();
-  await shakaPlayer.detach(video);
-  audio.pause(); // load a base64 audio silent string to get .onended
-  // video.pause();
-  if (playingUuid !== "") {
-    metaData.set().infoDb[playingUuid].isPlaying = false;
-    await playBtnColorOff(playingUuid);
-  }
-}
-
-/**
  * Connect HLS or audio stream to a new player.
  * @param {string} stationuuid needs to be played next
  * @param {string} stationName needs to be played next
  * @param {string} playingUuid current player can be "hidden" from UI (country selected)
  */
 async function playerOn(stationuuid, stationName, playingUuid) {
+  const isM3U8 = metaData.get().infoDb[stationuuid].isM3u8;
   metaData.set().infoDb[stationuuid].isPlaying = true;
   // If switched between continent or country station btn is gone. Other div stack shown.
   const hiddenBtn = document.getElementById(playingUuid + "_listenBox");
@@ -128,17 +143,24 @@ async function playerOn(stationuuid, stationName, playingUuid) {
    */
   const audio = document.getElementById("audioWithControls");
   if (audio.muted) audio.muted = !audio.muted;
-  const video = document.getElementById("videoScreen");
+  if (!isM3U8) audio.play();
 
+  const video = document.getElementById("videoScreen");
   await streamConnect(stationuuid, audio, video); // shaka is (module import)
+
   submitStationClicked(stationuuid, stationName); // to inet public DB
   // UI display - country 3char code
   let ccTo3char = metaData.get().infoDb[stationuuid].ccTo3char;
   if (ccTo3char === undefined) ccTo3char = "CUSTOM_URL";
-  recMsg({
+  await recMsg({
     stationuuid: stationuuid,
     txt: "play " + ccTo3char + " " + stationName,
     level: "success",
+  });
+  console.log("-> playerON ", {
+    stationuuid: stationuuid,
+    playingUuid: playingUuid,
+    player: metaData.get().player,
   });
 }
 
@@ -181,6 +203,7 @@ async function streamConnect(stationuuid, audio, video) {
   if (!isM3U8) {
     // Audio stream is online, or resolve a playlist URL.
     const urlObj = await detectStream(stationuuid);
+    console.log("-> player streamConnect DONE ", urlObj);
     if (urlObj.url === false) return;
 
     metaData.set().player.isM3U8 = false;
@@ -190,15 +213,18 @@ async function streamConnect(stationuuid, audio, video) {
 
 function playBtnColorOn(stationuuid, stationName) {
   return new Promise((resolve, _) => {
-    const divActivityPlayer = document.getElementById("divActivityPlayer");
-    divActivityPlayer.innerText = stationName;
-    divActivityPlayer.style.visibility = "visible";
     const playBtn = document.getElementById(stationuuid + "_listenBox");
-    // not yet created
     if (playBtn !== null) {
       playBtn.style.backgroundColor = "#49bbaa"; // #49bbaa
       const playImg = document.getElementById("playImg_" + stationuuid);
       playImg.src = "./images/speaker-icon-on.svg";
+    }
+
+    // div left beside the search box to pause the player
+    const divActivityPlayer = document.getElementById("divActivityPlayer");
+    if (divActivityPlayer !== null) {
+      divActivityPlayer.innerText = stationName;
+      divActivityPlayer.style.visibility = "visible";
     }
     resolve();
   });
@@ -206,16 +232,18 @@ function playBtnColorOn(stationuuid, stationName) {
 
 function playBtnColorOff(stationuuid) {
   return new Promise((resolve, _) => {
-    const divActivityPlayer = document.getElementById("divActivityPlayer");
-    if (divActivityPlayer !== null) {
-      divActivityPlayer.innerText = "---";
-      divActivityPlayer.style.visibility = "hidden";
-    }
     const listenBox = document.getElementById(stationuuid + "_listenBox");
     if (listenBox !== null) listenBox.style.backgroundColor = "transparent";
 
     const playImg = document.getElementById("playImg_" + stationuuid);
     if (playImg !== null) playImg.src = "./images/speaker-icon-off.svg";
+
+    // div left beside the search box to pause the player
+    const divActivityPlayer = document.getElementById("divActivityPlayer");
+    if (divActivityPlayer !== null) {
+      divActivityPlayer.innerText = "---";
+      divActivityPlayer.style.visibility = "hidden";
+    }
     resolve();
   });
 }

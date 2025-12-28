@@ -50,7 +50,7 @@ import {
   getIdbValue,
   setIdbValue,
   delIdbValue,
-} from "../database/idbSetGetValues.js";
+} from "../database/idbSetGetValues.mjs";
 import { recBtnColor } from "../recordPlay/recordStream.js";
 
 export { stationClickerLinks, clickerLinkColor };
@@ -118,10 +118,11 @@ function stationClickerLinks(o = {}) {
         await gridContainer(stationuuid, elem.container, gridObj, index);
       });
 
-      // 'Show' assambled grid if some activity. Rec or play.
+      // Record, 'Show' assambled grid if some activity. Rec or play.
       const isRecording = metaData.get().infoDb[stationuuid].isRecording;
-      // May be relevant if we fetch stream also play. Play from buffer.
+      // Record, grab text from Metadata.
       const isListening = metaData.get().infoDb[stationuuid].isListening;
+      // Play button
       const isPlaying = metaData.get().infoDb[stationuuid].isPlaying;
 
       if (isRecording || isListening || isPlaying) {
@@ -738,14 +739,17 @@ function delFavorite(stationuuid) {
       objectStoreName: storeName,
       data: stationObj,
     }).catch((e) => {
-      recMsg({
-        stationuuid: stationuuid,
-        txt: "fail del Favorites " + stationObj.name + e,
-        level: "error",
-      });
+      const wait = async () => {
+        await recMsg({
+          stationuuid: stationuuid,
+          txt: "fail del Favorites " + stationObj.name + e,
+          level: "error",
+        });
+      }
+      wait();
       resolve(false);
     });
-    recMsg({
+    await recMsg({
       stationuuid: stationuuid,
       txt: "removed from Favorites " + stationObj.name,
       level: "warning",

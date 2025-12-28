@@ -23,7 +23,7 @@
  */
 
 import { recMsg } from "../network/messages.js";
-import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.mjs";
 export { writeFileLocal, storeBlobAsObj, resolveFileExt };
 
 async function writeFileLocal({
@@ -43,7 +43,7 @@ async function writeFileLocal({
   anchorElement.download = fileName;
   anchorElement.style.display = "none";
   document.body.appendChild(anchorElement);
-  recMsg({ txt: "write " + radioName + " " + fileName, level: "success" });
+  await recMsg({ txt: "write " + radioName + " " + fileName, level: "success" });
   anchorElement.click();
 
   anchorElement.remove();
@@ -70,7 +70,7 @@ async function storeBlobAsObj({
   let blob = new Blob([arrayBuffer], { type: contentType });
   const fileExt = await resolveFileExt(contentType);
   const fileName = await buildFileName(title, bitRate, radioName, fileExt);
-  recMsg({ txt: "write DB " + radioName + " " + fileName, level: "success" });
+  await recMsg({ txt: "write DB " + radioName + " " + fileName, level: "success" });
 
   const db = await getIdbValue({
     dbName: "versions_db",

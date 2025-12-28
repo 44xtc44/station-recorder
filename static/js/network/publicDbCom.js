@@ -26,7 +26,7 @@ import { recMsg } from "./messages.js";
 import { metaData } from "../central.js";
 import { urlAlive } from "./streamDetect.js";
 import { shuffleArray, sleep, getRandomIntInclusive } from "../uiHelper.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   fetchOpt,
   radioBrowserInfoDict, // same format as in response.json()
@@ -338,40 +338,38 @@ function submitStationClicked(stationuuid, stationName) {
 async function postStationVote(stationuuid, stationName) {
   // POST, get JSON .../json/vote/stationuuid
   // {"ok": true,"message": "voted for station successfully"}
-  return new Promise(async (resolve, _) => {
-    const dbSrvUrl = metaData.get()["radioBrowserInfoUrl"];
-    const updateUrl = "https://" + dbSrvUrl + "/json/vote/" + stationuuid;
-    fetchOpt.method = "POST";
-    const response = await fetch(updateUrl, fetchOpt).catch(() => {
-      return false;
-    });
-    if (response === false) {
-      recMsg({
-        stationuuid: stationuuid,
-        txt: "Vote; radio-browser.info not responding. " + stationName,
-        level: "success",
-      });
-      resolve();
-      return;
-    }
-    const jsonSuccess = await response.json();
 
-    if (jsonSuccess === undefined || jsonSuccess.ok === false) {
-      recMsg({
-        stationuuid: stationuuid,
-        txt: "Wait 30 min. for same station vote. " + stationName,
-        level: "error",
-      });
-      resolve(false);
-    } else {
-      recMsg({
-        stationuuid: stationuuid,
-        txt: "Vote count response OK for " + stationName,
-        level: "success",
-      });
-      resolve(jsonSuccess.ok);
-    }
+  const dbSrvUrl = metaData.get()["radioBrowserInfoUrl"];
+  const updateUrl = "https://" + dbSrvUrl + "/json/vote/" + stationuuid;
+  fetchOpt.method = "POST";
+  const response = await fetch(updateUrl, fetchOpt).catch(() => {
+    return false;
   });
+  if (response === false) {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Vote; radio-browser.info not responding. " + stationName,
+      level: "success",
+    });
+    return;
+  }
+  const jsonSuccess = await response.json();
+
+  if (jsonSuccess === undefined || jsonSuccess.ok === false) {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Wait 30 min. for same station vote. " + stationName,
+      level: "error",
+    });
+    return false;
+  } else {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Vote count response OK for " + stationName,
+      level: "success",
+    });
+    return jsonSuccess.ok;
+  }
 }
 
 function submitStationVote(stationuuid, stationName) {

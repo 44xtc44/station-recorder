@@ -46,7 +46,7 @@ function createActivityPlayer() {
     gridItem.style.visibility = "hidden";
     parent.appendChild(gridItem);
 
-    gridItem.addEventListener("click", () => {
+    gridItem.addEventListener("click", async () => {
       // idle? Do nothing.
       if (gridItem.innerText === "---") return; // gridItem is hidden at page load
 
@@ -54,12 +54,11 @@ function createActivityPlayer() {
       const video = document.getElementById("videoScreen");
       let stationName = gridItem.innerText;
 
-      //
       if (gridItem.innerText === "[ Pause ]") {
         stationName = metaData.get()["createActivityPlayer"];
         video.play();
         audio.muted = !audio.muted;
-        recMsg({
+        await recMsg({
           txt: "play " + stationName,
           level: "success",
         });
@@ -70,7 +69,7 @@ function createActivityPlayer() {
       video.pause();
       audio.muted = true;
       metaData.set()["createActivityPlayer"] = stationName;
-      recMsg({
+      await recMsg({
         txt: "pause " + stationName,
         level: "success",
       });

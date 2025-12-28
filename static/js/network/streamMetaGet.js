@@ -75,7 +75,7 @@ async function consumeMetadata(o = {}) {
     // if (uiTitleDisplay !== null) uiTitleDisplay.style.display = "inline-block";
     let nextChunk = await streamReader.read(targetLen);
     if (nextChunk.done) {
-      recMsg({
+      await recMsg({
         stationuuid: stationuuid,
         txt: "txt abort, connect rejected " + stationName,
         level: "error",
@@ -133,7 +133,7 @@ async function consumeMetadata(o = {}) {
     nextChunk = null;
 
     if (!metaData.get().infoDb[stationuuid].isListening) {
-      recMsg({
+      await recMsg({
         stationuuid: stationuuid,
         txt: "exit txt " + stationName,
         level: "success",

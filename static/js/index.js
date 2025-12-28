@@ -30,8 +30,9 @@
  * @version 1.0.0
  * @since 0.0.0
  * @license GPLv3 License (2024-2025), René Horn
- * 
- * Alzheimer prevention exercise.
+ *
+ * https://github.com/SimGus/chrome-extension-v3-starter/blob/master/manifest.json
+ * https://stackoverflow.com/questions/71897438/with-a-manifest-v3-chrome-extension-is-it-possible-to-load-an-extension-html-re
  * https://palant.info/2022/08/17/impact-of-extension-privileges/
  */
 
@@ -43,7 +44,7 @@ import { writeHelloMessage } from "./network/messages.js";
 // radio-info-browser
 import { setSessionServer } from "./network/publicDbCom.js";
 // db
-import { delPropIdb } from "./database/idbSetGetValues.js";
+import { delPropIdb } from "./database/idbSetGetValues.mjs";
 import {
   createAppDb,
   createVersionDb,

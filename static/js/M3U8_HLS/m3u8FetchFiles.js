@@ -200,7 +200,7 @@ function changed(current, titleToWrite) {
 
 async function incompleteDump(titleToWrite, playlist) {
   if (!playlist.dumpIncomplete)
-    recMsg({
+    await recMsg({
       txt: "skip incomplete " + playlist.stationName + " " + titleToWrite,
       level: "success",
     });
@@ -222,7 +222,7 @@ async function completeDump(titleToWrite, playlist) {
     titleToWrite
   );
   if (isBlacklisted)
-    recMsg({
+    await recMsg({
       txt: "skip-blacklisted  " + playlist.stationName + " " + titleToWrite,
       level: "success",
     });

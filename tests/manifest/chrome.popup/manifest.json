@@ -16,7 +16,8 @@
       "384": "/static/images/default_icon.svg",
       "768": "/static/images/default_icon.svg",
       "1536": "/static/images/default_icon.svg"
-    }
+    },
+    "default_popup": "/static/addon.html"
   },
   "background": {
     "service_worker": "/static/js/background.js",
@@ -40,12 +41,14 @@
         "/static/js/assets/shaka-player.compiled.js"
       ],
       "matches": ["<all_urls>"],
-      "all_frames": true
+      "all_frames": true,
+      "run_at": "document_end",
+      "css": ["/static/css/style.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["/static/js/database/dbLoader.js"],
+      "resources": ["/static/addon.html","/static/js/database/dbLoader.js"],
       "matches": ["<all_urls>"]
     }
   ]

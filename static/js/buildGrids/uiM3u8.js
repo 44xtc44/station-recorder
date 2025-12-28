@@ -29,7 +29,7 @@ import {
 
 export { showM3u8 };
 
-const parser = new DOMParser(); // sanitize html, mixed html with dyn. vars
+const parser = new DOMParser(); // ^^sanitize html^^
 
 async function showM3u8(o = {}) {
   const parentId = "fixedPositionAnchor";

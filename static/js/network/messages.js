@@ -35,20 +35,19 @@ export {
 };
 
 /**
- * -- Here we pass all through. -- No remote scripts used.
- * Could be there is an error in the package.json. self....
- * So the package linter assumes we want to use remote scripts.
- *
- * Use the "Parser" to secure HTML strings before rendering.
- * Parser can be used to sanitize text from input elements.
- * That is splitting text, remove unwanted items.
+ * Filter out script tags.
+ * Could be I made an error in manifest.json. self....
+ * So the package linter assumes usage of remote scripts.
  *
  * Mozilla package upload linter marks the package as unsafe
  * if no parser is used.
  * More information. Server and client side problems.
  * https://www.ias.cs.tu-bs.de/publications/parsing_differentials.pdf
  * @param {HTMLElement} string
- * @returns {Promise<HTMLElement>} string sanitized
+ * @returns {Promise<string>} string sanitized || ""
+ * @example
+ * const string = "<div><script>alert('XSS')</script></div>"
+ * display.innerHTML = await sanitizeHTML(string);
  */
 
 export function sanitizeHTML(string) {
@@ -62,7 +61,13 @@ export function sanitizeHTML(string) {
     // const tags = htmlDocument.getElementsByTagName("body");
     const tags = htmlDocument.body.getElementsByTagName("div");
     for (const tag of tags) {
-      // Here we would test. Is it a tag? Test tag for vulnerability.
+      // Test tag for vulnerability.
+      const nodeList = [...tag.childNodes];
+      let malicious = false;
+      for (const node of nodeList) {
+        if (node.tagName === "SCRIPT") malicious = true;
+      }
+      if (malicious) continue;
       div.appendChild(tag);
     }
 
@@ -81,7 +86,7 @@ export function sanitizeHTML(string) {
  * @param {number} maxLines number - show on fake monitor
  * @returns {Promise<undefined>}
  * @example
- * recMsg({
+ * await recMsg({
  *  stationuuid: "0345-636-363",
  *  txt: "favorite station deleted, planet radio",
  *  level: "warning"
@@ -222,6 +227,7 @@ function threadOverloadContainer() {
       "<br>Full CPU usage will damage the recorder threads." +
       "<br><br>Fix needed: recorder modules migration to webWorker process." +
       "<br><br>Please click to go back, proceed. --> ";
+    const parser = new DOMParser();
     const parsed = parser.parseFromString(msgHtml, "text/html");
     const tags = parsed.getElementsByTagName("body");
     for (const tag of tags) {
@@ -290,7 +296,7 @@ function waitMsgContainer() {
 function accessBlock() {
   return new Promise((resolve, _) => {
     const wait = async () => {
-      blockAccess = document.getElementById("blockAccess");
+      const blockAccess = document.getElementById("blockAccess");
       blockAccess.style.display = "block";
       blockAccess.style.opacity = "0.9";
       const txtContainer = await waitMsgContainer();

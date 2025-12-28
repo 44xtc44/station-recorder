@@ -21,8 +21,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { splitStoreDictArray } from "../utils/objectToJsonFile.js";
-import { getIdbValue, getIndex, delPropIdb } from "./idbSetGetValues.js";
+import { splitStoreDictArray } from "../utils/objectToJsonFile.mjs";
+import { getIdbValue, getIndex, delPropIdb } from "./idbSetGetValues.mjs";
 
 let radioBrowserInfoDb = null;
 
@@ -317,12 +317,14 @@ function customisePublicDb(radioBrowserInfoDb) {
  * "geo_lat": null,
  * "geo_long": null
  * }
+ * Prep to read from DB backup also.
  * @param {Object{}} station
  * @returns {Promise<undefined>}
  */
 function customTagOne(station) {
   return new Promise((resolve, _) => {
-    // Prep to read from DB backup also.
+    // Overwrite name to get sort working for all names.
+    station["name"] = station.name.trim();
     let secureUrl = ""; // was an idea to provide only secure URLs
     try {
       secureUrl = station.url.trim().substring(0, 5).toLowerCase();

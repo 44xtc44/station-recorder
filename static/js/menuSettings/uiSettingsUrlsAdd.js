@@ -31,7 +31,7 @@ import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import { metaData } from "../central.js";
 
 export { buildUrlsAdd };

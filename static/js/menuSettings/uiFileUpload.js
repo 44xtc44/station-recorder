@@ -32,7 +32,7 @@
  */
 
 import { sleep } from "../uiHelper.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   stationDbCreate,
   dbRegisterStreamer,

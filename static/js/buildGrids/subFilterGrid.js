@@ -26,7 +26,7 @@ import { areaCountries } from "../constants.js";
 import { sleep } from "../uiHelper.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-import { getIndex } from "../database/idbSetGetValues.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
 import { stationClickerLinks } from "./stationContainer.js";
 import {
   accessBlock,
@@ -87,7 +87,7 @@ function localDbBtns(storeNames, btn, favoritesName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_favorites"); // grid layout, col, rows
-      recMsg({ txt: "area " + favoritesName, level: "success" });
+      await recMsg({ txt: "area " + favoritesName, level: "success" });
 
       let namesArray = [...storeNames];
       namesArray.reverse(); // "Favorites" before "Custom" button
@@ -185,7 +185,7 @@ async function showFavoriteStores(storeName) {
     parent: anchor,
   });
   // User info on log screen.
-  recMsg({
+  await recMsg({
     txt: stationsArray.length + " URLs " + storeName,
     level: "success",
   });
@@ -206,7 +206,7 @@ function countriesBtns(btn, countryName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg({ txt: "area " + countryName, level: "success" });
+      await recMsg({ txt: "area " + countryName, level: "success" });
 
       const res = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }
 
@@ -262,26 +262,25 @@ function setEvtCountriesBtns(countryBtn, twoCharCode, btn) {
  * @param {string} twoCharCode country code
  * @returns {Promise<Array>} Promise with array of stations
  */
-function countryStations(twoCharCode) {
-  return new Promise((resovlve, _) => {
-    const cc = twoCharCode.toUpperCase(); // constants.js has lower case
-    let db = metaData.get().infoDb; //  !!! debugger !!! killa, whole DB
+async function countryStations(twoCharCode) {
+  const cc = twoCharCode.toUpperCase(); // constants.js has lower case
+  let db = metaData.get().infoDb; //  !!! debugger !!! killa, whole DB
 
-    const countryStations = Object.values(db).reduce((accu, station) => {
-      // cc is string[], station is object-> .includes only for arrays ------------------------------------ refac -----------
-      if (!accu.includes(station) && station.countrycode.includes(cc)) {
-        accu.push(station);
-      }
-      return accu;
-    }, []);
-    db = null;
-    const countryName = metaData.get()["countryNames"][cc];
-    recMsg({
-      txt: countryStations.length + " URLs " + countryName,
-      level: "success",
-    });
-    resovlve(countryStations.sort());
+  const countryStations = Object.values(db).reduce((accu, station) => {
+    // cc is string[], station is object-> .includes only for arrays ----------- refac -----------
+    if (!accu.includes(station) && station.countrycode.includes(cc)) {
+      accu.push(station);
+    }
+    return accu;
+  }, []);
+  db = null;
+  const countryName = metaData.get()["countryNames"][cc];
+  await recMsg({
+    txt: countryStations.length + " URLs " + countryName,
+    level: "success",
   });
+
+  return countryStations.sort();
 }
 
 /**
@@ -356,7 +355,7 @@ function worldAreasBtns(areaNames, btn, worldName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_world"); // grid layout, col, rows
-      recMsg({ txt: "area " + worldName, level: "success" });
+      await recMsg({ txt: "area " + worldName, level: "success" });
 
       for (const areaName of areaNames) {
         const areaBtn = document.createElement("div");
@@ -410,32 +409,27 @@ function setEvtWorldAreasBtns(areaBtn, areaName, btn) {
  * @param {Object} areaCountries dict {continent1: [countryCodes], continent2: [countryCodes] }
  * @returns {Promise<Array>} Promise array stations of a continent (or whole world stations dump)
  */
-function worldAreaStations(areaName, areaCountries) {
-  return new Promise((resolve, _) => {
-    const countryTwoChars = areaCountries[areaName].map((cc) =>
-      cc.toUpperCase()
-    );
-    let db = metaData.get().infoDb; // whole DB !!! debugger !!!
+async function worldAreaStations(areaName, areaCountries) {
+  const countryTwoChars = areaCountries[areaName].map((cc) => cc.toUpperCase());
+  let db = metaData.get().infoDb; // whole DB !!! debugger !!!
 
-    //
-    const continentStations = Object.values(db).reduce((accu, station) => {
-      const cc = station.countrycode;
+  const continentStations = Object.values(db).reduce((accu, station) => {
+    const cc = station.countrycode;
 
-      if (
-        !accu.includes(station) && // refac - placebo .includes is for []
-        countryTwoChars.includes(cc.toUpperCase())
-      ) {
-        accu.push(station);
-      }
-      return accu;
-    }, []);
-    db = null; // mem leak prevention
-    recMsg({
-      txt: continentStations.length + " URLs " + areaName,
-      level: "success",
-    });
-    resolve(continentStations);
+    if (
+      !accu.includes(station) && // refac - placebo .includes is for []
+      countryTwoChars.includes(cc.toUpperCase())
+    ) {
+      accu.push(station);
+    }
+    return accu;
+  }, []);
+  db = null; // mem leak prevention
+  await recMsg({
+    txt: continentStations.length + " URLs " + areaName,
+    level: "success",
   });
+  return continentStations;
 }
 
 // ------------------------------------------------------------------------------ continents ----
@@ -459,7 +453,7 @@ function continentBtns(continents, btn, continentName) {
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_continents");
-      recMsg({ txt: "area " + continentName, level: "success" });
+      await recMsg({ txt: "area " + continentName, level: "success" });
 
       for (const continent of continents) {
         if (continent === "World") continue; // Filter out World.
@@ -506,7 +500,7 @@ function setEvtContinentBtns(
       const anchor = await subFilterContainer();
 
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg({ txt: "area " + continent,level: "success" });
+      await recMsg({ txt: "area " + continent, level: "success" });
 
       // input of fun should be 2-char code list
       const data = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }

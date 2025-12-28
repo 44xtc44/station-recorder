@@ -21,7 +21,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { getIndex } from "../database/idbSetGetValues.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
 export { launchNoFavPopup };
 
 /**
@@ -34,9 +34,8 @@ async function launchNoFavPopup() {
     return;
   }
 
-  blockAccess = document.getElementById("blockAccess");
-  blockAccess.style.display = "block";
-  const parent = blockAccess;
+  const parent = document.getElementById("blockAccess");
+  parent.style.display = "block";
 
   const popContainer = document.createElement("div");
   popContainer.id = "containerPopUp";

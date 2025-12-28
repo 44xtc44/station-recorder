@@ -31,7 +31,7 @@
  */
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-import { getIndex } from "../database/idbSetGetValues.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
 import { record } from "../network/runner.js";
 import { submitStationClicked } from "../network/publicDbCom.js";
 import { activityBar } from "./streamActivity.js";
@@ -173,7 +173,7 @@ async function removeAllRecorder() {
   for await (const recorder of array) {
     await switchRecorderState(recorder.id);
   }
-  recMsg({
+  await recMsg({
     txt: "stop all recorder " + array.length + " done",
     level: "warning",
   });

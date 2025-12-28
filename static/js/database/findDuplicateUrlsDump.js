@@ -48,7 +48,7 @@
 */
 
 import { sortedArray } from "../utils/sorted.js";
-import { JSONToFile } from "../utils/objectToJsonFile.js";
+import { JSONToFile } from "../utils/objectToJsonFile.mjs";
 export { dumpCandidates };
 /**
  * Dump each URL with double stations from extracted obj array.

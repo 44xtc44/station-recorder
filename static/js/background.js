@@ -21,26 +21,10 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * Loader of the Browser Add-on.
- * https://stackoverflow.com/questions/69296754/chrome-extension-action-onclicked
- * Called when the user clicks on the browser action.
- */
+"use strict";
 chrome.action.onClicked.addListener((tab) => {
-  // Send a message to the active tab
-  chrome.tabs.create({ url: "/static/addon.html" }).then(() => {
-    (async () => {
-      const tab = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      // console.log("tab_id->", tab[0].id);
-      chrome.scripting.executeScript({
-        target: { tabId: tab[0].id, allFrames: true },
-        files: ["/static/js/background.js"],
-        // code: `console.log('Add-on creator:', '44xtc44');`,
-      });
-    })();
+  chrome.tabs.create({
+    url: chrome.runtime.getURL("/static/addon.html"),
+    active: true,
   });
 });

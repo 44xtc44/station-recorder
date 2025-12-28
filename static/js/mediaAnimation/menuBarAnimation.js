@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { metaData } from "../central.js";
-import { setIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue } from "../database/idbSetGetValues.mjs";
 import { RotatingGalaxy } from "./analyzer.js";
 
 export { createMenuBarAnim, reloaderLogo, menuBarGalaxy };

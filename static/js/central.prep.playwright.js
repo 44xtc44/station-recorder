@@ -22,12 +22,12 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { JSONToFile } from "./utils/objectToJsonFile.mjs";
-export { metaData, runDbLoader };
+export { metaData, runDbLoader, DBLoader };
 
-let dbLoader = new Worker(
+/* let dbLoader = new Worker(
   new URL("/static/js/database/dbLoader.js", import.meta.url),
   { type: "module" }
-);
+); */
 
 /**
  * Call the space station (dbLoader worker process).
@@ -41,6 +41,46 @@ let dbLoader = new Worker(
  * amount of key val pairs slowly (stationuuid as 'id' key).
  * This would have blocked the main thread for a minute otherwise.
  */
+
+class DBLoader {
+  constructor() {
+    if (DBLoader.instance) return DBLoader.instance;
+    DBLoader.instance = this;
+    this.worker = null;
+  }
+  static getInstance() {
+    if (!DBLoader.instance) DBLoader.instance = new DBLoader();
+    return DBLoader.instance;
+  }
+  spawnWorker() {
+
+      this.worker = new Worker(
+        new URL("/static/js/database/dbLoader.js", import.meta.url),
+        { type: "module" }
+      );
+
+      this.worker.postMessage({ txt: "au travail, monsieur" });
+      this.worker.onerror = (e) =>
+        console.log("-> DB worker reported error.", e);
+
+      this.worker.onmessage = (e) => {
+        if (e.data.success === true) {
+          //{ data :{ infoDb: {…}, countryCodes: {…}, countryNames: {…} } }
+          metaData.set()["infoDb"] = e.data.infoDb; // customised stations obj array
+          metaData.set()["countryCodes"] = e.data.countryCodes; // {IQ:IRQ, IE:IRL}
+          metaData.set()["countryNames"] = e.data.countryNames; //{ ZA: "South Africa", ZM: "Zambia"}
+          e.data.infoDb = {};
+          e.data.countryCodes = {};
+          e.data.countryNames = {};
+          // .close() in worker to destroy process; .terminate() not reliable, Python like
+          this.worker = null;
+        }
+      };
+
+  
+  }
+}
+
 function runDbLoader() {
   return new Promise((resolve, _) => {
     const errMsgCaller = "fail:: Caller DB. Try again or reinstall app.";

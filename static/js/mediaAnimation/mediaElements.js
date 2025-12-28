@@ -130,7 +130,7 @@ function createVideoElement(id) {
     video.controls = false; // false means also no resizing, see link for fullscreen
     video.volume = "0.7";
 
-    video.poster = shakaBGimg.default;
+    // video.poster = shakaBGimg.default;
     video.width = "470";
     video.style.display = "none";
 
@@ -209,7 +209,7 @@ function mediaConnectors(audio, video) {
       if (e.target.error.message === "Failed to open media") {
         const providerUrl = await providerUrlGet(e.target.src);
         if (!providerUrl.includes("http")) {
-          recMsg({ txt: "audio element fail, try again", level: "error" });
+          await recMsg({ txt: "audio element fail, try again", level: "error" });
           return;
         }
         await recMsg({

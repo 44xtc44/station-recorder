@@ -27,7 +27,7 @@ import { sleep } from "../uiHelper.js";
 import { metaData } from "../central.js";
 import { urlAlive } from "../network/streamDetect.js";
 import { showDbpdateUi } from "./update_ui.js";
-import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   waitTimeRadioBrowserInfo,
   appUserAgent,

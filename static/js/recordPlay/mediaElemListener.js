@@ -30,10 +30,11 @@ import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
+import { providerUrlGet } from "../network/streamDetect.js";
 
 export { recordBoxListener, listenBoxListener, settingsBoxListener };
 
-const parser = new DOMParser(); // sanitize html, mixed html with dyn. vars
+const parser = new DOMParser(); // ^^sanitize html^^
 
 /**
  * Recorder.

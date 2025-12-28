@@ -27,7 +27,7 @@
  * Runs on Browser refresh rate.
  */
 
-import { getIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue } from "../database/idbSetGetValues.mjs";
 import { menuBarGalaxy } from "./menuBarAnimation.js";
 export { prepAnimationMain, animationMain, getAnimationStatus };
 

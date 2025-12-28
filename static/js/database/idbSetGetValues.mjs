@@ -1,4 +1,4 @@
-// idbSetGetValues.js
+// idbSetGetValues.mjs
 "use strict";
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
@@ -143,7 +143,11 @@ function setIdbValue(options = {}) {
         !options.bulkInsert &&
         store !== undefined
       ) {
-        objectStoreRequest = store.put(options.data);
+        try {
+          objectStoreRequest = store.put(options.data);
+        } catch (e) {
+          console.error("-> setIdbValue ", e)
+        }
 
         transact.oncomplete = () => {
           resolve();
