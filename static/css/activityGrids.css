@@ -27,13 +27,15 @@
 }
 .grid_activity_bar_player {
   color: #000;
-  background-color: var(--monitor-color);
+  color: white;
+  background-color: rgba(73, 187, 170, 1);
+  cursor: pointer;
 }
 .grid_activity_bar_recorder {
   /* border: 1px solid #0c3958; */
   /* box-shadow: inset 0 0 10px #0c3958; */
-  background-color: rgba(220,20,60, 0.4); /* rgba(247,183,51, 0.2); */
-
+  background-color: rgba(220,20,60, 0.75); /* rgba(247,183,51, 0.2); */
+  color: white;
   cursor: pointer;
 }
 .grid_audio_bar {
