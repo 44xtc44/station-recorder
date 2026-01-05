@@ -31,7 +31,7 @@ import {
 
 export { buildSettingsBlackDump };
 
-async function buildSettingsBlackDump(o = {}) {
+async function buildSettingsBlackDump() {
   const parentDivId = "blacklistDump";
   const divOutlineChild = await createFeatureDivOutline({
     parentId: parentDivId,

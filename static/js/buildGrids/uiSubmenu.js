@@ -34,6 +34,10 @@ export { createFeatureDivOutline, createFeatureDivSection };
 function createFeatureDivOutline({ parentId, childId }) {
   return new Promise((resolve, _) => {
     const parent = document.getElementById(parentId);
+    if (parent === null) {
+      console.error("->featDivOut.. parent null ", parentId, childId)
+      resolve(false);
+    } 
     const outline = document.createElement("div");
     const radius = "20px";
 
@@ -76,10 +80,14 @@ function createFeatureDivOutline({ parentId, childId }) {
 function createFeatureDivSection({ parentId, childId }) {
   return new Promise((resolve, _) => {
     const parent = document.getElementById(parentId);
+    if (parent === null) {
+      console.error("->featDivS.. parent null ", parentId, childId)
+      resolve(false);
+    } 
     const inline = document.createElement("div");
     inline.setAttribute("id", childId);
     inline.classList.add("subMenuSection");
-
+    
     parent.appendChild(inline);
     resolve(inline);
   });

@@ -167,7 +167,7 @@ async function settingsBoxListener(e, station, stationGroup) {
   // both fun return the child div
   const setOptions = await createFeatureDivOutline({
     parentId: "fixedPositionAnchor",
-    divOutline: "setOptions",
+    childId: "setOptions",
   });
   // remove X that hide the div
   setOptions.removeChild(setOptions.firstElementChild);
