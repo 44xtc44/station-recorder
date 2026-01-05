@@ -27,56 +27,54 @@
 
 /**
  * @author 44xtc44 (René Horn)
- * @version 1.0.0
+ * @version 1.1.0
  * @since 0.0.0
  * @license GPLv3 License (2024-2025), René Horn
+ *
+ * https://github.com/SimGus/chrome-extension-v3-starter/blob/master/manifest.json
+ * https://stackoverflow.com/questions/71897438/with-a-manifest-v3-chrome-extension-is-it-possible-to-load-an-extension-html-re
+ * https://palant.info/2022/08/17/impact-of-extension-privileges/
  */
 
-// https://palant.info/2022/08/17/impact-of-extension-privileges/
-
-import { sleep } from "./uiHelper.js";
-import { createUi } from "./ui.js";
 import { createReportConsole } from "./logMonitor/uiReport.js";
+import { initShakaApp } from "./M3U8_HLS/shakaPlayer.js";
 import { writeHelloMessage } from "./network/messages.js";
+import { createUi } from "./ui.js";
+import { sleep } from "./uiHelper.js";
 // radio-info-browser
 import { setSessionServer } from "./network/publicDbCom.js";
 // db
-import { delPropIdb } from "./database/idbSetGetValues.js";
 import {
   createAppDb,
+  createRadioIdxDb,
   createVersionDb,
-  createRadioIdxDb, // Place to add public DBs and Favorites station objects
-  // tests object store for dev; problem and playlist stations, needs fix refac.
-  createDefaultRadios, // dev store with real malfunctioning stations; hardening
 } from "./database/idbCreateDefaults.js";
 import { logAllDbVersions } from "./database/idbInitDb.js";
+import { delPropIdb } from "./database/idbSetGetValues.mjs";
 // audio, animation
-import { initEqualizer } from "./audioAnimation/equalizer.js";
 import {
-  prepAnimationMain,
   getAnimationStatus,
-} from "./audioAnimation/animation.js";
+  prepAnimationMain,
+} from "./mediaAnimation/animation.js";
+import { initEqualizer } from "./mediaAnimation/equalizer.js";
 
+import { DBLoader } from "./database/dbLoaderBoss.mjs";
+import { runIntroAnimation } from "./mediaAnimation/intro.js";
 import {
-  createAudio,
-  createMainAudioLine,
   connectAnalyserInit,
-} from "./audioAnimation/audio.js";
-import { runIntroAnimation } from "./audioAnimation/intro.js";
-import { runDbLoader } from "./central.js";
-import {
-  waitMsgContainer,
-  unlimitedStorageContainer,
-} from "./network/messages.js";
+  createMainAudioLine,
+  createMediaElements,
+} from "./mediaAnimation/mediaElements.js";
+import { unlimitedStorageContainer } from "./network/messages.js";
 
-import {
-  createMenuBarAnim,
-  reloaderLogo,
-} from "./audioAnimation/menuBarAnimation.js";
-import { createAppMenu } from "./menuSettings/uiHamburger.js";
 import { showFavorites } from "./buildGrids/favoritesOnStart.js";
 import { launchNoFavPopup } from "./buildGrids/uiPopUpNoFavorites.js";
 import { findDuplicateUrl } from "./database/findDuplicateUrls.js";
+import {
+  createMenuBarAnim,
+  reloaderLogo,
+} from "./mediaAnimation/menuBarAnimation.js";
+import { createAppMenu } from "./menuSettings/uiHamburger.js";
 import { featSettingStatus } from "./menuSettings/uiSettings.js";
 const blockAccess = document.getElementById("blockAccess"); // overlay
 
@@ -98,11 +96,11 @@ window.addEventListener("load", async () => {
 
   await setupDbs();
 
-  await createAudio(); // reads/writes settings to iDB
+  await createMediaElements(); // reads/writes also user settings to iDB
   const runAnimation = await getAnimationStatus();
   await sleep(200); // something wrong with status refac
   if (runAnimation) {
-    splashScreen(); // needs createAudio; runs beside DB data writer "pouplatepDbs"
+    splashScreen(); // needs createMediaElements; runs beside DB data writer "pouplatepDbs"
   }
 
   await createReportConsole(); // log monitor with red arrow
@@ -132,6 +130,7 @@ async function setupUi(runAnimation) {
     await createMainAudioLine();
     initEqualizer(); // switch EQ into the line, enables speaker
     await showUi();
+    initShakaApp();
   } else {
     await createMenuBarAnim();
     await prepAnimationMain(); // Call any longrunning animation in this module.
@@ -139,6 +138,7 @@ async function setupUi(runAnimation) {
     await showUi();
     initEqualizer(); // enables speaker after spashScreen anim
     launchNoFavPopup();
+    initShakaApp();
   }
 }
 
@@ -166,22 +166,15 @@ function setupDbs() {
   });
 }
 
-function pouplatepDbs() {
-  return new Promise(async (resolve, _) => {
-    // Web worker, keep main thread CPU free for further heavy animations.
-    // Will stuck a moment if the customised DB is loaded in Main Thread.
-    // 'May' split DB load if the animation is bigger, or try ArrayBuffers transfer.
-    // But Main Thread must convert fetch uint8Array to dictionary object. Benefit?
-    // https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage
-    await runDbLoader(); // central.js loads objects into mem, yep 65mb for now
-    resolve();
-  });
+async function pouplatepDbs() {
+  const db = new DBLoader();
+  await db.spawnWorker({ msg: "Load DB", action: "load_DB" });
 }
 
 /**
  * 'unlimitedStorage' can be set also in manifest.json 'permissions'.
  * If not allowed, broser may delete the indexed DB stores.
- * @returns {Promise} boolean true if allowed
+ * @returns {Promise<boolean | undefined>} true if allowed, undefined if not supported
  */
 function askUnlimitedStorage() {
   return new Promise((resolve, _) => {
@@ -191,7 +184,7 @@ function askUnlimitedStorage() {
       // persisted() - marked as persisted, a popup waits in FF
       // persist() - permissions request
       navigator.storage.persisted().then((persisted) => {
-        // console.log({ persisted });
+        console.log(".storage.persisted", { persisted });
         navigator.storage.persist().then((allowed) => {
           // console.log({ allowed });
           resolve(allowed);
@@ -200,6 +193,7 @@ function askUnlimitedStorage() {
     } else {
       resolve(false);
     }
+    resolve();
   });
 }
 

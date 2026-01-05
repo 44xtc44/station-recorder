@@ -24,7 +24,7 @@
 
 import { default_radios } from "../assets/default_radios.js";
 import { createIndexedDb } from "./idbInitDb.js";
-import { getIdbValue, setIdbValue } from "./idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "./idbSetGetValues.mjs";
 
 export {
   createAppDb,

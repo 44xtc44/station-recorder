@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { setIdbValue } from "./idbSetGetValues.js";
+import { setIdbValue } from "./idbSetGetValues.mjs";
 export { createIndexedDb, logAllDbVersions };
 
 // https://gist.github.com/JamesMessinger/a0d6389a5d0e3a24814b no libs

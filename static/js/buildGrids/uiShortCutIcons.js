@@ -21,8 +21,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-import { showFileDbUi } from "../menuSettings/uiFileDownload.js";
-import { removeAllRecorder } from "./radioOperation.js";
+import { uiWrapper } from "../menuSettings/uiFileDownload.js";
+import { removeAllRecorder } from "../recordPlay/recordStream.js";
 import { updateRadioBrowserInfoDb } from "../database_update/update_radio_browser_info.js";
 export { shortCutIcons };
 
@@ -84,7 +84,7 @@ function shortCutIcons() {
     iconGrid.appendChild(stopRec);
     iconGrid.appendChild(dumpDl);
 
-    setBtnEvt(dumpDl, showFileDbUi);
+    setBtnEvt(dumpDl, uiWrapper);
 
     resolve();
   });

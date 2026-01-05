@@ -33,7 +33,7 @@ import {
   storeIncomplete,
   sendStationId,
 } from "./uiSettingsFeatures.js";
-import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
@@ -282,7 +282,7 @@ function uiClicker(kwargs) {
 async function settingsClose() {
   const divOutlineChild = await createFeatureDivOutline({
     parentId: "settings",
-    divOutline: "divSettingsOutline",
+    childId: "divSettingsOutline",
   });
   divOutlineChild.style.display = "block";
 

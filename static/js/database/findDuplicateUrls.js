@@ -47,7 +47,7 @@
  */
 
 import { metaData } from "../central.js";
-import { sortedArray } from "../utils/sorted.js";
+import { sortedArray } from "./sorted.js";
 import { dumpCandidates } from "./findDuplicateUrlsDump.js";
 export { findDuplicateUrl };
 

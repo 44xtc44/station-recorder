@@ -26,7 +26,7 @@ import { areaCountries } from "../constants.js";
 import { sleep } from "../uiHelper.js";
 import { recMsg } from "../network/messages.js";
 import { metaData } from "../central.js";
-import { getIndex } from "../database/idbSetGetValues.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
 import { stationClickerLinks } from "./stationContainer.js";
 import {
   accessBlock,
@@ -68,18 +68,26 @@ export {
  * Create anchor div and set listeners on child div buttons.
  *
  * "Favorites" top Btn; Local stores "Favorites" & "Custom" in indexed DB.
+ * Click on "Favorites" opens subFilter grid.
+ *
+ * Click on a button in subfilter grid replaces currently shown stations
+ * with the content of the subfilter button choice's stations.
+ *
  * @param {string[]} storeNames "Favorites" & "Custom" station iDB store names
- * @param {HTMLObjectElement} favoritesBtn "Favorites" button div
- * @param {string} favoritsName name value "Favorites" button
+ * @param {HTMLDivElement} btn "Favorites" button div
+ * @param {string} favoritesName name value "Favorites" button
+ * @returns {Promise<undefined>} Promise undefined
  */
-function localDbBtns(storeNames, favoritesBtn, favoritsName) {
+function localDbBtns(storeNames, btn, favoritesName) {
+  // Outer promise attaches the listener.
   return new Promise((resolve, _) => {
-    favoritesBtn.addEventListener("click", async () => {
-      await removeElement("stationsAnchor"); // prep drawing new stations container
+    btn.addEventListener("click", async () => {
+      const hidden = await toggleSubfilterDisplay(btn.innerText);
+      if (hidden) return; // was visible, now hidden
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_favorites"); // grid layout, col, rows
-      recMsg(["area " + favoritsName]);
+      await recMsg({ txt: "area " + favoritesName, level: "success" });
 
       let namesArray = [...storeNames];
       namesArray.reverse(); // "Favorites" before "Custom" button
@@ -92,7 +100,7 @@ function localDbBtns(storeNames, favoritesBtn, favoritsName) {
         storeNameBtn.textContent = storeName;
         anchor.appendChild(storeNameBtn);
 
-        await setEvtlocalDbBtns(storeNameBtn, storeName);
+        await setEvtlocalDbBtns(storeNameBtn, storeName, btn);
       }
     });
     resolve();
@@ -100,13 +108,53 @@ function localDbBtns(storeNames, favoritesBtn, favoritsName) {
 }
 
 /**
- * Event listener for "Custom" & "Favorites" on "subFilterBar" div.
- * @param {HTMLObjectElement} storeNameBtn
- * @param {string} storeName
+ * Show/hide the subFilter button grid while
+ * current stations stack keeps shown.
+ * @param {string} buttonName topfilter button
+ * @returns {Promise<boolean>} Promise true if now hidden
  */
-function setEvtlocalDbBtns(storeNameBtn, storeName) {
+async function toggleSubfilterDisplay(buttonName) {
+  if (buttonName === undefined) buttonName = "";
+
+  const shown = metaData.get().toggleSubFilter.shown;
+  const storedBtn = metaData.get().toggleSubFilter.buttonName;
+  const subFilterBar = document.getElementById("subFilterBar");
+
+  if (shown) {
+    // same button requests .display = "none"
+    if (storedBtn === buttonName) {
+      metaData.set().toggleSubFilter.shown = false;
+      metaData.set().toggleSubFilter.buttonName = "";
+      subFilterBar.style.display = "none";
+      return true;
+    }
+    // other button wants to show its content
+    if (storedBtn !== buttonName) {
+      metaData.set().toggleSubFilter.shown = true;
+      metaData.set().toggleSubFilter.buttonName = buttonName;
+      subFilterBar.style.display = "block";
+      return false;
+    }
+  }
+  if (!shown) {
+    metaData.set().toggleSubFilter.shown = true;
+    metaData.set().toggleSubFilter.buttonName = buttonName;
+    subFilterBar.style.display = "block";
+    return false;
+  }
+}
+
+/**
+ * Event listener for "Custom" & "Favorites".
+ * @param {HTMLDivElement} storeNameBtn
+ * @param {HTMLDivElement} btn topfilter button
+ * @param {string} storeName
+ * @returns {Promise<undefined>} Promise undefined
+ */
+function setEvtlocalDbBtns(storeNameBtn, storeName, btn) {
   return new Promise((resolve, _) => {
     storeNameBtn.addEventListener("click", async () => {
+      toggleSubfilterDisplay(btn.innerText);
       showFavoriteStores(storeName);
     });
     resolve();
@@ -118,10 +166,6 @@ function setEvtlocalDbBtns(storeNameBtn, storeName) {
  * @param {string} storeName "Favorites" or "Custom"
  */
 async function showFavoriteStores(storeName) {
-  // Hide the subFilter button grid while stations are shown.
-  const subFilterBar = document.getElementById("subFilterBar");
-  subFilterBar.style.display = "none";
-
   // "stationContainer" - div hardcoded in HTML page
   // "stationsAnchor" - anchor div for clicker station name divs stack.
   const anchor = await createContainer("stationContainer", "stationsAnchor");
@@ -140,53 +184,67 @@ async function showFavoriteStores(storeName) {
     store: storeName,
     parent: anchor,
   });
-  // User info on fake screen.
-  recMsg([stationsArray.length + " URLs " + storeName]);
+  // User info on log screen.
+  await recMsg({
+    txt: stationsArray.length + " URLs " + storeName,
+    level: "success",
+  });
 }
 
 // ------------------------------------------------------------------------------ Country ----
 /**
- * @param {HTMLObjectElement} countryBtn "Country" button topFilter div
+ * draw countriesBtns
+ * @param {HTMLObjectElement} btn "Country" button topFilter div
  * @param {string} countryName name value of "Country" button topFilter
+ * @returns {Promise<undefined>} Promise undefined
  */
-function countriesBtns(countryBtn, countryName) {
+function countriesBtns(btn, countryName) {
   return new Promise(async (resolve, _) => {
-    countryBtn.addEventListener("click", async () => {
-      await removeElement("stationsAnchor");
+    btn.addEventListener("click", async () => {
+      const hidden = await toggleSubfilterDisplay(btn.innerText);
+      if (hidden) return; // was visible, now hidden
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg(["area " + countryName]); // show user selected country name
+      await recMsg({ txt: "area " + countryName, level: "success" });
 
       const res = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }
 
-      for (const name of res.countryNames) {
-        const btn = document.createElement("div");
-        btn.setAttribute("id", name + "_storeBtn");
-        btn.classList.add("grid_sub_countries_items"); // grid style
-        btn.classList.add("handCursor");
-        btn.textContent = name;
-        anchor.appendChild(btn);
+      for (const countryName of res.countryNames) {
+        const countryBtn = document.createElement("div");
+        countryBtn.setAttribute("id", countryName + "_storeBtn");
+        countryBtn.classList.add("grid_sub_countries_items"); // grid style
+        countryBtn.classList.add("handCursor");
+        countryBtn.textContent = countryName;
+        anchor.appendChild(countryBtn);
 
-        const twoCharCode = res.namesTo2Char[name];
-        await setEvtCountriesBtns(btn, twoCharCode);
+        const twoCharCode = res.namesTo2Char[countryName];
+        await setEvtCountriesBtns(countryBtn, twoCharCode, btn);
       }
     });
     resolve();
   });
 }
 
-function setEvtCountriesBtns(btn, twoCharCode) {
+/**
+ * countriesBtns listener
+ * @param {HTMLDivElement} countryBtn
+ * @param {string} twoCharCode
+ * @param {HTMLDivElement} btn topfilter button
+ * @returns {Promise<undefined>} Promise undefined
+ */
+function setEvtCountriesBtns(countryBtn, twoCharCode, btn) {
   return new Promise((resolve, _) => {
-    btn.addEventListener("click", async () => {
+    countryBtn.addEventListener("click", async () => {
       await accessBlock();
       await sleep(100);
+
+      await toggleSubfilterDisplay(btn.innerText); // hidden now
       // Container with station clicker links.
       const stationContainer = "stationContainer";
       const anchorName = "stationsAnchor";
       const anchor = await createContainer(stationContainer, anchorName);
       const stationsArray = await countryStations(twoCharCode);
-      document.getElementById("subFilterBar").style.display = "none";
 
       await stationClickerLinks({
         objList: stationsArray,
@@ -200,38 +258,43 @@ function setEvtCountriesBtns(btn, twoCharCode) {
 }
 
 /**
- *
- * @param {string} twoCharCode
- * @returns {Array} stations belonging to a country code
+ * Resolve array of stations belonging to a country code.
+ * @param {string} twoCharCode country code
+ * @returns {Promise<Array>} Promise with array of stations
  */
-function countryStations(twoCharCode) {
-  return new Promise((resovlve, _) => {
-    const cc = twoCharCode.toUpperCase(); // constants.js has lower case
-    let db = metaData.get().infoDb; //  !!! debugger !!! killa, whole DB
+async function countryStations(twoCharCode) {
+  const cc = twoCharCode.toUpperCase(); // constants.js has lower case
+  let db = metaData.get().infoDb; //  !!! debugger !!! killa, whole DB
 
-    const countryStations = Object.values(db).reduce((accu, station) => {
-      // cc is string[], station is object-> .includes only for arrays ------------------------------------ refac -----------
-      if (!accu.includes(station) && station.countrycode.includes(cc)) {
-        accu.push(station);
-      }
-      return accu;
-    }, []);
-    db = null;
-    const countryName = metaData.get()["countryNames"][cc];
-    recMsg([countryStations.length + " URLs " + countryName]);
-    resovlve(countryStations);
+  const countryStations = Object.values(db).reduce((accu, station) => {
+    // cc is string[], station is object-> .includes only for arrays ----------- refac -----------
+    if (!accu.includes(station) && station.countrycode.includes(cc)) {
+      accu.push(station);
+    }
+    return accu;
+  }, []);
+  db = null;
+  const countryName = metaData.get()["countryNames"][cc];
+  await recMsg({
+    txt: countryStations.length + " URLs " + countryName,
+    level: "success",
   });
+
+  return countryStations.sort();
 }
 
 /**
- * Produce array of country names for buttons and name to 2-char resolver dict.
+ * Produce array of country names for
+ * buttons and name to 2-char resolver dict.
  * @returns {object} dict with countryNames and country to 2-char codes {germanistan: de}
+ * @returns {object<Array>} countryNames
+ * @returns {object<object>} {Andorra: "AD", Angola: "AO", Anguilla: "AI", ...}
  */
 function resolveCountryStations() {
   return new Promise((resolve, _) => {
     // outsource
     const countryNamesDict = metaData.get()["countryNames"];
-    // Cleanup country names and remove garbage. Origin is CSV file red by dbLoader.js.
+    // Cleanup country names and remove garbage. Origin is CSV file red by dbLoader.mjs.
     const namesTo2Char = Object.keys(countryNamesDict).reduce(
       (accu, twoCharCode) => {
         if (accu === undefined) accu = {};
@@ -267,47 +330,59 @@ function resolveCountryStations() {
  * 50k+ divs high CPU kills recorder.
  *
  * As long as recorder is not a separate process - refac, upgrade to webWorker.
- * @param {string[]} areaNames continents + "world"
- * @param {HTMLObjectElement} worldBtn "World" button div
+ * @param {Array<string>} areaNames continents + "world"
+ * @param {HTMLObjectElement} btn "World" button div
  * @param {string} worldName name value "World" button topFilter
+ * @returns {Promise<undefined>} Promise undefined
  */
-function worldAreasBtns(areaNames, worldBtn, worldName) {
+function worldAreasBtns(areaNames, btn, worldName) {
   return new Promise((resolve, _) => {
-    worldBtn.addEventListener("click", async () => {
+    btn.addEventListener("click", async () => {
+      const hidden = await toggleSubfilterDisplay(btn.innerText);
+      if (hidden) return; // was visible, now hidden
+
       const recorderArray = await getIndex({
         dbName: "app_db",
         store: "downloader",
       });
 
       if (recorderArray.length > 0) {
+        // blocking msg if recorder is active
         await threadOverloadContainer();
         resolve();
         return;
       }
-      await removeElement("stationsAnchor");
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_world"); // grid layout, col, rows
-      recMsg(["area " + worldName]);
+      await recMsg({ txt: "area " + worldName, level: "success" });
 
       for (const areaName of areaNames) {
-        const btn = document.createElement("div");
-        btn.setAttribute("id", areaName + "_storeBtn");
-        btn.classList.add("grid_sub_world_items"); // grid style
-        btn.classList.add("handCursor");
-        btn.textContent = areaName;
-        anchor.appendChild(btn);
+        const areaBtn = document.createElement("div");
+        areaBtn.setAttribute("id", areaName + "_storeBtn");
+        areaBtn.classList.add("grid_sub_world_items"); // grid style
+        areaBtn.classList.add("handCursor");
+        areaBtn.textContent = areaName;
+        anchor.appendChild(areaBtn);
 
-        await setEvtWorldAreasBtns(btn, areaName);
+        await setEvtWorldAreasBtns(areaBtn, areaName, btn);
       }
     });
     resolve();
   });
 }
 
-function setEvtWorldAreasBtns(btn, areaName) {
+/**
+ *
+ * @param {HTMLDivElement} areaBtn
+ * @param {string} areaName
+ * @param {HTMLDivElement} btn
+ * @returns {Promise<undefined>} Promise undefined
+ */
+function setEvtWorldAreasBtns(areaBtn, areaName, btn) {
   return new Promise((resolve, _) => {
-    btn.addEventListener("click", async () => {
+    areaBtn.addEventListener("click", async () => {
+      await toggleSubfilterDisplay(btn.innerText);
       await accessBlock();
       await sleep(100);
       const stationContainer = "stationContainer";
@@ -315,9 +390,6 @@ function setEvtWorldAreasBtns(btn, areaName) {
       const anchor = await createContainer(stationContainer, anchorName);
       // areaCountries array pulled from "constants.js"
       const stationsArray = await worldAreaStations(areaName, areaCountries);
-
-      // await setActiveStationGroup(areaName); // if "subFilterBar" shall be visible
-      document.getElementById("subFilterBar").style.display = "none";
 
       await stationClickerLinks({
         objList: stationsArray,
@@ -335,31 +407,29 @@ function setEvtWorldAreasBtns(btn, areaName) {
  * Extract all stations belonging to an array of countries (area).
  * @param {string} areaName continent name or "World"
  * @param {Object} areaCountries dict {continent1: [countryCodes], continent2: [countryCodes] }
- * @returns {Array} stations belonging to a continent (or the whole world, stations dump)
+ * @returns {Promise<Array>} Promise array stations of a continent (or whole world stations dump)
  */
-function worldAreaStations(areaName, areaCountries) {
-  return new Promise((resolve, _) => {
-    const countryTwoChars = areaCountries[areaName].map((cc) =>
-      cc.toUpperCase()
-    );
-    let db = metaData.get().infoDb; // whole DB !!! debugger !!!
+async function worldAreaStations(areaName, areaCountries) {
+  const countryTwoChars = areaCountries[areaName].map((cc) => cc.toUpperCase());
+  let db = metaData.get().infoDb; // whole DB !!! debugger !!!
 
-    //
-    const continentStations = Object.values(db).reduce((accu, station) => {
-      const cc = station.countrycode;
+  const continentStations = Object.values(db).reduce((accu, station) => {
+    const cc = station.countrycode;
 
-      if (
-        !accu.includes(station) && // refac - placebo .includes is for []
-        countryTwoChars.includes(cc.toUpperCase())
-      ) {
-        accu.push(station);
-      }
-      return accu;
-    }, []);
-    db = null; // mem leak prevention
-    recMsg([continentStations.length + " URLs " + areaName]);
-    resolve(continentStations);
+    if (
+      !accu.includes(station) && // refac - placebo .includes is for []
+      countryTwoChars.includes(cc.toUpperCase())
+    ) {
+      accu.push(station);
+    }
+    return accu;
+  }, []);
+  db = null; // mem leak prevention
+  await recMsg({
+    txt: continentStations.length + " URLs " + areaName,
+    level: "success",
   });
+  return continentStations;
 }
 
 // ------------------------------------------------------------------------------ continents ----
@@ -370,31 +440,38 @@ function worldAreaStations(areaName, areaCountries) {
  *     Create Country subFilter grid.
  *     Same procedure as Country subFilter.
  *
- * @param {string[]} continents array
- * @param {HTMLObjectElement} countryBtn "Continent" button div
+ * @param {Array<string>} continents array
+ * @param {HTMLDivElement} btn "Continent" topfilter button
  * @param {string} continentName name value "Continent" button topFilter
+ * @returns {Promise<undefined>} Promise undefined
  */
-function continentBtns(continents, continentBtn, continentName) {
+function continentBtns(continents, btn, continentName) {
   return new Promise((resolve, _) => {
-    continentBtn.addEventListener("click", async () => {
-      await removeElement("stationsAnchor");
+    btn.addEventListener("click", async () => {
+      const hidden = await toggleSubfilterDisplay(btn.innerText);
+      if (hidden) return; // was visible, now hidden
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_continents");
-      recMsg(["area " + continentName]);
+      await recMsg({ txt: "area " + continentName, level: "success" });
 
       for (const continent of continents) {
         if (continent === "World") continue; // Filter out World.
 
-        const btn = document.createElement("div");
-        btn.setAttribute("id", continent + "_storeBtn");
-        btn.classList.add("grid_sub_world_items"); // grid style
-        btn.classList.add("handCursor");
-        btn.textContent = continent;
-        anchor.appendChild(btn);
+        const continentBtn = document.createElement("div");
+        continentBtn.setAttribute("id", continent + "_storeBtn");
+        continentBtn.classList.add("grid_sub_world_items"); // grid style
+        continentBtn.classList.add("handCursor");
+        continentBtn.textContent = continent;
+        anchor.appendChild(continentBtn);
 
         const countriesOfContinent = areaCountries[continent]; // 2-char country codes
-        await setEvtContinentBtns(btn, continent, countriesOfContinent);
+        await setEvtContinentBtns(
+          continentBtn,
+          continent,
+          countriesOfContinent,
+          btn
+        );
       }
     });
     resolve();
@@ -406,16 +483,24 @@ function continentBtns(continents, continentBtn, continentName) {
  * Means subFilter grid changes from buttons with continent names
  * to grid with country names.
  * Style sheets change.
- * @param {HTMLObjectElement} btn
+ * @param {HTMLDivElement} continentBtn
  * @param {string} continent name
- * @param {string[]} countriesOfContinent 2-char codes of countries
+ * @param {Array<string>} countriesOfContinent 2-char codes of countries
+ * @param {HTMLDivElement} btn topfilter button
+ * @returns {Promise<undefined>} Promise undefined
  */
-function setEvtContinentBtns(btn, continent, countriesOfContinent) {
+function setEvtContinentBtns(
+  continentBtn,
+  continent,
+  countriesOfContinent,
+  btn
+) {
   return new Promise((resolve, _) => {
-    btn.addEventListener("click", async () => {
+    continentBtn.addEventListener("click", async () => {
       const anchor = await subFilterContainer();
+
       anchor.classList.add("grid_sub_countries"); // grid layout, col, rows
-      recMsg(["area " + continent]);
+      await recMsg({ txt: "area " + continent, level: "success" });
 
       // input of fun should be 2-char code list
       const data = await resolveCountryStations(); // dict {countryNames[] , namesTo2Char{} }
@@ -427,16 +512,16 @@ function setEvtContinentBtns(btn, continent, countriesOfContinent) {
       countryNames.sort();
 
       // Sorted buttons get country names, but button listener fun needs 2-char code.
-      for (const name of countryNames) {
-        const btn = document.createElement("div");
-        btn.setAttribute("id", name + "_storeBtn");
-        btn.classList.add("grid_sub_countries_items"); // grid style
-        btn.classList.add("handCursor");
-        btn.textContent = name;
-        anchor.appendChild(btn);
+      for (const countryName of countryNames) {
+        const countryBtn = document.createElement("div");
+        countryBtn.setAttribute("id", countryName + "_storeBtn");
+        countryBtn.classList.add("grid_sub_countries_items"); // grid style
+        countryBtn.classList.add("handCursor");
+        countryBtn.textContent = countryName;
+        anchor.appendChild(countryBtn);
 
-        const twoCharCode = data.namesTo2Char[name];
-        await setEvtCountriesBtns(btn, twoCharCode); // reuse country fun
+        const twoCharCode = data.namesTo2Char[countryName];
+        await setEvtCountriesBtns(countryBtn, twoCharCode, btn); // reuse country fun
       }
     });
     resolve();
@@ -448,9 +533,9 @@ function setEvtContinentBtns(btn, continent, countriesOfContinent) {
 /**
  * Container with an anchor to attach all stations.
  * Anchor can be removed, so no need for a remove loop.
- * @param {*} containerName
- * @param {*} anchorName
- * @returns
+ * @param {string} containerName div id
+ * @param {string} anchorName div id
+ * @returns {Promise<HTMLDivElement>} Promise anchor div
  */
 function createContainer(containerName, anchorName) {
   return new Promise(async (resolve, _) => {
@@ -466,26 +551,24 @@ function createContainer(containerName, anchorName) {
 
 /**
  * Fresh subFilterContainer.
- * @returns {HTMLObjectElement} anchor div
+ * @returns {HTMLDivElement} anchor div
  */
-function subFilterContainer() {
-  return new Promise(async (resolve, _) => {
-    const parentName = "subFilterBar";
-    const anchorName = "subFilterContainer";
+async function subFilterContainer() {
+  const parentName = "subFilterBar";
+  const anchorName = "subFilterContainer";
 
-    document.getElementById(parentName).style.display = "block";
+  document.getElementById(parentName).style.display = "block";
 
-    const anchorDiv = await createContainer(parentName, anchorName);
-    anchorDiv.style.paddingTop = "1em";
-    anchorDiv.style.paddingBottom = "1em";
-    resolve(anchorDiv);
-  });
+  const anchorDiv = await createContainer(parentName, anchorName);
+  anchorDiv.style.paddingTop = "1em";
+  anchorDiv.style.paddingBottom = "1em";
+  return anchorDiv;
 }
 
 /**
  * Can synchronous remove a DOM element, anchor.
- * @param {string} HTMLElement id
- * @returns {Promise} done
+ * @param {string} elementId HTML id
+ * @returns {Promise<undefined>} Promise undefined
  * @example
  * await removeElement(anchorName);
  */
@@ -505,6 +588,7 @@ function removeElement(elementId) {
  * stationGroup' it is used to detect and
  * create a delete button to remove 'Custom' URLs from object store.
  * @param {string} objStore
+ * @returns {Promise<undefined>} Promise undefined
  */
 function setActiveStationGroup(objStore) {
   return new Promise((resolve, _) => {

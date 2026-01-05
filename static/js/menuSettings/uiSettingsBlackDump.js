@@ -1,10 +1,10 @@
 // uiSettingsBlackDump.js
 "use strict";
 /**
- *  This file is part of station-recorder. station-recorder is hereby called the app. 
+ *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
  *  TV station URLs. The cached DB copy can be used also if
- *  the public database fails. Additional features shall improve the 
+ *  the public database fails. Additional features shall improve the
  *  value of the application. Example is the vote, click statistic feature.
  *  Copyright (C) 2025 René Horn
  *
@@ -22,8 +22,8 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { getIndex } from "../database/idbSetGetValues.js";
-import { filledStationStoresGet } from "./uiFileDownload.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
+import { dbsWithContent } from "./uiFileDownload.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
@@ -31,40 +31,35 @@ import {
 
 export { buildSettingsBlackDump };
 
-function buildSettingsBlackDump(o = {}) {
-  return new Promise((resolve, _) => {
-    const wait = async () => {
-      const parentDivId = "blacklistDump";
-      const divOutlineChild = await createFeatureDivOutline({
-        parentId: parentDivId,
-        divOutline: "divBlackDumpOutline",
-      });
-      divOutlineChild.style.display = "block";
-
-      // remove X that hide the div
-      divOutlineChild.removeChild(divOutlineChild.firstElementChild);
-      // create new one
-      const spanClose = document.createElement("span");
-      spanClose.classList.add("handCursor");
-      spanClose.innerText = "✖";
-      spanClose.style.textAlign = "right";
-      spanClose.style.paddingRight = "14px";
-      spanClose.style.display = "inline-block";
-      spanClose.style.width = "100%";
-      spanClose.style.backgroundColor = "#fc4a1a";
-      spanClose.addEventListener("click", () => {
-        document.getElementById("blacklistDump").style.display = "none";
-      });
-      divOutlineChild.appendChild(spanClose);
-
-      await createFeatureDivSection({
-        parentId: "divBlackDumpOutline",
-        childId: "divBlackDump",
-      });
-      await createBlackDump({ parentId: "divBlackDump" });
-    };
-    wait();
+async function buildSettingsBlackDump(o = {}) {
+  const parentDivId = "blacklistDump";
+  const divOutlineChild = await createFeatureDivOutline({
+    parentId: parentDivId,
+    childId: "divBlackDumpOutline",
   });
+  divOutlineChild.style.display = "block";
+
+  // remove X that hide the div
+  divOutlineChild.removeChild(divOutlineChild.firstElementChild);
+  // create new one
+  const spanClose = document.createElement("span");
+  spanClose.classList.add("handCursor");
+  spanClose.innerText = "✖";
+  spanClose.style.textAlign = "right";
+  spanClose.style.paddingRight = "14px";
+  spanClose.style.display = "inline-block";
+  spanClose.style.width = "100%";
+  spanClose.style.backgroundColor = "#fc4a1a";
+  spanClose.addEventListener("click", () => {
+    document.getElementById("blacklistDump").style.display = "none";
+  });
+  divOutlineChild.appendChild(spanClose);
+
+  await createFeatureDivSection({
+    parentId: "divBlackDumpOutline",
+    childId: "divBlackDump",
+  });
+  await createBlackDump({ parentId: "divBlackDump" });
 }
 
 function createBlackDump(o = {}) {
@@ -77,7 +72,7 @@ function createBlackDump(o = {}) {
     const spanTxt = document.createElement("span");
     spanTxt.dataset.shown = "false";
     spanTxt.innerText = "Dump";
-    spanTxt.style.backgroundColor = "#5b5ab8";
+    spanTxt.style.backgroundColor = "white";
     spanTxt.style.display = "inline-block"; // center works
     spanTxt.style.width = "75%";
     spanTxt.style.textAlign = "center";
@@ -88,50 +83,47 @@ function createBlackDump(o = {}) {
     featureDiv.appendChild(spanTxt);
 
     // evt listener
-    spanTxt.addEventListener("click", () => {
-      const wait = async () => {
-        const dumpDict = {}; // can store also settings here
-        dumpDict["blacklists"] = [];
-        dumpDict["custom"] = [];
-        dumpDict["favorites"] = [];
-        dumpDict["appSettings"] = [];
+    featureDiv.addEventListener("click", async () => {
+      const dumpDict = {}; // can store also settings here
+      dumpDict["blacklists"] = [];
+      dumpDict["custom"] = [];
+      dumpDict["favorites"] = [];
+      dumpDict["appSettings"] = [];
 
-        // Only DBs with non empty stores.
-        const filledDbArray = await filledStationStoresGet("blacklist_names");
+      // Only DBs with non empty stores.
+      const filledDbArray = await dbsWithContent("blacklist_names");
 
-        for (const db of filledDbArray) {
-          const blacklistArray = await getIndex({
-            dbName: db.id,
-            store: "blacklist_names",
-          });
+      for (const db of filledDbArray) {
+        const blacklistArray = await getIndex({
+          dbName: db.id,
+          store: "blacklist_names",
+        });
 
-          const blDump = {
-            dbId: db.id,
-            dbName: db.name,
-            store: "blacklist_names",
-            blacklist: blacklistArray,
-          };
-          dumpDict["blacklists"].push(blDump);
-        }
-        // Add also settings and favorites, so dump is more useful.
-        const custom = await storeContentGet("radio_index_db", "Custom");
-        dumpDict["custom"].push(custom);
-        const favorites = await storeContentGet("radio_index_db", "Favorites");
-        dumpDict["favorites"].push(favorites);
-        const appSettings = await storeContentGet("app_db", "appSettings");
-        dumpDict["appSettings"].push(appSettings);
+        const blDump = {
+          dbId: db.id,
+          dbName: db.name,
+          store: "blacklist_names",
+          blacklist: blacklistArray,
+        };
+        dumpDict["blacklists"].push(blDump);
+      }
+      // Add also settings and favorites, so dump is more useful.
+      const custom = await storeContentGet("radio_index_db", "Custom");
+      dumpDict["custom"].push(custom);
+      const favorites = await storeContentGet("radio_index_db", "Favorites");
+      dumpDict["favorites"].push(favorites);
+      const appSettings = await storeContentGet("app_db", "appSettings");
+      dumpDict["appSettings"].push(appSettings);
 
-        let date = new Date();
-        const readableDate = date.toISOString().split("T")[0];
-        date = null;
-        const fileName = "blacklists_".concat(readableDate, ".json");
-        await JSONToFile(dumpDict, fileName);
-        spanTxt.innerText = "Dump file in download folder.";
-      };
-      wait();
+      let date = new Date();
+      const readableDate = date.toISOString().split("T")[0];
+      date = null;
+      const fileName = "blacklists_".concat(readableDate, ".json");
+      await JSONToFile(dumpDict, fileName);
+      spanTxt.innerText = "Dump file in download folder.";
     });
 
-    resolve(); // fun
+    resolve();
   });
 }
 

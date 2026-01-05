@@ -28,7 +28,7 @@ import {
   getIdbValue,
   setIdbValue,
   getIndex,
-} from "../database/idbSetGetValues.js";
+} from "../database/idbSetGetValues.mjs";
 
 export { writeBlacklist, loadBlacklist, loadOneBlacklist };
 

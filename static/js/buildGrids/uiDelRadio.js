@@ -25,7 +25,7 @@
 import { recMsg } from "../network/messages.js";
 import { sleep } from "../uiHelper.js";
 import { metaData } from "../central.js";
-import { getIdbValue, delIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, delIdbValue } from "../database/idbSetGetValues.mjs";
 export { showDelMsg };
 
 function createDelRadioUi(radio, parent) {
@@ -112,7 +112,10 @@ async function showDelMsg(stationuuid, parentDiv) {
     }).catch((e) => console.error("delete station failed.", e));
 
     metaData.set().infoDb[stationuuid].isFavorite = false;
-    recMsg(["removed from Favorites ", stationObj.name]);
+    await recMsg({
+      txt: "removed from Favorites " + stationObj.name,
+      level: "warning",
+    });
     divMsg.innerText = "Wait for deletion from page.";
     divMsg.style.color = "rgba(170, 51, 106,1)";
     await sleep(1000);

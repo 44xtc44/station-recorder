@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { getIdbValue, setIdbValue } from "./idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "./idbSetGetValues.mjs";
 export { getAppSettings, setAppSettings };
 
 /**

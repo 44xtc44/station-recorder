@@ -24,29 +24,48 @@
 export { createFeatureDivOutline, createFeatureDivSection };
 
 /**
- * outer div with border
+ * Template.
+ * MASTER container for unique sub menu layout with a termination bar.
+ * @type {Object} param0 {parentId: string, childId:string}
+ * @param {string} parentId Anchor div
+ * @param {string} childId ID of here to be created sub menu div
+ * @returns {Promise<HTMLDivElement>} Sub menu master div
  */
-function createFeatureDivOutline(o = {}) {
+function createFeatureDivOutline({ parentId, childId }) {
   return new Promise((resolve, _) => {
-    const parent = document.getElementById(o.parentId);
-    const divOutline = document.createElement("div");
-    divOutline.setAttribute("id", o.divOutline);
-    divOutline.classList.add("subMenuOutline");
+    const parent = document.getElementById(parentId);
+    const outline = document.createElement("div");
+    const radius = "20px";
+
+    outline.setAttribute("id", childId);
+    outline.classList.add("subMenuOutline");
+    outline.classList.add("column500");
+    outline.style.width = "500px";
+    outline.style.display = "block";
+    outline.style.borderRadius = radius;
 
     const spanClose = document.createElement("span");
+    spanClose.id = "terminator";
     spanClose.classList.add("handCursor");
     spanClose.innerText = "✖";
     spanClose.style.float = "right";
     spanClose.style.display = "inline-block";
+    spanClose.style.textAlign = "right";
+    spanClose.style.paddingRight = "14px";
+    spanClose.style.display = "inline-block";
+    spanClose.style.width = "100%";
+    spanClose.style.height = "2em";
+    spanClose.style.backgroundColor = "Crimson"; // #fc4a1a
+    spanClose.style.borderRadius = radius;
 
     spanClose.addEventListener("click", () => {
-      divOutline.remove();
+      outline.remove();
     });
 
-    parent.appendChild(divOutline);
-    divOutline.appendChild(spanClose);
+    parent.appendChild(outline);
+    outline.appendChild(spanClose);
 
-    resolve(divOutline);
+    resolve(outline);
   });
 }
 
@@ -54,14 +73,14 @@ function createFeatureDivOutline(o = {}) {
  * Inner div with other bg color than outer div.
  * Creates colored segments if called multiple times.
  */
-function createFeatureDivSection(o = {}) {
+function createFeatureDivSection({ parentId, childId }) {
   return new Promise((resolve, _) => {
-    const parent = document.getElementById(o.parentId);
-    const divInline = document.createElement("div");
-    divInline.setAttribute("id", o.childId);
-    divInline.classList.add("subMenuSection");
+    const parent = document.getElementById(parentId);
+    const inline = document.createElement("div");
+    inline.setAttribute("id", childId);
+    inline.classList.add("subMenuSection");
 
-    parent.appendChild(divInline);
-    resolve(divInline);
+    parent.appendChild(inline);
+    resolve(inline);
   });
 }

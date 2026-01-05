@@ -22,27 +22,22 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { getAppSettings, setAppSettings } from "../database/idbAppSettings.js";
 import { showFileUploadUi } from "./uiFileUpload.js";
-import { removeAllRecorder } from "../buildGrids/radioOperation.js";
-import { showFileDbUi } from "./uiFileDownload.js";
-import { updateRadioBrowserInfoDb } from "../database_update/update_radio_browser_info.js";
-import { setAppSettings, getAppSettings } from "../database/idbAppSettings.js";
-import { setUploadEvtListener } from "../uiHelper.js";
 
 export { createAppMenu, evtHamburgerMenu };
 
 /**
- *
+ * Use Download icon.
+ * Android can not use .donwloads function to track dl's, see mozilla documentation
+ * https://github.com/mdn/browser-compat-data/blob/main/webextensions/api/downloads.json
+ * I try JSzip lib to collect and download recorder blobs.
  */
 function createAppMenu() {
   // upload files to database
   const liUpload = document.getElementById("liUpload");
   liUpload.addEventListener("click", () => showFileUploadUi());
-  liUpload.style.display = "none";
-  // Disable dev upload menu entry; FF android multi dl bug report.
-  // const liUpload = document.getElementById("liUpload");
-  // click 7-times red arrow, arrow is called in writeHelloMessage
-  setUploadEvtListener();
+  liUpload.style.display = "block";
 
   // audio bar show/hide
   evtHamburgerMenu({ menuName: "liAudio", featureDivId: "audioBarContainer" });

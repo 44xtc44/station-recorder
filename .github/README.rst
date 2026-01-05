@@ -11,17 +11,14 @@ station-recorder - distributed frontend database
 
 Overview
 ---------
-| Vanilla JavaScript. 
-| This repository shows the source code of a distributed NoSQL frontend database browser extension/app.
-|
+| This repository shows the source code of a NoSQL database "Browser extension". 
 
-* parallel stream downloads
-* play radio
-* upvote your favorite station
-* audio multi-band equalizer with three bandwidth selecors
-* song title blacklists
-* settings and blacklists backup/restore
+* Multi-stream downloads and play Radio/TV from "offline" URL DB
+* Backup/Restore of Settings and Blacklists via JSON file
+* Database update from compressed DB Backup of https://www.radio-browser.info/ 
+* Audio multi-band equalizer with three bandwidth selecors
 
+| JavaScript ES modules. ".mjs" (fix) named JS files for webWorker modules.
 | The app takes the the datasets of the radio-browser.info MariaDB database and stores it inside
 | the browsers *indexed DB* for offline use. 
 | Updates can be pulled regularly from the public DB's backup archive by a button press.
@@ -34,7 +31,7 @@ Overview
 | 
 | The extension app can be used with FireFox on mobile Android devices and PC.
 | 
-| FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder/
+| FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder-extra-stark/
 |
 | It needs a feature upgrade to be also an npm package via express server to support 
 | all browsers out of the box. See my ''PROKIF'' project as an example.
@@ -175,35 +172,44 @@ The app pulls every few minutes the latest dataset from the public DB API,
 for all openend station container. A badge shows the current vote and click 
 counts for the station and the trend towards positive or negative numbers.
 
+HowTo Android - install on FireFox
+-----------------------------------
+| 1. open Hamburger Menu
+| 2. Select the puzzle icon, extensions
+| 3. Scroll to the bottom and select "Find more extensions"
+| 4. type the extension name and install
 
-HowTo user test Android
-------------------------
-Clone repo from GitHub. Go to it,
-install node.js and activate npm, red from package.json. 
-
-    foobar:~$  git clone https://github.com/44xtc44/vanga.git
-    foobar:~$ cd vanga
-    foobar:~$ npm install
-
-Install 'web-ext' "https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/".
-
-Install Android Studio latest and create a dummy project. The device manager is needed to run a Android Virtual Device (AVD).
-
-You then want to download the FireFox apk file and drag it onto the AVD. 
-Search "Firefox Nightly for Developers". If you find 'APKmirror' save, go there. Else use the registration
-process to enable PlayStore to pull FireFox Nightly, into every AVD.
-
-Open a terminal in the root of the repo clone, to load the Add-on into the AVD via USB.
-
-    @lab42$ adb devices -l
-    List of devices attached
-    emulator-5554   offline
-
-    @lab42$ web-ext run --target=firefox-android --android-device emulator-5554 --firefox-apk org.mozilla.fenix
-
-The AVD and FireFox Nightly must be USB enabled (Dev mode) then.
-
-Please be patient and wait until the extension popup notification appears on the device. 
+HowTo Android - Test extension
+-------------------------------
+| (A) Clone a branch from GitHub repo (SSH example). Use the exact branch name.
+| 
+|     foobar:~$ git clone -b station-recorder_1.0.0  --single-branch git@github.com:44xtc44/station-recorder.git
+|     foobar:~$ cd station-recorder_1.0.0
+| 
+| (B) Install node.js. 
+| 
+| (C) Install 'web-ext' "https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/".
+| 
+| (D) Install Android Studio latest and create a "dummy project" to get Android Studio device manager.
+| The device manager is needed to run a Android Virtual Device (AVD).
+| You can also use a Phone directly. But be aware that you might need to reset it 
+| to factory defaults on a "catastrophic" failure. I had to do this during another project.
+| 
+| (E) You then want to download the FireFox browser apk file and drag it onto the AVD. 
+| Search "Firefox Nightly for Developers". If you find 'APKmirror' save, go there. 
+| Else use the registration process to enable PlayStore to pull FireFox Nightly, into every AVD.
+| 
+| (F) Open a terminal in the root of the repo/branch clone, to load the Add-on into the AVD via USB.
+| 
+|     @lab42$ adb devices -l
+|     List of devices attached
+|     emulator-5554   offline
+| 
+|     @lab42$ web-ext run --target=firefox-android --android-device emulator-5554 --firefox-apk org.mozilla.fenix
+| 
+| The AVD and FireFox Nightly must be USB enabled (Dev mode) then.
+| 
+| Please be patient and wait until the extension popup notification appears on the device. 
 
 Known issues
 -------------
@@ -226,58 +232,15 @@ lead to dropped fetch requests. Threats die quiet.
 Needs a wathchdog threat to write at least a message.
 There is no thread kill mechanism in the JS interpreter available.
 
-Memory
-^^^^^^^^
-Low physical memory leads to long running search (looks like frozen), 
-especially in 'World' filter button.
-This may be solved by chopping the search into blocks, 
-or outsource to a web worker to allow a load... with animation.
-Webworker HTML code will be a huge string then.
+Libraries
+-------------
 
-Linter
-^^^^^^
-Eslint linter is showing errors and warnings. 
-To reveal errors use, for example, "npm exec eslint ./static/js/index.js".
-Some modules use "new Promise" and "async" in one function. 
-Eslint says that this could lead to not fire a "reject". 
-
-IndexedDB (IDB) tests
-^^^^^^^^^^^^^^^^^^^^^^^
-IDB is not available in node.js. Only in a browser's context.
-
-Puppeteer
-
-Puppeteer must be set to allow a /home folder to allow browser reload tests.
-Update:
-Puppeteer can not "import" modules (except itself) in a module/script. 
-Called variables and function names are unkown then.
-Imports before puppeteer work fine, but are lost after puppeteer import.
-So, integration tests for IDB index creation and CRUD tasks can 
-not be automated for now.
-"eval" or fun.toString() import/injection, auto copy to file 
-serialize/deserialize doesn't help either.
-
-Playwright
-
-Can import other modules, but IDB fails to init then.
-module.toString() will not help either.
-"Error Context: ../test-results/first-has-title/error-context.md"
-The library is not able to recognize imported modules/functions in its
-own "context" function calls. 
-Test is only good for simple UI/DOM problems. Not for testing imported code.
-Means all code must be manually writen to the current test module. 
-This is no automation at all.
-
-Circular dependendcies
-^^^^^^^^^^^^^^^^^^^^^^^^
-Circlular imports start in "radioOperations.js". Two files affected.
-Use "./node_modules/.bin/madge -c --image graph.svg  static/js" with 
-"Graphviz" installed on linux distro. Would need a redesign for the 
-radio/station switch. Keep in mind that recorder modules are threats
-discoupled from the main app. No return val for this longrunning task.
-Why? Thinking: On call error it returns, on running not.
-For now it's good enough. If migrate the recorder threats to webworker
-this can be fixed by keeping an eye on the workers send message (use uuid).
+| Shaka for ".m3u8" file type. That is HLS (HTTP Live Streaming TV/Radio). 
+| Apache-2.0 license and file in the "/static/js/assets" folder.
+| https://github.com/shaka-project/shaka-player?tab=Apache-2.0-1-ov-file#readme
+|
+| JSZip for one click "FireFox for Android" multi-file to user's /Downloads folder.
+| Uses GPLv3.
 
 Contributions
 -------------
