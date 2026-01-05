@@ -143,9 +143,6 @@ async function uuidUrlsArray() {
     // Download latest gz backup, decomp., check for URL exist for this country.
     const country = metaData.get().countryNames[countrycode];
 
-    // const fullObj = metaData.get().infoDb[uuid];
-    // debugger;
-
     return {
       url: url,
       uuid: uuid,
