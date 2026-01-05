@@ -1,0 +1,14 @@
+https://medium.com/geekculture/testing-express-js-with-jest-8c6855945f03
+https://jestjs.io/docs/mock-functions
+
+playwright needs some seconds to start the browser, so
+
+express hosts simple web site to test
+  workers
+  fetch read from disk (fetch from node pkg can not)
+  indexedDB quick test
+  grids
+  express itself, 
+    parallel requests, 
+    status, request resets
+  

@@ -22,7 +22,7 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { getIndex } from "../database/idbSetGetValues.js";
+import { getIndex } from "../database/idbSetGetValues.mjs";
 import { showFavoriteStores } from "./subFilterGrid.js";
 export { showFavorites };
 

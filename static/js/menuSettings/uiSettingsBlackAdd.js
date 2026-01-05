@@ -25,11 +25,11 @@
 import { recMsg } from "../network/messages.js";
 import { appendDiv, sleep } from "../uiHelper.js";
 import { loadOneBlacklist } from "../fileStorage/blacklist.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   stationDbCreate,
   dbRegisterStreamer,
-} from "../network/streamDataGet.js";
+} from "../database/recorderState.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
@@ -46,7 +46,7 @@ function createSettingsBlackAdd(o = {}) {
   return new Promise(async (resolve, _) => {
     const divOutlineChild = await createFeatureDivOutline({
       parentId: o.parentDiv,
-      divOutline: "divBlackAddOutline",
+      childId: "divBlackAddOutline",
     });
     divOutlineChild.style.display = "block";
 
@@ -135,38 +135,34 @@ async function mergeBlacklists(o = {}) {
   });
 }
 
-function restoreSingleStore(o = {}) {
-  return new Promise(async (resolve, _) => {
-    const dbName = o.db;
-    const store = o.store;
-    const contentArray = o.contentArray;
-    if (contentArray.length === 0) {
-      recMsg(["nothing in ", store]);
-    } else {
-      recMsg(["restore ", store]);
-    }
+async function restoreSingleStore(o = {}) {
+  const dbName = o.db;
+  const store = o.store;
+  const contentArray = o.contentArray;
+  if (contentArray.length === 0) {
+    await recMsg({ txt: "nothing in " + store, level: "error" });
+  } else {
+    await recMsg({ txt: "restore " + store, level: "success" });
+  }
 
-    const ver = await getIdbValue({
-      dbName: "versions_db",
-      dbVersion: 1,
-      objectStoreName: "dbVersions",
-      id: dbName,
-    });
-
-    for (const keyVal of contentArray) {
-      await setIdbValue({
-        dbName: dbName,
-        dbVersion: ver.dbVersion,
-        objectStoreName: store,
-        data: keyVal,
-        // bulkInsert: true,
-      }).catch((e) => {
-        recMsg(["fail ::", store, e]);
-      });
-    }
-
-    resolve();
+  const ver = await getIdbValue({
+    dbName: "versions_db",
+    dbVersion: 1,
+    objectStoreName: "dbVersions",
+    id: dbName,
   });
+
+  for (const keyVal of contentArray) {
+    await setIdbValue({
+      dbName: dbName,
+      dbVersion: ver.dbVersion,
+      objectStoreName: store,
+      data: keyVal,
+      // bulkInsert: true,
+    }).catch(async (e) => {
+      await recMsg({ txt: "fail " + store + e, level: "error" });
+    });
+  }
 }
 
 /**
@@ -176,50 +172,46 @@ function restoreSingleStore(o = {}) {
  * @param {*} blacklistDbs
  * @returns
  */
-function restoreBlacklists(blacklistDbs) {
-  return new Promise(async (resolve, _) => {
-    if (blacklistDbs.length === 0) {
-      recMsg(["nothing in blacklists"]);
-    }
-    // Create the DBs for the blacklists. DB may exist already.
-    for (const db of blacklistDbs) {
-      const stationuuid = db.dbId;
-      const stationName = db.dbName; // for download, show readable name
+async function restoreBlacklists(blacklistDbs) {
+  if (blacklistDbs.length === 0) {
+    await recMsg({ txt: "nothing in blacklists", level: "error" });
+  }
+  // Create the DBs for the blacklists. DB may exist already.
+  for (const db of blacklistDbs) {
+    const stationuuid = db.dbId;
+    const stationName = db.dbName; // for download, show readable name
 
-      // Each DB has two stores; 'blacklist_names' and 'content_blobs'.
-      recMsg(["restore blacklist ", stationName]);
-      await stationDbCreate(stationuuid);
-      await dbRegisterStreamer(stationuuid, stationName); // for blacklists mem loader
-    }
-    await sleep(1000);
+    // Each DB has two stores; 'blacklist_names' and 'content_blobs'.
+    await recMsg({ txt: "restore blacklist " + stationName, level: "success" });
+    await stationDbCreate(stationuuid);
+    await dbRegisterStreamer(stationuuid, stationName); // for blacklists mem loader
+  }
+  await sleep(1000);
 
-    // Restore the blacklists. Add new and overwrite old entries.
-    for (const db of blacklistDbs) {
-      const blacklist = db.blacklist; // [{id: foo},{id:bar}] title array
-      const stationuuid = db.dbId;
-      const stationName = db.dbName;
-      const store = db.store; // 'blacklist_names'
+  // Restore the blacklists. Add new and overwrite old entries.
+  for (const db of blacklistDbs) {
+    const blacklist = db.blacklist; // [{id: foo},{id:bar}] title array
+    const stationuuid = db.dbId;
+    const stationName = db.dbName;
+    const store = db.store; // 'blacklist_names'
 
-      const ver = await getIdbValue({
-        dbName: "versions_db",
-        dbVersion: 1,
-        objectStoreName: "dbVersions",
-        id: stationuuid,
-      });
-      // resolve bug?
-      await setIdbValue({
-        dbName: stationuuid,
-        dbVersion: ver.dbVersion,
-        objectStoreName: store,
-        data: blacklist, // [{ id: title }],
-        bulkInsert: true,
-      });
-      await loadOneBlacklist(stationuuid);
-      recMsg(["load blacklist ", stationName]);
-    }
-
-    resolve();
-  });
+    const ver = await getIdbValue({
+      dbName: "versions_db",
+      dbVersion: 1,
+      objectStoreName: "dbVersions",
+      id: stationuuid,
+    });
+    // resolve bug?
+    await setIdbValue({
+      dbName: stationuuid,
+      dbVersion: ver.dbVersion,
+      objectStoreName: store,
+      data: blacklist, // [{ id: title }],
+      bulkInsert: true,
+    });
+    await loadOneBlacklist(stationuuid);
+    await recMsg({ txt: "load blacklist " + stationName, level: "success" });
+  }
 }
 
 async function pushJsonToStores(jsonFile) {
@@ -251,6 +243,12 @@ async function pushJsonToStores(jsonFile) {
     store: "Custom",
     contentArray: custom,
   });
-  recMsg(["restore done; blacklists loaded and ready"]);
-  recMsg(["Reload to apply Favorites and stored settings."]);
+  await recMsg({
+    txt: "restore done; blacklists loaded and ready",
+    level: "success",
+  });
+  await recMsg({
+    txt: "Reload to apply Favorites and stored settings.",
+    level: "success",
+  });
 }

@@ -26,7 +26,7 @@ import { recMsg } from "./messages.js";
 import { metaData } from "../central.js";
 import { urlAlive } from "./streamDetect.js";
 import { shuffleArray, sleep, getRandomIntInclusive } from "../uiHelper.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   fetchOpt,
   radioBrowserInfoDict, // same format as in response.json()
@@ -303,34 +303,17 @@ async function postStationClick(stationuuid, radioName) {
     try {
       jsonSuccess = await response.json();
     } catch (e) {
-      /** 
+      /**
        * Korrupted network response.
-       * SyntaxError: JSON.parse: unexpected end of data at line 1 column 1 of the JSON data 
+       * SyntaxError: JSON.parse: unexpected end of data at line 1 column 1 of the JSON data
        */
-    }
-
-    if (jsonSuccess === undefined || jsonSuccess.ok === false) {
-      recMsg([
-        "fail click count response ::",
-        "radio-browser.info",
-        radioName,
-        stationuuid,
-      ]);
-      resolve(false);
-    } else {
-      recMsg([
-        "Click response OK (valid 24h)",
-        jsonSuccess.name,
-        // jsonSuccess.stationuuid,
-      ]);
-      resolve(jsonSuccess.ok);
     }
   });
 }
 
 /**
  * Add one click for the station in the public database.
- * in rec in radioOperation.js, play in createRadioListener.js
+ * in rec in recordStream.js, play in mediaElemListener.js
  * @param {string} stationName
  * @returns
  */
@@ -355,28 +338,38 @@ function submitStationClicked(stationuuid, stationName) {
 async function postStationVote(stationuuid, stationName) {
   // POST, get JSON .../json/vote/stationuuid
   // {"ok": true,"message": "voted for station successfully"}
-  return new Promise(async (resolve, _) => {
-    const dbSrvUrl = metaData.get()["radioBrowserInfoUrl"];
-    const updateUrl = "https://" + dbSrvUrl + "/json/vote/" + stationuuid;
-    fetchOpt.method = "POST";
-    const response = await fetch(updateUrl, fetchOpt).catch(() => {
-      return false;
-    });
-    if (response === false) {
-      recMsg(["Vote; radio-browser.info not responding.", stationName]);
-      resolve();
-      return;
-    }
-    const jsonSuccess = await response.json();
 
-    if (jsonSuccess === undefined || jsonSuccess.ok === false) {
-      recMsg(["fail :: wait 30 min. for same station vote.", stationName]);
-      resolve(false);
-    } else {
-      recMsg(["Vote count response OK for ", stationName]);
-      resolve(jsonSuccess.ok);
-    }
+  const dbSrvUrl = metaData.get()["radioBrowserInfoUrl"];
+  const updateUrl = "https://" + dbSrvUrl + "/json/vote/" + stationuuid;
+  fetchOpt.method = "POST";
+  const response = await fetch(updateUrl, fetchOpt).catch(() => {
+    return false;
   });
+  if (response === false) {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Vote; radio-browser.info not responding. " + stationName,
+      level: "success",
+    });
+    return;
+  }
+  const jsonSuccess = await response.json();
+
+  if (jsonSuccess === undefined || jsonSuccess.ok === false) {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Wait 30 min. for same station vote. " + stationName,
+      level: "error",
+    });
+    return false;
+  } else {
+    await recMsg({
+      stationuuid: stationuuid,
+      txt: "Vote count response OK for " + stationName,
+      level: "success",
+    });
+    return jsonSuccess.ok;
+  }
 }
 
 function submitStationVote(stationuuid, stationName) {

@@ -1,0 +1,60 @@
+Tests and Documentation and Problem also for my business.
+
+  Change to queue style to put it in a DB later.
+  DB queue to separate publisher and subscriber. JSON
+
+{
+  Problem:
+  [
+    {Target: {requirement:solution},{requirement:solution}},
+    {Target: {requirement:solution}},
+  ],
+  Tests:
+  [
+    {Target: {requirement:solution},{requirement:solution}},
+    {Target: {requirement:solution}},
+  ]
+  Documentation: []
+}
+
+
+Problem
+--------
+Extension popup
+  Target: [prevent close, draggable (station-to-station)]
+  Todo: [use panel, use popup]
+  Done: 
+
+Playwright
+  Target: [multi test browser in workflow]
+  Done: [folders with manifes pointing to service worker file]
+
+Tests
+-------
+Setup own http server for fast Jest Tests
+  Target: [zip compressor worker, run worker pool with IDB queue,]
+  Done:
+
+Mocking with server requests
+  Target: [server request,]
+  Done:
+
+Playwright in docker container.
+  Target: [config file,]
+  Done:
+
+Playwright in Kubernetes.
+  Target: [config file,]
+  Done:
+
+
+Documentation (may publish some)
+---------------------------------
+Git docu add how to dl and choose branch.
+
+Developement pattern list and implementation.
+  List:
+  Done:
+
+Problems solved, as link for recruiter requirements.
+  List:

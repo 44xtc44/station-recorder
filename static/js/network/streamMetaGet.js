@@ -1,10 +1,10 @@
 // streamMetaGet.js
 "use strict";
 /**
- *  This file is part of station-recorder. station-recorder is hereby called the app. 
+ *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
  *  TV station URLs. The cached DB copy can be used also if
- *  the public database fails. Additional features shall improve the 
+ *  the public database fails. Additional features shall improve the
  *  value of the application. Example is the vote, click statistic feature.
  *  Copyright (C) 2025 René Horn
  *
@@ -22,10 +22,10 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { switchRecorderState } from "../buildGrids/radioOperation.js";
-import { resolveFileExt } from "../fileStorage/fileStorage.js";
-import { recMsg, Queue } from "./messages.js";
 import { metaData } from "../central.js";
+import { resolveFileExt } from "../fileStorage/fileStorage.js";
+import { switchRecorderState } from "../recordPlay/recordStream.js";
+import { Queue, recMsg } from "./messages.js";
 
 export { consumeMetadata };
 
@@ -67,15 +67,19 @@ async function consumeMetadata(o = {}) {
   // const metaQ = new Queue(); // original chunk size from radio station, find text msg
   let icyIdx = undefined; // can be a counter, from promise resolved (returned)
 
-  recMsg(["txt ", stationName]);
-  
   while (true) {
     // div element may be removed and new created in favorite store. Will trigger an exception!
-    const uiTitleDisplay = document.getElementById(stationuuid.concat("_titleBox"));
+    const uiTitleDisplay = document.getElementById(
+      stationuuid.concat("_titleBox")
+    );
     // if (uiTitleDisplay !== null) uiTitleDisplay.style.display = "inline-block";
-    let nextChunk =  await streamReader.read(targetLen);
+    let nextChunk = await streamReader.read(targetLen);
     if (nextChunk.done) {
-      recMsg(["txt abort ::, connect rejected", stationName]);
+      await recMsg({
+        stationuuid: stationuuid,
+        txt: "txt abort, connect rejected " + stationName,
+        level: "error",
+      });
       switchRecorderState(stationuuid); // just in streamMetaGet else call again
       break; // radio killed our connection
     }
@@ -120,7 +124,7 @@ async function consumeMetadata(o = {}) {
           " [",
           o.bitRate,
           "kB ",
-          resolveFileExt(o.contentType),
+          await resolveFileExt(o.contentType),
           "]"
         );
     }
@@ -131,9 +135,9 @@ async function consumeMetadata(o = {}) {
     if (!metaData.get().infoDb[stationuuid].isListening) {
       try {
         uiTitleDisplay.innerText = "---";
-      } catch (e) {}
-      abortController.abort();
-      recMsg(["exit txt ", stationName]);
+      } catch (e) {
+        break;
+      }
       break;
     }
   }
@@ -159,6 +163,7 @@ async function oneIcyArrayMeta(o = {}) {
       qlength += item.length;
     });
     // Create a new array with total length and merge all source arrays (internet chunks) of streamQ.
+    // A uint8array index accomodates one byte. So in log we se 0-255 displayed as value.
     let mergedArray = new Uint8Array(qlength);
     let offset = 0;
     q.queue.forEach((item) => {
@@ -167,8 +172,10 @@ async function oneIcyArrayMeta(o = {}) {
     });
     // We can not splice. uint8array is a ^^view^^ and therefore read only.
     // We can destroy the view -> let view = []; but the buffer is phys. mem.
-    // View is two sided and needs a buffer.
-    // A new view needs 'let foo = new Arraybuffer(42)' allocates new (raw) memory.
+    // A view displays an underlying buffer area.
+    // A new view needs a size, clipping 'let foo = new Arraybuffer(42)'
+    // which allocates a part of (raw) memory area, of the data block.
+    // View can be larger than the datablock. Which should lead to read problems.
     // View data size (i.e uint8 uint32 ...) behaves like a list with an overlay of byte size (8,16,32,64).
     // Onw row can contain more or less data, because of data size.
     // We can split the view (on parts of mem), like a list, but not the phys. mem.

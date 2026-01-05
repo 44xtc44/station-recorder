@@ -23,7 +23,7 @@ user experience.
 
 The extension app can be used with FireFox on mobile Android devices and PC.
 
-FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder/
+FireFox Android/PC Add-on: https://addons.mozilla.org/en-US/firefox/addon/station-recorder-extra-stark
 
 Help
 -----

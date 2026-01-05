@@ -28,8 +28,8 @@ Example for a module description.
    * Arrays for continents, countries, presets
 
 
-..  _naudioAnimation_directory_headline:
-/audioAnimation
+..  _mediaAnimation_directory_headline:
+/mediaAnimation
 ---------------------------
 
 analyzer.js

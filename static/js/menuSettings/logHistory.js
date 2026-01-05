@@ -32,42 +32,40 @@ export { buildLogHistory };
 
 const parser = new DOMParser(); // sanitize html, else mozilla linter cries
 
-function buildLogHistory() {
-  createLogHistory({ parentDiv: "logHistory" }); // def in HTML
-}
-
-function createLogHistory(o = {}) {
-  return new Promise(async (resolve, _) => {
-    const divOutlineChild = await createFeatureDivOutline({
-      parentId: o.parentDiv,
-      divOutline: "divLogOutline",
-    });
-    divOutlineChild.style.display = "block";
-
-    // remove X that hide the div
-    divOutlineChild.removeChild(divOutlineChild.firstElementChild);
-    // create new one
-    document.getElementById("fixedPositionAnchor").style.height = "100%";
-    const spanClose = document.createElement("span");
-    spanClose.classList.add("handCursor");
-    spanClose.innerText = "✖";
-    spanClose.style.textAlign = "right";
-    spanClose.style.paddingRight = "14px";
-    spanClose.style.display = "inline-block";
-    spanClose.style.width = "100%";
-    spanClose.style.backgroundColor = "#fc4a1a";
-    spanClose.addEventListener("click", () => {
-      document.getElementById("logHistory").style.display = "none";
-    });
-    divOutlineChild.appendChild(spanClose);
-
-    await createFeatureDivSection({
-      parentId: "divLogOutline",
-      childId: "divLogMessages",
-    });
-    addLogMessages({ parentId: "divLogMessages" });
-    resolve();
+/**
+ * --> Anchor div is different from most others <--
+ */
+async function buildLogHistory() {
+  const divOutlineChild = await createFeatureDivOutline({
+    parentId: "logHistory",
+    childId: "divLogOutline",
   });
+  divOutlineChild.style.display = "block";
+
+  // remove X that hide the div
+  divOutlineChild.removeChild(divOutlineChild.firstElementChild);
+  // create new one
+  document.getElementById("fixedPositionAnchor").style.height = "100%";
+  const spanClose = document.createElement("span");
+  spanClose.classList.add("handCursor");
+  spanClose.innerText = "✖";
+  spanClose.style.textAlign = "right";
+  spanClose.style.paddingRight = "14px";
+  spanClose.style.display = "inline-block";
+  spanClose.style.width = "100%";
+  spanClose.style.backgroundColor = "#fc4a1a";
+  // evt
+  spanClose.addEventListener("click", () => {
+    document.getElementById("logHistory").style.display = "none";
+  });
+  divOutlineChild.appendChild(spanClose);
+
+  await createFeatureDivSection({
+    parentId: "divLogOutline",
+    childId: "divLogMessages",
+  });
+  addLogMessages({ parentId: "divLogMessages" });
+  return;
 }
 
 function addLogMessages(o = {}) {
@@ -88,13 +86,13 @@ function addLogMessages(o = {}) {
 
   divLogHistLines.style.textAlign = "left";
   divLogHistLines.style.verticalAlign = "middle";
-  spanClicker.innerText = "click on log to refresh";
+  spanClicker.innerText = "Click to refresh";
   spanClicker.style.paddingLeft = "10px";
   spanClicker.style.paddingRight = "10px";
   spanClicker.style.borderRadius = "5px";
-  spanClicker.style.backgroundColor = "#5b5ab8";
   spanClicker.classList.add("handCursor");
-  spanClicker.addEventListener("click", () => {
+  // evt
+  parent.addEventListener("click", () => {
     while (divLogWrap.firstChild) divLogWrap.removeChild(divLogWrap.lastChild);
     displayLogHistory(divLogWrap);
   });

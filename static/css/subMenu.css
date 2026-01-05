@@ -2,13 +2,15 @@
   margin-top: 10px;
   padding: 4px;
   width: 100%;
-  background-color: #ebebeb;
+  background-color: white; /*#ebebeb;*/
 }
 
 .subMenuSection {
   margin: 16px;
   padding: 10px;
   border-radius: 4px;
-  background-color: #49bbaa;
+  background-color: white;  /* #222429; #49bbaa;  #0c6a93; #033e58*/
+  border-radius: 20px;
+  border: solid #49bbaa;
+  border-width: 1px;
 }
-

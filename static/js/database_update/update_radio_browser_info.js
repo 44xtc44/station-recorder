@@ -22,12 +22,11 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { gzDecomp } from "../utils/gzDecomp.js";
+import { gzDecomp } from "../de_compress/gzDecomp.js";
 import { sleep } from "../uiHelper.js";
-import { metaData } from "../central.js";
 import { urlAlive } from "../network/streamDetect.js";
 import { showDbpdateUi } from "./update_ui.js";
-import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.js";
+import { setIdbValue, getIdbValue } from "../database/idbSetGetValues.mjs";
 import {
   waitTimeRadioBrowserInfo,
   appUserAgent,

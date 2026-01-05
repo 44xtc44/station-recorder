@@ -1,0 +1,33 @@
+{
+  "version": "1.1.0",
+  "author": "René Horn",
+  "name": "Station Recorder",
+  "short_name": "station-recorder",
+  "description": "Radio downloader with blacklists. Vote a station. Local database URL search. Get updates from radio-browser.info database.",
+  "manifest_version": 3,
+  "homepage_url": "https://github.com/44xtc44/station-recorder.git",
+  "action": {
+    "default_icon": {
+      "16": "/static/images/default_icon.svg",
+      "32": "/static/images/default_icon.svg",
+      "48": "/static/images/default_icon.svg",
+      "96": "/static/images/default_icon.svg",
+      "192": "/static/images/default_icon.svg",
+      "384": "/static/images/default_icon.svg",
+      "768": "/static/images/default_icon.svg",
+      "1536": "/static/images/default_icon.svg"
+    }
+  },
+  "background": {
+    "service_worker": "../../../static/js/background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "unlimitedStorage",
+    "tabs"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

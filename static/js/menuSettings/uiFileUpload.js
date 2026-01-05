@@ -23,54 +23,37 @@
  */
 
 /**
- * DEV module to upload any local files to the indexedDB
+ * DEV module
+ * to upload any local files to the indexedDB
  * so we can test the storage of downloaded streams as blobs
  * and test the download from indexedDB to /Downloads user folder.
  *
  * Called by createAppMenu() in uiHamburger.js
  * Set liUpload.style.display = "none"; to "block" in CreateAppMenu().
+ * Use hamburger menu.
  */
 
-import { sleep } from "../uiHelper.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
-import {
-  stationDbCreate,
-  dbRegisterStreamer,
-} from "../network/streamDataGet.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
+import {
+  dbRegisterStreamer,
+  stationDbCreate,
+} from "../database/recorderState.js";
+import { sleep } from "../uiHelper.js";
 
 export { showFileUploadUi };
 
 function showFileUploadUi() {
   return new Promise(async (resolve, _) => {
     const parentId = "fixedPositionAnchor";
-    const fileUploadOuter = await createFileUploadUiOuter({
+
+    await createFeatureDivOutline({
       parentId: parentId,
       childId: "fileUploadOuter",
     });
-
-    // remove X that hide the div
-    fileUploadOuter.removeChild(fileUploadOuter.firstElementChild);
-    document.getElementById("fixedPositionAnchor").style.height = "100%";
-    // X must remove div
-    const spanClose = document.createElement("span");
-    spanClose.id = "fileUploadClose";
-    spanClose.classList.add("handCursor");
-    spanClose.innerText = "✖";
-    spanClose.style.textAlign = "right";
-    spanClose.style.paddingRight = "14px";
-    spanClose.style.display = "inline-block";
-    spanClose.style.width = "100%";
-    spanClose.style.backgroundColor = "#fc4a1a";
-    spanClose.addEventListener("click", () => {
-      fileUploadOuter.remove();
-    });
-    fileUploadOuter.appendChild(spanClose);
-    // caller enable
-    spanClose.style.display = "block";
 
     const head = await createFeatureDivSection({
       parentId: "fileUploadOuter",
@@ -94,30 +77,13 @@ function showFileUploadUi() {
     resolve();
   });
 }
-function createFileUploadUiOuter(o = {}) {
-  return new Promise((resolve, _) => {
-    const wait = async () => {
-      try {
-        document.getElementById(o.childId).remove();
-      } catch (e) {}
-      const divOutline = await createFeatureDivOutline({
-        parentId: o.parentId,
-        divOutline: o.childId,
-      });
-      divOutline.classList.add("column500");
-      divOutline.style.width = "500px";
-      divOutline.style.display = "block";
-      resolve(divOutline);
-    };
-    wait();
-  });
-}
 
 function fileUploadHead(divHead) {
-  divHead.innerText = "Choose multiple files to upload to the database.";
+  divHead.innerText =
+    "Choose multiple files to upload to the database objectStore.";
 }
 function fileUploadHint(divHint) {
-  divHint.innerHTML = "Files will be available for a playlist.";
+  divHint.innerHTML = "Use Download icon to dump to disk.";
 }
 /**
  * Create a basic file uploader form.

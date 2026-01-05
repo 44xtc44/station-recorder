@@ -31,7 +31,7 @@ import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
-import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.js";
+import { getIdbValue, setIdbValue } from "../database/idbSetGetValues.mjs";
 import { metaData } from "../central.js";
 
 export { buildUrlsAdd };
@@ -69,7 +69,7 @@ function createUrlsAdd(o = {}) {
     const wait = async () => {
       const divOutlineChild = await createFeatureDivOutline({
         parentId: o.parentDiv,
-        divOutline: "divCreateCustomOutline",
+        childId: "divCreateCustomOutline",
       });
       divOutlineChild.style.display = "block";
 

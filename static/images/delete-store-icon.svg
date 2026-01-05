@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="100px"
+   height="100px"
+   fill="none"
+   version="1.1"
+   id="delete-store-icon"
+   sodipodi:docname="delete-store-icon.svg"
+   inkscape:version="1.4.2 (2aeb623e1d, 2025-05-12)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient12"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#cccccc;stop-opacity:1;"
+         offset="0"
+         id="stop12" />
+      <stop
+         style="stop-color:#cccccc;stop-opacity:0;"
+         offset="1"
+         id="stop13" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient1"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:1;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:0;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1"
+       id="linearGradient2"
+       x1="94.774841"
+       y1="13.131235"
+       x2="0"
+       y2="69.446869"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0.350702,-0.00462007)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient12"
+       id="linearGradient13"
+       x1="419.9538"
+       y1="362.91595"
+       x2="333.24615"
+       y2="438.62012"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#111111"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.444872"
+     inkscape:cx="63.572754"
+     inkscape:cy="66.185333"
+     inkscape:current-layer="delete-store-icon"
+     inkscape:window-width="1366"
+     inkscape:window-height="736"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showgrid="false" />
+  <path
+     style="fill:#dc143c;stroke-width:0.466359;fill-opacity:1"
+     d="m 99.153817,49.997627 c 0,27.147248 -22.006566,49.153815 -49.154279,49.153815 -0.117055,0 -0.234113,0 -0.350704,-0.0046 C 36.369716,99.059143 24.348371,93.698813 15.5575,85.059038 7.6634233,77.30115 2.3758455,66.902268 1.1334714,55.284788 0.94831733,53.549931 0.84618708,51.786161 0.84618708,49.997672 c 0,-14.730894 6.48613092,-27.946587 16.74836492,-36.956653 0.111894,-0.09747 0.224316,-0.194938 0.33625,-0.287276 C 21.931696,9.3036155 26.497354,6.4919343 31.463149,4.4646706 37.081848,2.1790422 43.216805,0.89282337 49.6493,0.85364973 c 0.117054,-0.00462 0.234114,-0.00462 0.350703,-0.00462 C 77.147251,0.84856382 99.153817,22.850002 99.153817,49.997716 Z"
+     id="path7" />
+  <polygon
+     style="fill:#ffffff"
+     points="344.544,357.328 372.673,385.447 372.683,385.457 402.275,355.865 424.437,378.038 394.846,407.63 422.985,435.759 400.812,457.932 372.683,429.792 343.081,459.394 320.919,437.222 350.51,407.63 322.382,379.491 "
+     id="polygon8"
+     transform="matrix(0.4663594,0,0,0.4663594,-123.80189,-140.10185)" />
+  <path
+     style="fill:url(#linearGradient2);fill-opacity:1;stroke-width:0.466359;opacity:0.3"
+     d="m 99.504518,49.993008 c 0,27.147248 -22.006565,49.153815 -49.154275,49.153815 -0.11706,0 -0.23411,0 -0.35071,-0.0046 -13.27911,-0.0877 -25.30046,-5.448029 -34.09133,-14.087804 C 8.0141257,77.296531 2.726548,66.897649 1.484174,55.280169 1.29902,53.545312 1.196889,51.781542 1.196889,49.993053 c 0,-14.730894 6.4861307,-27.946587 16.748364,-36.956653 0.11189,-0.09747 0.22432,-0.194939 0.33625,-0.287277 4.00089,-3.4501276 8.56655,-6.2618088 13.53235,-8.2890725 5.6187,-2.2856284 11.75366,-3.57184717 18.18615,-3.61102077 0.11705,-0.00462 0.23411,-0.00462 0.3507,-0.00462 C 77.497953,0.84394372 99.504518,22.845383 99.504518,49.993097 Z"
+     id="path1" />
+  <polygon
+     style="fill:url(#linearGradient13);fill-opacity:1"
+     points="372.683,385.457 402.275,355.865 424.437,378.038 394.846,407.63 422.985,435.759 400.812,457.932 372.683,429.792 343.081,459.394 320.919,437.222 350.51,407.63 322.382,379.491 344.544,357.328 372.673,385.447 "
+     id="polygon9"
+     transform="matrix(0.4663594,0,0,0.4663594,-123.80189,-140.10185)" />
+</svg>

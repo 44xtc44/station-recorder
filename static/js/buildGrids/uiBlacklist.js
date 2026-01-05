@@ -27,7 +27,7 @@ import {
   getIndex,
   getIdbValue,
   delPropIdb,
-} from "../database/idbSetGetValues.js";
+} from "../database/idbSetGetValues.mjs";
 import { sleep } from "../uiHelper.js";
 
 export { showBlacklist };
@@ -195,7 +195,7 @@ async function showBlacklist(o = {}) {
 
       await sleep(1000);
       loadOneBlacklist(dbId); // load this single blacklist from store into mem
-      recMsg(["blacklist reloaded ", stationName]);
+      await recMsg({ txt: "blacklist reloaded ", stationName, level: "success" });
       masterDiv.remove();
     }
   });

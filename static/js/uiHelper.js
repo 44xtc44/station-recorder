@@ -91,11 +91,12 @@ function setUploadEvtListener() {
     metaData.set()["upload_dev"] = 1;
     const imgArrow = document.getElementById("imgArrow");
     const menuUploadDev = document.getElementById("liUpload");
-    imgArrow.addEventListener("click", () => {
+
+    imgArrow.addEventListener("click", async () => {
       let count = metaData.get()["upload_dev"];
       if (count === 7) {
         menuUploadDev.style.display = "inline-block";
-        recMsg([":: upload menu available"]);
+        await recMsg({ txt: ":: upload menu available", level: "error" });
       }
       count += 1;
       metaData.set()["upload_dev"] = count;

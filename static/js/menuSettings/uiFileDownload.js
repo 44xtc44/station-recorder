@@ -22,424 +22,367 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { sleep } from "../uiHelper.js";
-import { getIndex, delOneKeyFromDbStore } from "../database/idbSetGetValues.js";
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
 } from "../buildGrids/uiSubmenu.js";
+import {
+  delOneKeyFromDbStore,
+  getIndex,
+} from "../database/idbSetGetValues.mjs";
+import { sleep } from "../uiHelper.js";
 
-export { showFileDbUi, filledStationStoresGet };
+export { dbsWithContent, uiWrapper };
 
-const parser = new DOMParser(); // sanitize html, else mozilla linter cries
+const parser = new DOMParser(); // sanitize html (placebo), else mozilla linter cries
 
-function showFileDbUi() {
-  return new Promise(async (resolve, _) => {
-    const parentId = "fixedPositionAnchor";
-    const fileDbOuter = await createdbUpdUiOuter({
-      parentId: parentId,
-      childId: "fileDbOuter",
-    });
+/**
+ * Use Download icon to show div.
+ * Each IDB store has options.
+ * (A) All files automated sequential.
+ * (B) Zip all blobs and dl one compressed file.
+ */
+async function uiWrapper() {
+  const parentId = "fixedPositionAnchor";
+  document.getElementById(parentId).style.height = "100%";
 
-    // remove X that hide the div
-    fileDbOuter.removeChild(fileDbOuter.firstElementChild);
-    document.getElementById("fixedPositionAnchor").style.height = "100%";
-    // X must remove div
-    const spanClose = document.createElement("span");
-    spanClose.id = "fileDbClose";
-    spanClose.classList.add("handCursor");
-    spanClose.innerText = "✖";
-    spanClose.style.textAlign = "right";
-    spanClose.style.paddingRight = "14px";
-    spanClose.style.display = "inline-block";
-    spanClose.style.width = "100%";
-    spanClose.style.backgroundColor = "#fc4a1a";
-    spanClose.addEventListener("click", () => {
-      fileDbOuter.remove();
-    });
-    fileDbOuter.appendChild(spanClose);
-    // caller enable
-    spanClose.style.display = "block";
-
-    const head = await createFeatureDivSection({
-      parentId: "fileDbOuter",
-      childId: "fileDbHead",
-    });
-    fileDbHead(head);
-
-    const hint = await createFeatureDivSection({
-      parentId: "fileDbOuter",
-      childId: "fileDbHint",
-    });
-    fileDbHint(hint);
-
-    const infoBlock = await createFeatureDivSection({
-      parentId: "fileDbOuter",
-      childId: "fileDbInfoBlock",
-    });
-    infoBlock.style.overflow = "auto";
-    fileDbInfoBlock(infoBlock);
-
-    resolve();
+  await createFeatureDivOutline({
+    parentId: parentId,
+    childId: "fileDbOuter",
   });
-}
 
-function createdbUpdUiOuter(o = {}) {
-  return new Promise(async (resolve, _) => {
-    try {
-      document.getElementById(o.childId).remove();
-    } catch (e) {}
-    const divOutline = await createFeatureDivOutline({
-      parentId: o.parentId,
-      divOutline: o.childId,
-    });
-    divOutline.classList.add("column500");
-    divOutline.style.width = "500px";
-    divOutline.style.display = "block";
-    resolve(divOutline);
+  const head = await createFeatureDivSection({
+    parentId: "fileDbOuter",
+    childId: "fileDbHead",
   });
+  await fileDbHead(head);
+
+  const hint = await createFeatureDivSection({
+    parentId: "fileDbOuter",
+    childId: "fileDbHint",
+  });
+  await fileDbHint(hint);
+
+  const dlDiv = await createFeatureDivSection({
+    parentId: "fileDbOuter",
+    childId: "showDownloads",
+  });
+  dlDiv.style.overflow = "auto";
+  await showDownloads(dlDiv);
+
+  return;
 }
 
 function fileDbHead(divHead) {
-  const divHeadTxt = document.createElement("div");
-  const divInfo = document.createElement("div");
-  divInfo.classList.add("infoColor");
-  divHead.appendChild(divHeadTxt);
-  divHead.appendChild(divInfo);
+  return new Promise((resolve, _) => {
+    divHead.style.backgroundColor = "#fc4a1a";
+    divHead.style.border = "none";
 
-  divHeadTxt.innerText =
-    "Save your browser's cache database (DB) to '/download' folder.";
+    const divHeadTxt = document.createElement("div");
+    const divInfo = document.createElement("div");
+    divInfo.classList.add("infoColor");
+    divHead.appendChild(divHeadTxt);
+    divHead.appendChild(divInfo);
 
-  const hintHtml =
-    "<br>A 'no space left' condition (disk full) will damage the app. " +
-    "Reinstall the app! Consider to save blacklists from time to time." +
-    "<br>Blacklist dumps also save Favorites and Custom URLs.";
-  const details =
-    "<details><summary><code>Warning</code></summary>" +
-    hintHtml +
-    "</details>";
-  const parsed = parser.parseFromString(details, "text/html");
-  const tags = parsed.getElementsByTagName("body");
-  for (const tag of tags) {
-    divInfo.appendChild(tag);
-  }
+    divHeadTxt.innerText = "";
+    resolve();
+  });
 }
+
 function fileDbHint(divHint) {
-  const divHeadTxt = document.createElement("div");
-  const divInfo = document.createElement("div");
-  divInfo.classList.add("infoColor");
-  divHint.appendChild(divHeadTxt);
-  divHint.appendChild(divInfo);
-
-  divHeadTxt.innerText = "The list of data stores with file content.";
-
-  const hintHtml =
-    "<br>'PC' user (linux, win) can dump the whole station store. " +
-    "<br><br>The browser extension is running on FireFox for Android. " +
-    "<br>'Android' user 'MUST' (omg) dump a single file." +
-    "<br>Browser skips all files, except first one, at multi-download.";
-  const details =
-    "<details><summary><code>details</code></summary>" +
-    hintHtml +
-    "</details>";
-  const parsed = parser.parseFromString(details, "text/html");
-  const tags = parsed.getElementsByTagName("body");
-  for (const tag of tags) {
-    divInfo.appendChild(tag);
-  }
-}
-
-/**
- * Download store lists stuff starts here.
- * Store names array loop.
- * Each store name gets a ^^section^^ of divs.
- * storeEntry() builds the whole section.
- * Wrapper of section is 'divStore'.
- * @param {*} divInfoBlock
- * @returns
- */
-function fileDbInfoBlock(divInfoBlock) {
-  return new Promise(async (resolve, _) => {
-    const objectStore = "content_blobs";
-    const filledDbArray = await filledStationStoresGet(objectStore);
-
-    for (const db of filledDbArray) {
-      // Write only the name of the store and copy name icon to page.
-      const ele = await storeEntry(db.name, divInfoBlock);
-      // Write info about total amount of bytes in store under the name.
-      storeCalcTotalStorage(db.id, ele.spanStoreSize);
-
-      // Listener PC downloads all blobs and removes store section from page.
-      pcSetEvtListenerPC({
-        dbId: db.id, // to del blobs
-        dbName: db.name,
-        listener: ele.divInfoPC, // dl icon plus text clickable
-        divStoreWrap: ele.divStoreWrap,
-        divStoreInfo: ele.divStoreInfo,
-      });
-      // Android, like PC, but opens a list with blobs and dl icons.
-      androidSetEvtListener({
-        dbId: db.id,
-        dbName: db.name,
-        listener: ele.divInfoAndroid,
-        divInfoPC: ele.divInfoPC,
-        divInfoAndroid: ele.divInfoAndroid,
-        divStoreInfo: ele.divStoreInfo,
-        divStoreWrap: ele.divStoreWrap,
-        divStoreInfo: ele.divStoreInfo,
-      });
-    }
-
+  return new Promise((resolve, _) => {
+    const info = document.createElement("div");
+    info.innerText =
+      "Downloads. Use an external App to decompress ZIP(ed) downloads.";
+    divHint.appendChild(info);
     resolve();
   });
 }
 
 /**
- * Station DB scanned for stores with content.
- * @param {*} objectStore 'blacklist_name' or 'content_blobs'
- * @returns {Promise Array} array of DBs filled [{id: uuid, name: foo}, {}]
+ * Only objectStores with recorded blobs.
+ * @param {HTMLDivElement} anchor div
+ * @returns {Promise<undefined>}
  */
-function filledStationStoresGet(objectStore) {
-  return new Promise(async (resolve, _) => {
-    const filledDbArray = [];
-    const stationArray = await getIndex({
-      dbName: "app_db",
-      store: "uuid_name_dl",
-    }).catch((e) => {
-      console.error("filledStationStoresGet->app_db", e);
-    });
-
-    // Array with blop references and descriptions.
-    for (const db of stationArray) {
-      const dictArray = await getIndex({
-        dbName: db.id,
-        store: objectStore,
-      }).catch((e) => {
-        console.error("filledStationStoresGet->db", e);
-      });
-      if (dictArray.length > 0) {
-        filledDbArray.push(db);
-      }
-    }
-    resolve(filledDbArray);
-  });
+async function showDownloads(anchor) {
+  const blobStore = "content_blobs";
+  const haveContent = await dbsWithContent(blobStore);
+  for (const db of haveContent) {
+    const { wrap, info, size } = await storeInfoDivs(db.id, db.name, anchor);
+    await showTotalStorage(db.id, size);
+    await showPC({ dbID: db.id, wrap: wrap, info: info });
+    await showZIP({ dbID: db.id, dbName: db.name, wrap: wrap, info: info });
+  }
+  return;
 }
 
-/**
- * Store list entry with dl icon, store name for Android.
- * Easy dl for Linux, Win with dl all icon.
- */
-function storeEntry(storeName, divInfoBlock) {
+function storeInfoDivs(dbID, dbName, dlSection) {
   return new Promise((resolve, _) => {
-    const divStoreWrap = document.createElement("div"); // wrap to del store from dl list
+    const wrapper = document.createElement("div"); // wrap to del store from dl list
+    wrapper.id = "divStore_" + dbID;
+    wrapper.style.padding = "10px";
+
     const divStoreInfo = document.createElement("div");
-    const divStoreInfoTxt = document.createElement("div");
-    const divInfoPC = document.createElement("div");
-    const divInfoAndroid = document.createElement("div");
-    const divAndroidList = document.createElement("div");
-    divAndroidList.innerText = ""; // to add info
-    divStoreWrap.id = "divStore_" + storeName;
-    divStoreInfo.id = "divStoreInfo_" + storeName;
-    divStoreInfoTxt.id = "divStoreInfoTxt_" + storeName;
-    divInfoPC.id = "divInfoPC_" + storeName;
-    divInfoAndroid.id = "divInfoAndroid_" + storeName;
+    divStoreInfo.id = "divStoreInfo_" + dbID;
+    const divStoreName = document.createElement("div");
+    divStoreName.id = "divStoreName_" + dbID;
 
-    const spanDlImgPC = document.createElement("span");
-    const spanDlTxtPC = document.createElement("span");
-    spanDlTxtPC.innerText = "Linux, Windows";
-    const spanDlImgAndroid = document.createElement("span");
-    const spanDlTxtAndroid = document.createElement("span");
-    spanDlTxtAndroid.innerText = "Android only here (individual files)";
+    dlSection.appendChild(wrapper);
+    wrapper.appendChild(divStoreInfo);
+    divStoreInfo.appendChild(divStoreName);
+
     const spanStoreName = document.createElement("span");
-    const spanCopyImg = document.createElement("span");
-    const spanStoreSize = document.createElement("span");
-
-    divInfoPC.appendChild(spanDlImgPC);
-    divInfoPC.appendChild(spanDlTxtPC);
-    divInfoAndroid.appendChild(spanDlImgAndroid);
-    divInfoAndroid.appendChild(spanDlTxtAndroid);
-    // show array of single blobs to dl one by one
-    divInfoAndroid.appendChild(divAndroidList);
-
-    divStoreInfoTxt.appendChild(spanStoreName);
-    divStoreInfoTxt.appendChild(spanCopyImg);
-    divStoreInfoTxt.appendChild(spanStoreSize);
-
-    divStoreInfo.appendChild(divStoreInfoTxt);
-    divStoreInfo.appendChild(divInfoPC);
-    divStoreInfo.appendChild(divInfoAndroid);
-
-    divStoreWrap.appendChild(divStoreInfo);
-    divInfoBlock.appendChild(divStoreWrap);
-
-    divStoreWrap.style.padding = "10px";
-    spanDlImgPC.style.paddingLeft = "10px";
-    spanDlImgAndroid.style.paddingLeft = "10px";
-    spanStoreSize.style.display = "block"; // push below
-    spanStoreName.style.color = "blue";
+    spanStoreName.style.color = "#033e58";
     spanStoreName.style.fontSize = "120%";
-    spanStoreName.innerText = storeName; // str name of station store
+    spanStoreName.innerText = dbName; // str name of station store
     spanStoreName.style.paddingLeft = "10px";
     spanStoreName.style.paddingRight = "10px";
     spanStoreName.style.paddingBottom = "4px";
 
+    const spanCopyImg = document.createElement("span");
+    const spanDelImg = document.createElement("span");
+    const spanStoreSize = document.createElement("span");
+    spanStoreSize.style.display = "block"; // push below copy
     spanStoreSize.style.paddingTop = "6px";
     spanStoreSize.style.paddingLeft = "10px";
     spanStoreSize.style.paddingBottom = "10px";
-    spanStoreSize.style.color = "white";
+    spanStoreSize.style.color = "#033e58";
+    spanStoreSize.style.fontSize = "125%";
 
-    // clicker download icons PC and Android, root.
-    const imgDlPC = document.createElement("img");
-    imgDlPC.classList.add("handCursor");
-    imgDlPC.src = "./images/download-icon.svg";
-    imgDlPC.style.height = "26px";
-    spanDlImgPC.appendChild(imgDlPC);
-    const imgDlAndroid = document.createElement("img");
-    imgDlAndroid.classList.add("handCursor");
-    imgDlAndroid.src = "./images/download-icon.svg";
-    imgDlAndroid.style.height = "26px";
-    spanDlImgAndroid.appendChild(imgDlAndroid);
+    divStoreName.appendChild(spanDelImg);
+    divStoreName.appendChild(spanStoreName);
+    divStoreName.appendChild(spanCopyImg);
+    divStoreName.appendChild(spanStoreSize);
 
-    // click listener copy store name
-    const imgCopyName = document.createElement("img");
-    imgCopyName.classList.add("handCursor");
-    imgCopyName.src = "./images/copy-icon-dark.svg";
-    imgCopyName.style.height = "30px";
-    spanCopyImg.appendChild(imgCopyName);
+    // Click copies store name.
+    const imgCpName = document.createElement("img");
+    imgCpName.classList.add("handCursor");
+    imgCpName.src = "./images/copy-icon-dark.svg";
+    imgCpName.style.height = "22px";
+    spanCopyImg.appendChild(imgCpName);
 
-    imgCopyName.addEventListener("click", async () => {
-      navigator.clipboard.writeText(storeName);
-      imgCopyName.src = "./images/copy-done-name-icon.svg";
+    imgCpName.addEventListener("click", async () => {
+      navigator.clipboard.writeText(dbName);
+      imgCpName.src = "./images/copy-done-name-icon.svg";
       await sleep(1000);
-      imgCopyName.src = "./images/copy-icon-dark.svg";
+      imgCpName.src = "./images/copy-icon-dark.svg";
     });
 
-    const eleObj = {
-      divStoreWrap: divStoreWrap,
-      divStoreInfo: divStoreInfo,
-      spanStoreSize: spanStoreSize,
-      spanDlImgPC: spanDlImgPC, // clicker, set listener
-      spanDlImgAndroid: spanDlImgAndroid,
-      divInfoPC: divInfoPC,
-      divInfoAndroid: divInfoAndroid,
-    };
-    resolve(eleObj);
+    // Delete store content on demand.
+    const imgDel = document.createElement("img");
+    imgDel.classList.add("handCursor");
+    imgDel.src = "./images/delete-store-icon.svg";
+    imgDel.style.height = "22px";
+    spanDelImg.appendChild(imgDel);
+
+    imgDel.addEventListener("click", async () => {
+      const blobs = await getIndex({
+        dbName: dbID,
+        store: "content_blobs",
+      });
+      await cleanupStore(dbID, blobs, divStoreInfo); // del blobs
+      // No await for whatever reason!
+      uiDelStation(wrapper);
+    });
+
+    resolve({
+      wrap: wrapper,
+      info: divStoreInfo,
+      size: spanStoreSize,
+    });
   });
 }
 
-async function storeCalcTotalStorage(dbId, spanStoreSize) {
-  const blobArray = await getIndex({
+/**
+ * Find candidates either for Blacklist array dump or recorded blobs.
+ * Station DB has the "stationuuid" of the station JSON object.
+ * Each DB has two objectStores: 'blacklist_name' & 'content_blobs'
+ * @param {string} objectStore name 'blacklist_name' | 'content_blobs'
+ * @returns {Promise<Array<{id: string, name: string}>>} array of IDB stores in use [{id: uuid, name: blacklist_name}, {}]
+ */
+async function dbsWithContent(objectStore) {
+  const dbs = await getIndex({
+    dbName: "app_db",
+    // Filter store. Select * From <ever been used stations> alike.
+    store: "uuid_name_dl",
+  }).catch((e) => {
+    console.error("dbsWithContent->app_db", e);
+  });
+
+  const hasContent = [];
+  for (const db of dbs) {
+    const dictArray = await getIndex({
+      dbName: db.id,
+      store: objectStore,
+    }).catch((e) => {
+      console.error("dbsWithContent->db", e);
+    });
+    if (dictArray.length > 0) hasContent.push(db);
+  }
+  return hasContent;
+}
+
+/**
+ * @param {string} dbId stationuuid
+ * @param {HTMLSpanElement} spanStoreSize spanElement
+ * @returns {Promise<undefined>}
+ */
+async function showTotalStorage(dbId, spanStoreSize) {
+  const storeArray = await getIndex({
     dbName: dbId,
     store: "content_blobs",
   });
-  const sum = blobArray.reduce((accu, blob) => {
-    if (accu === undefined) accu = 0;
+  // Reduce exercise.
+  const sum = storeArray.reduce((accu, blob) => {
     const addSize = accu + blob.size;
     return addSize;
   }, 0);
   const kB = sum / 1024;
   const mB = kB / 1024;
   const gB = mB / 1204;
-  spanStoreSize.innerText =
-    "files: " + blobArray.length + " size: " + gB.toFixed(2) + " GB";
+  let show = kB.toFixed(2) + " kB";
+  if (gB.toFixed(1) < 1) show = mB.toFixed(2) + " MB";
+  if (gB.toFixed(1) > 1) show = gB.toFixed(2) + " GB";
+  if (mB.toFixed(1) < 1) show = kB.toFixed(2) + " kB";
+  spanStoreSize.innerText = "files: " + storeArray.length + " size: " + show;
+  return;
 }
-
 /**
- * PC
- * Download current blobs and remove them from store.
+ * Android OS may use it.
+ * Download blobs and remove them and "store section" from store.
+ * @type {Object} dict
+ * @param {string} dbID string
+ * @param {string} dbName string
+ * @param {HTMLDivElement} wrap HTMLDivElement
+ * @param {HTMLDivElement} info HTMLDivElement
+ * @returns {Promise<undefined>}
  */
-function pcSetEvtListenerPC(o = {}) {
-  o.listener.addEventListener("click", async () => {
-    const blobAnchorArray = await getIndex({
-      dbName: o.dbId,
-      store: "content_blobs",
+function showZIP({ dbID, dbName, wrap, info }) {
+  return new Promise((resolve, _) => {
+    const divClick = document.createElement("div");
+    divClick.id = "divInfoZIP_" + dbID;
+    wrap.appendChild(divClick);
+
+    const txt = document.createElement("span");
+    txt.innerText = "ZIP container.";
+
+    const img = document.createElement("img");
+    img.classList.add("handCursor");
+    img.src = "./images/download-icon.svg";
+    img.style.height = "26px";
+    img.style.paddingLeft = "10px";
+    img.style.paddingRight = "10px";
+
+    info.appendChild(divClick);
+    divClick.appendChild(img);
+    divClick.appendChild(txt);
+
+    divClick.addEventListener("click", async () => {
+      const blobs = await getIndex({
+        dbName: dbID,
+        store: "content_blobs",
+      });
+
+      await downloadZIP(dbName, blobs, info);
+      await cleanupStore(dbID, blobs, info); // del blobs
+      // No await for whatever reason!
+      uiDelStation(wrap);
+      /*         
+        -- No space on disk, 4GB free for 2GB blobs, 32GB RAM, test with docker and fix
+        jszip.js:2960 Uncaught (in promise) RangeError: Array buffer allocation failed
+        at new ArrayBuffer (<anonymous>)
+        at new Uint8Array (<anonymous>)
+        at concat (jszip.js:2960:23)
+        at StreamHelper.<anonymous> (jszip.js:3003:23)
+        at jszip.js:3948:24
+        at run (jszip.js:12727:21)
+        at runIfPresent (jszip.js:12756:23)
+        at onGlobalMessage (jszip.js:12800:21) */
     });
-    const dlArrayObj = await populateDlArray(blobAnchorArray); // click ready blobs
-    await downloadStore(dlArrayObj, o.divStoreInfo); // click each blob + status
-    await cleanupStore(o.dbId, dlArrayObj, o.divStoreInfo); // del blobs
-    removeFromDl(o.divStoreWrap); // del whole store section from document
+
+    resolve();
   });
 }
 
 /**
- * Android click deletes PC and Android root to show only files.
+ * PC User ONLY.
+ * Download blobs and remove them and "store section" from store.
+ * @type {Object} dict
+ * @param {string} dbID string
+ * @param {HTMLDivElement} wrap HTMLDivElement
+ * @param {HTMLDivElement} info HTMLDivElement
+ * @returns {Promise<undefined>}
  */
-function androidSetEvtListener(o = {}) {
-  o.listener.addEventListener("click", async () => {
-    const blobAnchorArray = await getIndex({
-      dbName: o.dbId,
-      store: "content_blobs",
+function showPC({ dbID, wrap, info }) {
+  return new Promise((resolve, _) => {
+    const divClick = document.createElement("div");
+    divClick.id = "divInfoPC_" + dbID;
+    wrap.appendChild(divClick);
+
+    const txt = document.createElement("span");
+    txt.innerText = "ONLY for Linux, Windows single files. No mobile OS.";
+
+    const img = document.createElement("img");
+    img.classList.add("handCursor");
+    img.src = "./images/download-icon.svg";
+    img.style.height = "26px";
+    img.style.paddingLeft = "10px";
+    img.style.paddingRight = "10px";
+
+    info.appendChild(divClick);
+    divClick.appendChild(img);
+    divClick.appendChild(txt);
+
+    divClick.addEventListener("click", async () => {
+      const blobs = await getIndex({
+        dbName: dbID,
+        store: "content_blobs",
+      });
+
+      const dlArrayObj = await populateDlArray(blobs);
+      await downloadFiles(dlArrayObj, info); // click each blob + status
+      await cleanupStore(dbID, dlArrayObj, info); // del blobs
+      // No await for whatever reason!
+      uiDelStation(wrap); // del whole store section from document
     });
-    const dlArrayObj = await populateDlArray(blobAnchorArray);
-    setAndroidListener(
-      dlArrayObj,
-      o.dbId,
-      o.divInfoPC, // del from section, else accident
-      o.divInfoAndroid,
-      o.divStoreInfo
-    );
+
+    resolve();
   });
-}
-
-// Android clicker populates list of blob w. dl icon.
-function setAndroidListener(
-  dlArrayObj,
-  dbId,
-  divInfoPC,
-  divInfoAndroid,
-  divStoreInfo
-) {
-  // Del PC dl possibility from section to prevent store access error.
-  divInfoPC.remove();
-  divInfoAndroid.remove();
-  const divBlobs = document.createElement("div");
-  divStoreInfo.appendChild(divBlobs);
-  for (const blob of dlArrayObj.values()) {
-    const divFile = document.createElement("div");
-    const spanDlImg = document.createElement("span");
-    const spanTxt = document.createElement("span");
-    spanTxt.classList.add("downloadBlobTxt");
-    spanTxt.innerText = blob.id;
-    const imgDl = document.createElement("img");
-    imgDl.classList.add("handCursor");
-    imgDl.src = "./images/download-icon.svg";
-    imgDl.style.height = "20px";
-
-    spanDlImg.appendChild(imgDl);
-    divBlobs.appendChild(divFile);
-    divFile.appendChild(spanDlImg);
-    divFile.appendChild(spanTxt);
-
-    divFile.addEventListener("click", async () => {
-      // Single file name removed from list after click.
-
-      blob.anchor.click(); // Browser creates file and dl.
-      await sleep(250); // Give browser time to cache dl.
-      const objectStoreName = "content_blobs";
-      delOneKeyFromDbStore(dbId, objectStoreName, blob.id);
-      divFile.remove();
-    });
-  }
 }
 
 /**
  * Create an anchor element to click initiate a download to /download folder.
  * An object holds anchor, the GC remover for the blob ref and DB store id of
  * the blob (title name).
- * @param {*} objArray
- * @returns
+ * { id: title of blob,
+ *  remove: fun to remove the objectURL + blob from store
+ *  anchor: DOM a element, click triggers DJ} => "dlArrayObj"
+ * @param {Array<Blob>} blobs array of blobs in dicts
+ * @returns {Promise<Array<{id:string,anchor:HTMLAnchorElement ,remove:Function}>>}
+ * @example
+ * const blobDict = {
+ *   blob: Blob {size: 6579911, type: 'audio/mpeg'},
+ *   // file name to store the blob on disk
+ *   id: "Geoglyph - Crossing By Night [128kb Hirschmilch Chillout].mp3"
+ *   size: 6579911
+ *   // title to show if UI has display
+ *   title: "Geoglyph - Crossing By Night"
+ *   type: "audio/mpeg"
+ * }
+ * populateDlArray(blobDict)
  */
-function populateDlArray(objArray) {
+function populateDlArray(blobs) {
   return new Promise((resolve, _) => {
-    const dlArrayObj = objArray.reduce((accu, dbFileObj) => {
+    const dlArrayObj = blobs.reduce((accu, blobDict) => {
       if (accu === undefined) accu = [];
       const anchor = document.createElement("a");
-      anchor.href = URL.createObjectURL(dbFileObj.blob);
-      anchor.download = dbFileObj.id;
+      anchor.href = URL.createObjectURL(blobDict.blob);
+      anchor.download = blobDict.id;
       anchor.style.display = "none"; // none
-      anchor.innerText = dbFileObj.id;
+      anchor.innerText = blobDict.id;
+
       const entry = {
-        id: dbFileObj.id, // for removal from store
+        id: blobDict.id, // for removal from store
         anchor: anchor, // auto clicker
         remove: () => URL.revokeObjectURL(anchor.href),
       };
@@ -451,6 +394,36 @@ function populateDlArray(objArray) {
   });
 }
 
+async function downloadZIP(dbName, blobs, info) {
+  const statusBar = document.createElement("div");
+  statusBar.id = "loaderZip";
+  statusBar.style.minHeight = "5em";
+  statusBar.style.width = "100%";
+  info.appendChild(statusBar);
+  const loader = document.createElement("span");
+  loader.id = "loader";
+  loader.classList.add("loader");
+  statusBar.appendChild(loader);
+
+  const zip = new JSZip();
+  for await (const blob of blobs) {
+    zip.file(blob.id, blob.blob);
+  }
+  await zip
+    .generateAsync({ type: "blob", compression: "STORE" }) // STORE no comp
+    .then(function (content) {
+      const anchorElement = document.createElement("a");
+      anchorElement.href = URL.createObjectURL(content);
+      anchorElement.download = dbName;
+      anchorElement.style.display = "none";
+      document.body.appendChild(anchorElement);
+      anchorElement.click();
+      anchorElement.remove();
+
+      statusBar.style.display = "none";
+    });
+}
+
 /**
  * Trigger the download anchor element with a delay to prevent
  * browser to be overwhelemed.
@@ -458,30 +431,31 @@ function populateDlArray(objArray) {
  * @param {*} divStoreInfo
  * @returns
  */
-function downloadStore(dlArrayObj, divStoreInfo) {
-  return new Promise(async (resolve, _) => {
-    const statusBar = document.createElement("div");
-    statusBar.id = "_statusBar";
-    statusBar.style.backgroundColor = "#6261cb";
-    statusBar.style.boxShadow = "rgb(81, 48, 69) 0px 0px 10px inset";
-    statusBar.style.height = "20px";
-    statusBar.style.width = "0%";
-    divStoreInfo.appendChild(statusBar);
+async function downloadFiles(dlArrayObj, divStoreInfo) {
+  const statusBar = document.createElement("div");
+  statusBar.id = "_statusBar";
+  statusBar.style.backgroundColor = "#6261cb";
+  statusBar.style.boxShadow = "rgb(81, 48, 69) 0px 0px 10px inset";
+  statusBar.style.height = "20px";
+  statusBar.style.width = "0%";
+  divStoreInfo.appendChild(statusBar);
 
-    // fun exec delayed store to /download folder
-    // sequ. for loop, map fires async so sleep not working!!!
-    const blobCount = dlArrayObj.length;
-    for (const [index, blob] of dlArrayObj.entries()) {
-      await sleep(250); // avoid browser skips dl
-      blob.anchor.click();
-      statusBar.style.width = ((index + 1) / blobCount) * 100 + "%";
-    }
-    resolve();
-  });
+  // fun exec delayed store to /download folder
+  // sequ. for loop, map fires async so sleep not working!!!
+  const blobCount = dlArrayObj.length;
+
+  //browser.downloads.onChanged.addListener(downloadsHandleChanged); // works like MDN sample
+  for await (const [index, blob] of dlArrayObj.entries()) {
+    await sleep(100); // comment out if done
+    blob.anchor.click();
+    // await downloadsHandleChanged(); // Dl "complete" must trigger next dl.
+
+    statusBar.style.width = ((index + 1) / blobCount) * 100 + "%";
+  }
 }
 
 /**
- * Delete all blobs from store.
+ * Delete all blobs from a stations "content_blobs" store.
  * @param {*} store
  * @param {*} dlArrayObj
  * @param {*} divStoreInfo
@@ -508,8 +482,11 @@ function cleanupStore(dbId, dlArrayObj, divStoreInfo) {
 
 /**
  * Remove strore entry from UI DB store list.
+ * @param {HTMLDivElement} wrapper div
+ * @returns {Promise<undefined>}
  */
-async function removeFromDl(divStoreWrap) {
-  await sleep(1000); // show status bar delay
-  divStoreWrap.remove();
+async function uiDelStation(wrapper) {
+  await sleep(1000); // keep showing status bar delayed
+  wrapper.remove();
+  return;
 }
