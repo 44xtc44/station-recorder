@@ -75,45 +75,30 @@ async function settingsBoxListener(e, station, stationGroup) {
   const stationuuid = station.stationuuid;
   e.preventDefault(); // icon inside div inherits listener
 
-  // both fun return the child div
+  // Blacklist button calls sub menu blacklist
   const setOptions = await createFeatureDivOutline({
     parentId: "fixedPositionAnchor",
     childId: "setOptions",
   });
-  // remove X that hide the div
-  setOptions.removeChild(setOptions.firstElementChild);
-  document.getElementById("fixedPositionAnchor").style.height = "100%";
-  // X must remove div
-  const spanClose = document.createElement("span");
-  spanClose.classList.add("handCursor");
-  spanClose.innerText = "✖";
-  spanClose.style.textAlign = "right";
-  spanClose.style.paddingRight = "14px";
-  spanClose.style.display = "inline-block";
-  spanClose.style.width = "100%";
-  spanClose.style.backgroundColor = "#fc4a1a";
-  spanClose.addEventListener("click", () => {
-    setOptions.remove();
-  });
-  setOptions.appendChild(spanClose);
 
-  setOptions.classList.add("column500");
-  setOptions.style.width = "500px";
-  setOptions.style.display = "block";
   const divDelRadio = await createFeatureDivSection({
     parentId: "setOptions",
     childId: "divDelRadio",
   });
+  divDelRadio.style.backgroundColor = "#fc4a1a";
+  divDelRadio.style.border = "none";
 
   // Delete station from local DB store with specific name.
   if (stationGroup === "Custom") {
     const divDel = document.createElement("div");
     divDel.id = stationuuid + "_divDelRadio";
     divDelRadio.appendChild(divDel);
+
     const delRadioClicker = document.createElement("button");
     divDel.appendChild(delRadioClicker);
     delRadioClicker.setAttribute("id", stationuuid + "delRadioClicker");
     delRadioClicker.textContent = "✖ station";
+
     delRadioClicker.addEventListener("click", () => {
       showDelMsg(stationuuid, divDel);
     });
