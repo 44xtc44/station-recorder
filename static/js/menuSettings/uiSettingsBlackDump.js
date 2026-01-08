@@ -1,5 +1,6 @@
 // uiSettingsBlackDump.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -157,7 +158,7 @@ function storeContentGet(dbName, objectStore) {
         dbName: dbName,
         store: objectStore,
       }).catch((e) => {
-        console.error("storeContentGet->", e);
+        if (debug) console.error("storeContentGet->", e);
       });
       resolve(dictArray);
     };

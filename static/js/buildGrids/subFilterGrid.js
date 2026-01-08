@@ -333,25 +333,13 @@ function resolveCountryStations() {
  * @param {Array<string>} areaNames continents + "world"
  * @param {HTMLObjectElement} btn "World" button div
  * @param {string} worldName name value "World" button topFilter
- * @returns {Promise<undefined>} Promise undefined
+ * @returns {Promise<void>} Promise undefined
  */
 function worldAreasBtns(areaNames, btn, worldName) {
   return new Promise((resolve, _) => {
     btn.addEventListener("click", async () => {
       const hidden = await toggleSubfilterDisplay(btn.innerText);
       if (hidden) return; // was visible, now hidden
-
-      const recorderArray = await getIndex({
-        dbName: "app_db",
-        store: "downloader",
-      });
-
-      if (recorderArray.length > 0) {
-        // blocking msg if recorder is active
-        await threadOverloadContainer();
-        resolve();
-        return;
-      }
 
       const anchor = await subFilterContainer();
       anchor.classList.add("grid_sub_world"); // grid layout, col, rows

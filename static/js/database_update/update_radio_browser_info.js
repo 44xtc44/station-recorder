@@ -1,5 +1,6 @@
 // update_radio_browser_info.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -72,7 +73,7 @@ function writeTimeStampDl() {
         updateTime: Date.now(),
       },
     }).catch((e) => {
-      console.error("radio_browser_info_db_time_stamp write", e);
+      if (debug) console.error("radio_browser_info_db_time_stamp write", e);
     });
     resolve();
   });
@@ -93,7 +94,7 @@ function writeToObjStore(newJsonDb) {
       objectStoreName: "db_downloads",
       data: { id: "radio_browser_info_db", add: newJsonDb },
     }).catch((e) => {
-      console.error("update_radio_browser_info write db", e);
+      if (debug) console.error("update_radio_browser_info write db", e);
     });
     resolve();
   });
@@ -194,7 +195,6 @@ async function updateRadioBrowserInfoDb() {
     dbUpdHead: document.getElementById("dbUpdHead"),
     dbUpdHint: document.getElementById("dbUpdHint"),
     dbUpdInfoBlock: document.getElementById("dbUpdInfoBlock"),
-    dbUpdClose: document.getElementById("dbUpdClose"),
   };
 
   let timeObj = await readTimeStampDl();
@@ -207,7 +207,6 @@ async function updateRadioBrowserInfoDb() {
     const msgTimeLeft = `You have to wait  ${timeLeft.days} days ${timeLeft.hours} h : ${timeLeft.minutes} min`;
 
     uiObj.dbUpdHead.innerText = msgTimeLeft;
-    uiObj.dbUpdClose.style.display = "inline-block";
     return;
   }
 
@@ -216,7 +215,6 @@ async function updateRadioBrowserInfoDb() {
   const isAlive = await urlAlive(gzJsonBkpRadioBrowserInfo);
   if (!isAlive) {
     uiObj.dbUpdHint.innerText = "Fail. No server response.";
-    uiObj.dbUpdClose.style.display = "inline-block";
     return;
   }
 
@@ -226,7 +224,6 @@ async function updateRadioBrowserInfoDb() {
   const remoteJson = await downloadRemoteJson(gzJsonBkpRadioBrowserInfo, uiObj);
   if (remoteJson === false) {
     uiObj.dbUpdHint.innerText = "Fail. Unknown error.";
-    uiObj.dbUpdClose.style.display = "inline-block";
     return; // explicit false, else JSON for Indexed DB
   }
 
@@ -237,7 +234,6 @@ async function updateRadioBrowserInfoDb() {
   uiObj.dbUpdHead.innerText = "";
   uiObj.dbUpdHint.innerText = "";
   uiObj.dbUpdInfoBlock.innerText = "Reload the app to activate the changes.";
-  uiObj.dbUpdClose.style.display = "inline-block";
 }
 
 function convertToDays(milliSeconds) {

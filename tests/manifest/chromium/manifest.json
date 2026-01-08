@@ -22,12 +22,6 @@
     "service_worker": "../../../static/js/background.js",
     "type": "module"
   },
-  "permissions": [
-    "unlimitedStorage",
-    "tabs"
-  ],
-  "host_permissions": ["<all_urls>"],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  "permissions": ["unlimitedStorage"],
+  "host_permissions": ["<all_urls>"]
 }

@@ -27,4 +27,4 @@
 // https://github.com/whatwg/compression/blob/main/explainer.md
 // https://github.com/Stuk/jszip/issues/442
 
-// can only be used for single files -> need JSzip
+// can only be used for single files -> need JSzip -> can not run in worker -> uses require!

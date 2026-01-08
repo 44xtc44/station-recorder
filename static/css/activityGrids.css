@@ -28,6 +28,7 @@
 .grid_activity_bar_player {
   color: #000;
   color: white;
+  color:#000;
   background-color: rgba(73, 187, 170, 1);
   cursor: pointer;
 }

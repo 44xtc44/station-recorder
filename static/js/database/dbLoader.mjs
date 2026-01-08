@@ -1,5 +1,5 @@
 // dbLoader.mjs
-
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -38,16 +38,17 @@ self.onmessage = async () => {
   const infoDb = metaData.get().infoDb;
   const countryCodes = metaData.get().countryCodes;
   const countryNames = metaData.get().countryNames;
- 
+
   self.postMessage({
     success: true,
     infoDb: infoDb,
     countryCodes: countryCodes,
-    countryNames: countryNames, 
+    countryNames: countryNames,
   });
+
   metaData.set().infoDb = {};
   metaData.set().countryCodes = {};
-  metaData.set().countryNames = {}; 
+  metaData.set().countryNames = {};
   self.close(); // self kill
 };
 
@@ -73,7 +74,7 @@ self.onerror = (e) => {
 function fetchJson(relativePathToFile) {
   return new Promise(async (resolve, _) => {
     const response = await fetch(relativePathToFile).catch((e) => {
-      console.error("fetchJson->", relativePathToFile, e);
+      if (debug) console.error("fetchJson->", relativePathToFile, e);
       return false;
     });
     if (response) {
@@ -88,7 +89,7 @@ function fetchJson(relativePathToFile) {
 function fetchTextFile(relativePathToFile) {
   return new Promise(async (resolve, _) => {
     const response = await fetch(relativePathToFile).catch((e) => {
-      console.error("fetchTextFile->", relativePathToFile, e);
+      if (debug) console.error("fetchTextFile->", relativePathToFile, e);
       return false;
     });
     if (response) {
@@ -411,7 +412,7 @@ function customiseLocalStores() {
       dbName: "radio_index_db",
       store: "Favorites",
     }).catch((e) => {
-      console.error("loadJsonMasterFile->Favorites", e);
+      if (debug) console.error("loadJsonMasterFile->Favorites", e);
     });
     const favUuids = Object.values(favoritesArray).map(
       (station) => station.stationuuid
@@ -430,7 +431,7 @@ function customiseLocalStores() {
       dbName: "radio_index_db",
       store: "Custom",
     }).catch((e) => {
-      console.error("loadJsonMasterFile->Custom", e);
+      if (debug) console.error("loadJsonMasterFile->Custom", e);
     });
 
     for (const station of customArray) {
@@ -442,22 +443,6 @@ function customiseLocalStores() {
         metaData.set().infoDb[station.stationuuid].isFavorite = true;
       }
     }
-
-    /*       
-      // tests object store array ------------------ url and stationuuid!! -------------
-      const testsArray = await getIndex({
-        dbName: "radio_index_db",
-        store: "tests",
-      }).catch((e) => {
-        console.error("loadJsonMasterFile->Custom", e);
-      });
-
-      await customisePublicDb(testsArray);
-      for (const custObj of testsArray) {
-        metaData.set().infoDb[custObj.stationuuid].isPublic = false; 
-      }
- 
- */
 
     resolve();
   });
@@ -485,10 +470,10 @@ function clearDownloaderStore() {
       idbStore: "downloader",
       clearAll: true,
     }).catch((e) => {
-      console.error("clearDownloaderStore->del", e);
+      if (debug) console.error("clearDownloaderStore->del", e);
       resolve(false);
     });
-    console.log("deleete rec->");
+    console.log("delete rec->");
     resolve(true);
   });
 }

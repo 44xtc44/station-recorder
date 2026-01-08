@@ -36,27 +36,10 @@ async function showM3u8(o = {}) {
   const radioName = o.radioName;
   const m3u8UrlTxt = o.m3u8UrlTxt;
 
-  const m3u8Outer = await createM3u8UiOuter({
+  const m3u8Outer = await createFeatureDivOutline({
     parentId: parentId,
     childId: "m3u8Outer",
   });
-
-  // remove X that hide the div
-  m3u8Outer.removeChild(m3u8Outer.firstElementChild);
-  document.getElementById("fixedPositionAnchor").style.height = "100%";
-  // X must remove div
-  const spanClose = document.createElement("span");
-  spanClose.classList.add("handCursor");
-  spanClose.innerText = "✖";
-  spanClose.style.textAlign = "right";
-  spanClose.style.paddingRight = "14px";
-  spanClose.style.display = "inline-block";
-  spanClose.style.width = "100%";
-  spanClose.style.backgroundColor = "#fc4a1a";
-  spanClose.addEventListener("click", () => {
-    m3u8Outer.remove();
-  });
-  m3u8Outer.appendChild(spanClose);
 
   const head = await createFeatureDivSection({
     parentId: "m3u8Outer",
@@ -168,21 +151,5 @@ function createM3u8UiHead(o = {}) {
       outerDiv.style.display = "none";
     });
     resolve();
-  });
-}
-
-function createM3u8UiOuter(o = {}) {
-  return new Promise(async (resolve, _) => {
-    try {
-      document.getElementById(o.childId).remove();
-    } catch (e) {}
-    const divOutline = await createFeatureDivOutline({
-      parentId: o.parentId,
-      divOutline: o.childId,
-    });
-    divOutline.classList.add("column500");
-    divOutline.style.width = "500px";
-    divOutline.style.display = "block";
-    resolve(divOutline);
   });
 }

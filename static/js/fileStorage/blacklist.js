@@ -1,6 +1,7 @@
 // blacklist.js
 // https://stackoverflow.com/questions/4374822/remove-all-special-characters-with-regexp
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -45,7 +46,7 @@ function loadBlacklist() {
       dbName: "app_db",
       store: "uuid_name_dl",
     }).catch((e) => {
-      console.error("loadBlacklist->app_db", e);
+      if (debug) console.error("loadBlacklist->app_db", e);
     });
     for (const db of stationArray) {
       await loadOneBlacklist(db.id);
@@ -65,7 +66,7 @@ function loadOneBlacklist(stationuuid) {
       dbName: stationuuid,
       store: "blacklist_names",
     }).catch((e) => {
-      console.error("loadBlacklist->db", e);
+      if (debug) console.error("loadBlacklist->db", e);
     });
     metaData.set()["blacklists"][stationuuid] = {};
     metaData.set()["blacklists"][stationuuid] = blacklkistArray;
@@ -129,7 +130,7 @@ function updBlacklistStore(o = {}) {
       objectStoreName: "blacklist_names",
       data: { id: titleFiltered },
     }).catch((e) => {
-      console.error("updBlacklistStore->", e);
+      if (debug) console.error("updBlacklistStore->", e);
       resolve(false); // ret boolean not used so far
     });
     resolve(true);

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<title>Create a zip file (demo zip.js)</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="Create%20a%20zip%20file%20(demo%20zip.js)_files/default.css">
+	<link rel="stylesheet" href="Create%20a%20zip%20file%20(demo%20zip.js)_files/demo.css">
+	<link href="Create%20a%20zip%20file%20(demo%20zip.js)_files/css.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	<div id="container">
+		<h1>
+			<a href="https://gildas-lormeau.github.io/zip.js/">zip.js</a> <span class="small"></span>
+		</h1>
+		<div class="description">
+			A JavaScript library to zip and unzip files
+			<hr>
+		</div>
+		<h2>Create a zip file (demo)</h2>
+		<ol id="demo-container">
+			<li>
+				<label>
+					<span class="form-label">set a password (optional)</span>
+					<input type="password" id="password-input" value="">
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">add files into the zip</span>
+					<button id="file-input-button">Add files...</button>
+					<input type="file" multiple="" id="file-input" hidden="">
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">view zip content</span>
+					<ul id="file-list" class="empty"></ul>
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">set zip file name</span>
+					<input type="text" id="filename-input" value="pl.zipDownload.zip">
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">download the zip file</span>
+					<button id="download-button" disabled="disabled">Download</button>
+				</label>
+			</li>
+		</ol>
+
+	</div>
+	<script type="text/javascript" src="Create%20a%20zip%20file%20(demo%20zip.js)_files/zip.min.js"></script>
+	<script type="text/javascript" src="Create%20a%20zip%20file%20(demo%20zip.js)_files/demo-create-file.js"></script>
+
+
+</body></html>

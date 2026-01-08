@@ -1,4 +1,5 @@
 // index.js
+const debug = false;
 "use strict";
 // https://www.gnu.org/licenses/#GPL software; rtf markdownn text
 // https://www.gnu.org/licenses/fdl-1.3 documentation;
@@ -35,7 +36,6 @@
  * https://stackoverflow.com/questions/71897438/with-a-manifest-v3-chrome-extension-is-it-possible-to-load-an-extension-html-re
  * https://palant.info/2022/08/17/impact-of-extension-privileges/
  */
-
 import { createReportConsole } from "./logMonitor/uiReport.js";
 import { initShakaApp } from "./M3U8_HLS/shakaPlayer.js";
 import { writeHelloMessage } from "./network/messages.js";
@@ -69,13 +69,11 @@ import { unlimitedStorageContainer } from "./network/messages.js";
 
 import { showFavorites } from "./buildGrids/favoritesOnStart.js";
 import { launchNoFavPopup } from "./buildGrids/uiPopUpNoFavorites.js";
-import { findDuplicateUrl } from "./database/findDuplicateUrls.js";
 import {
   createMenuBarAnim,
   reloaderLogo,
 } from "./mediaAnimation/menuBarAnimation.js";
 import { createAppMenu } from "./menuSettings/uiHamburger.js";
-import { featSettingStatus } from "./menuSettings/uiSettings.js";
 const blockAccess = document.getElementById("blockAccess"); // overlay
 
 window.addEventListener("load", async () => {
@@ -103,24 +101,16 @@ window.addEventListener("load", async () => {
     splashScreen(); // needs createMediaElements; runs beside DB data writer "pouplatepDbs"
   }
 
+  setSessionServer(); // needs iDB; public DB API server for clicks and votes
+
   await createReportConsole(); // log monitor with red arrow
   await pouplatepDbs(); // longrunning webWorker
-
-  setSessionServer(); // needs iDB; public DB API server for clicks and votes
   setupUi(runAnimation); // needs DB; audio, intro, DOM input elem values
 
   blockAccess.style.display = "none"; // Remove input prevention canvas.
   await writeHelloMessage(); // to UI log monitor
   createAppMenu(); // wait report console to set evt app menu
   clearDownloaderStore(); // object in store blocks 'World' btn (CPU overload)
-
-  const urlFilter = await featSettingStatus(
-    "app_db",
-    "appSettings",
-    "filterDoubleUrl",
-    true
-  );
-  if (urlFilter) await findDuplicateUrl();
 });
 
 async function setupUi(runAnimation) {
@@ -208,7 +198,7 @@ function clearDownloaderStore() {
       idbStore: "downloader",
       clearAll: true,
     }).catch((e) => {
-      console.error("clearDownloaderStore->del", e);
+      if (debug) console.error("clearDownloaderStore->del", e);
       resolve(false);
     });
     resolve(true);
@@ -245,7 +235,7 @@ async function svgDocGlobal(imgName, relativePathToFile) {
 function svgFileToBase64(relativePathToFile) {
   return new Promise(async (resolve, _) => {
     const response = await fetch(relativePathToFile).catch((e) => {
-      console.error("svgFileToBase64->", relativePathToFile, e);
+      if (debug) console.error("svgFileToBase64->", relativePathToFile, e);
       return false;
     });
     // Here we can manipulate the svg colors, show/hide svg groups wit 'regex'.

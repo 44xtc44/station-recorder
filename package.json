@@ -30,18 +30,23 @@
     "setupFiles": [
       "jsdom-worker"
     ],
-    "testPathIgnorePatterns": ["end2end"],
+    "testPathIgnorePatterns": [
+      "end2end"
+    ],
     "testEnvironment": "jsdom"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.3.0",
+    "@zip.js/zip.js": "^2.6.15",
     "eslint": "^9.34.0",
+    "install": "^0.13.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.2.0",
     "jsdom-worker": "^0.3.0",
     "madge": "^8.0.0",
+    "npm": "^11.7.0",
     "playwright": "^1.57.0",
     "playwright-webextext": "^0.0.4",
     "sanitize-html": "^2.17.0",
@@ -51,6 +56,7 @@
   },
   "bin": {},
   "dependencies": {
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "zip-js": "^0.0.3"
   }
 }

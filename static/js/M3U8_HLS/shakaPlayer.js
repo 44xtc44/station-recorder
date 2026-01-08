@@ -1,5 +1,6 @@
 // shakaPlayer.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -40,7 +41,7 @@ function initShakaApp() {
     initPlayer();
   } else {
     // This browser does not have the minimum set of APIs we need.
-    console.error("Browser not supported!");
+    if (debug) console.error("Browser not supported!");
   }
 }
 
@@ -73,7 +74,7 @@ function onErrorEvent(event) {
 
 function onError(error) {
   // Log the error.
-  console.error("Error code", error.code, "object", error);
+  if (debug) console.error("Error code", error.code, "object", error);
 }
 
 document.addEventListener("DOMContentLoaded", initShakaApp);

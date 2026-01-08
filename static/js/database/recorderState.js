@@ -1,5 +1,6 @@
 // recorderState.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -87,7 +88,7 @@ function stationDbCreate(stationuuid) {
         batchCreate: true,
         objStores: objStores,
       }).catch((e) => {
-        console.error("stationDbCreate->", e);
+        if (debug) console.error("stationDbCreate->", e);
         resolve(false);
       });
       // Write version of all DBs to 'versions_db' / 'dbVersions'.
@@ -113,7 +114,7 @@ function dbRegisterStreamer(stationuuid, stationName) {
       objectStoreName: "dbVersions",
       id: "app_db",
     }).catch((e) => {
-      console.error("dbRegisterStreamer->get", e);
+      if (debug) console.error("dbRegisterStreamer->get", e);
     });
     await setIdbValue({
       dbName: "app_db",
@@ -121,7 +122,7 @@ function dbRegisterStreamer(stationuuid, stationName) {
       objectStoreName: "uuid_name_dl",
       data: { id: stationuuid, name: stationName },
     }).catch((e) => {
-      console.error("dbRegisterStreamer->set", e);
+      if (debug) console.error("dbRegisterStreamer->set", e);
       resolve(false);
     });
     resolve(true);
@@ -145,7 +146,7 @@ function registerAsDownloder(stationuuid) {
       idbStore: "downloader",
       idbData: { id: stationuuid },
     }).catch((e) => {
-      console.error("registerAsDownloder->set", e);
+      if (debug) console.error("registerAsDownloder->set", e);
       resolve(false);
     });
     resolve(true);
@@ -167,7 +168,7 @@ function deleteAsDownloder(stationuuid) {
       idbData: { id: stationuuid }, // omit if clearAll
       clearAll: false, // can also omit this prop
     }).catch((e) => {
-      console.error("deleteAsDownloder->set", e);
+      if (debug) console.error("deleteAsDownloder->set", e);
       resolve(false);
     });
     resolve(true);

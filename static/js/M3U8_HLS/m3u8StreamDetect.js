@@ -1,4 +1,5 @@
 // m3u8Connect.js
+const debug = false;
 import { recMsg } from "../network/messages.js";
 export { connectM3u8 };
 
@@ -26,7 +27,7 @@ async function connectM3u8(url) {
   // Filter out errors and redirects.
   if (response.status < 200 || response.status > 300) {
     // false Server response
-    console.error("detectStream->::SERVER_ERROR", url);
+    if (debug) console.error("detectStream->::SERVER_ERROR", url);
     await recMsg({ txt: "M3U8_SERVER_ERROR " + url, level: "error" });
     return false;
   }

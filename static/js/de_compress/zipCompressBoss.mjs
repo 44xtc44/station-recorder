@@ -30,5 +30,50 @@
  * https://stackoverflow.com/questions/16071211/using-transferable-objects-from-a-web-worker
  * readableStream
  * https://advancedweb.hu/how-to-transfer-binary-data-efficiently-across-worker-threads-in-nodejs/
- * 
+ *
  */
+export { ZipWorker };
+
+/**
+ * Worker gets array of blobs and name of IDB DB.
+ * Worker returns "arrayBuffer" of blob.
+ * Boss makes blob from arrayBuffer and disk dumps.
+ *
+ * @example
+ * const zipWorker = ZipWorker();
+ * const data = {"DB_ID": "0042", "STORE_ID":"blobs", "IDX_NAMES": ["blob1","blob2"]}
+ * zipWorker.spanWorker({msg:"zip_from_store", data:data)
+ */
+class ZipWorker {
+  constructor() {
+    if (ZipWorker.instance) return ZipWorker.instance;
+    this.worker = null;
+    this.workerPath = "zipCompressWorker.mjs";
+    ZipWorker.instance = this; // Singleton class
+  }
+  static getInstance() {
+    if (!ZipWorker.instance) ZipWorker.instance = new ZipWorker();
+    return ZipWorker.instance;
+  }
+  spawnWorker({ msg, data }) {
+    this.worker = new Worker(new URL(this.workerPath, import.meta.url), {
+      type: "module",
+    });
+
+    this.worker.postMessage({ msg: msg, data: data });
+    this.worker.onmessage = (e) => {
+      console.log("->ZipWorker, caller received message.", e.data);
+
+      dumpZIPcontainer();
+      this.killWorker();
+    };
+    this.worker.onerror = (e) => {
+      console.log("->ZipWorker, Worker reported error.", e);
+      this.killWorker();
+    };
+  }
+  killWorker() {
+    this.worker.terminate();
+    this.worker === null;
+  }
+}

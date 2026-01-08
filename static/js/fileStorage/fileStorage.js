@@ -1,5 +1,6 @@
 // fileStorage.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -43,7 +44,10 @@ async function writeFileLocal({
   anchorElement.download = fileName;
   anchorElement.style.display = "none";
   document.body.appendChild(anchorElement);
-  await recMsg({ txt: "write " + radioName + " " + fileName, level: "success" });
+  await recMsg({
+    txt: "write " + radioName + " " + fileName,
+    level: "success",
+  });
   anchorElement.click();
 
   anchorElement.remove();
@@ -70,7 +74,10 @@ async function storeBlobAsObj({
   let blob = new Blob([arrayBuffer], { type: contentType });
   const fileExt = await resolveFileExt(contentType);
   const fileName = await buildFileName(title, bitRate, radioName, fileExt);
-  await recMsg({ txt: "write DB " + radioName + " " + fileName, level: "success" });
+  await recMsg({
+    txt: "write DB " + radioName + " " + fileName,
+    level: "success",
+  });
 
   const db = await getIdbValue({
     dbName: "versions_db",
@@ -89,7 +96,9 @@ async function storeBlobAsObj({
       size: blob.size,
       type: blob.type,
     },
-  }).catch((e) => console.error("storeBlobAsObj->", e));
+  }).catch((e) => {
+    if (debug) console.error("storeBlobAsObj->", e);
+  });
   arrayBuffer = null;
   blob = null;
   chunkArray = [];

@@ -1,5 +1,6 @@
 // publicDbCom.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -64,7 +65,7 @@ function setSessionServer() {
     metaData.set()["radioBrowserInfoUrl"] = "NETWORK_ERROR";
 
     const liveServers = await getDBsFromNameServer().catch((e) => {
-      console.error("setSessionServer->", e);
+      if (debug) console.error("setSessionServer->", e);
       return false;
     });
     if (liveServers !== false) {
@@ -112,7 +113,7 @@ function getDBsFromNameServer() {
 function dlJson(url) {
   return new Promise(async (resolve, _) => {
     const response = await fetch(url).catch((e) => {
-      console.error("dlJson->", url, e);
+      if (debug) console.error("dlJson->", url, e);
       resolve(false);
       return false;
     });
@@ -507,7 +508,7 @@ function updateVotesBadgeChange(
     );
     // Ask indexed DB (new), if fail ask mem DB (loaded from file or last update, old)
     const voteObj = await getLocalVoteCounts(stationuuid).catch((e) => {
-      console.error("getLocalVoteCounts->await", e);
+      if (debug) console.error("getLocalVoteCounts->await", e);
     });
     const vangaVotes = voteObj.votes;
     const vangaClicks = voteObj.clickcount;
@@ -529,7 +530,7 @@ function updateVotesBadgeChange(
         clickcount,
         clicktrend
       ).catch((e) => {
-        console.error("setLocalVoteCounts->await", e);
+        if (debug) console.error("setLocalVoteCounts->await", e);
       });
 
       // Change color of badge regarded to the changed item.
@@ -569,7 +570,7 @@ function getLocalVoteCounts(stationuuid) {
       objectStoreName: "dbVersions",
       id: "radio_index_db",
     }).catch((e) => {
-      console.error("getLocalVoteCounts->get", e);
+      if (debug) console.error("getLocalVoteCounts->get", e);
     });
     const storedVote = await getIdbValue({
       dbName: "radio_index_db",
@@ -609,7 +610,7 @@ function setLocalVoteCounts(stationuuid, votes, clickcount, clicktrend) {
       objectStoreName: "dbVersions",
       id: "radio_index_db",
     }).catch((e) => {
-      console.error("setLocalVoteCounts->get", e);
+      if (debug) console.error("setLocalVoteCounts->get", e);
     });
 
     await setIdbValue({
@@ -625,7 +626,7 @@ function setLocalVoteCounts(stationuuid, votes, clickcount, clicktrend) {
       },
       // bulkInsert: true, // runs over the array of obj
     }).catch((e) => {
-      console.error("setLocalVoteCounts->set", e);
+      if (debug) console.error("setLocalVoteCounts->set", e);
       resolve(false);
     });
 
@@ -676,7 +677,7 @@ function storeLiveDBserverIDB(serverDict) {
       objectStoreName: "db_downloads",
       data: { id: "radio_browser_live_server", liveServers: serverDict },
     }).catch((e) => {
-      console.error("storeLiveDBserverIDB-> write db", e);
+      if (debug) console.error("storeLiveDBserverIDB-> write db", e);
     });
     resolve();
   });
@@ -702,7 +703,7 @@ function getLiveDBserverIDB() {
       id: "radio_browser_live_server",
     }).catch((e) => {
       // Custom error msg from getIdbValue FAIL_NO_DATA_IN_STORE.
-      console.error("getLiveDBserverIDB->", e);
+      if (debug) console.error("getLiveDBserverIDB->", e);
       return e; // "FAIL_NO_DATA_IN_STORE"
     });
     resolve(liveServers);

@@ -1,6 +1,6 @@
 // idbSetGetValues.mjs
 "use strict";
-
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -147,7 +147,7 @@ function setIdbValue(options = {}) {
         try {
           objectStoreRequest = store.put(options.data);
         } catch (e) {
-          console.error("-> setIdbValue ", e)
+          if (debug) console.error("-> setIdbValue ", e);
         }
 
         transact.oncomplete = () => {
@@ -332,7 +332,9 @@ function objectStoreCreate(o = {}) {
     // Create the schema
     open.onupgradeneeded = (event) => {
       const db = event.target.result;
-      db.onerror = (event) => console.error(event.target.error);
+      db.onerror = (event) => {
+        if (debug) console.error(event.target.error);
+      };
       console.log(",,,onsuccess,,,,,,,testDataBase->", db);
 
       const store = db.createObjectStore(storeName, {
@@ -415,7 +417,7 @@ function setPropIdb(o = {}) {
       objectStoreName: "dbVersions",
       id: idbDb,
     }).catch((e) => {
-      console.error("setPropIdb->get", e);
+      if (debug) console.error("setPropIdb->get", e);
       resolve(false);
     });
     const value = await setIdbValue({
@@ -424,7 +426,7 @@ function setPropIdb(o = {}) {
       objectStoreName: idbStore,
       data: idbData, // must include {id: foo}
     }).catch((e) => {
-      console.error("setPropIdb->set", e);
+      if (debug) console.error("setPropIdb->set", e);
       resolve(false);
     });
     resolve(true);
@@ -458,7 +460,7 @@ function getPropIdb(o = {}) {
       objectStoreName: "dbVersions",
       id: idbDb,
     }).catch((e) => {
-      console.error("getPropIdb->getVer", e);
+      if (debug) console.error("getPropIdb->getVer", e);
       resolve(false);
     });
 
@@ -493,7 +495,7 @@ function getPropIdb(o = {}) {
  *      idbData: {id: stationuuid},  // omit if clearAll
  *      clearAll: false, // can also omit this prop if idbData
  *    }).catch((e) => {
- *      console.error("deleteAsDownloder->set", e);
+ *      if (debug) console.error("deleteAsDownloder->set", e);
  *      resolve(false);
  *    });
  */
@@ -510,7 +512,7 @@ function delPropIdb(o = {}) {
       objectStoreName: "dbVersions",
       id: idbDb,
     }).catch((e) => {
-      console.error("setPropIdb->get", e);
+      if (debug) console.error("setPropIdb->get", e);
       resolve(false);
     });
 
@@ -521,7 +523,7 @@ function delPropIdb(o = {}) {
       data: idbData,
       clearAll: clearAll === true ? true : false,
     }).catch((e) => {
-      console.error("delPropIdb->del", e);
+      if (debug) console.error("delPropIdb->del", e);
       resolve(false);
     });
     resolve(true);
