@@ -1,5 +1,6 @@
 // idbInitDb.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -67,7 +68,9 @@ function createIndexedDb(options = {}) {
     // createObjectStore, createIndex
     open.onupgradeneeded = function (event) {
       const db = event.target.result;
-      db.onerror = (event) => console.error(event.target.error);
+      db.onerror = (event) => {
+        if (debug) console.error(event.target.error);
+      };
 
       if (options.batchCreate) {
         // {1: {storeName: "dbVersions", primaryKey: "id",indexNames: ["dbVersionsIdx", "id"],},}
@@ -87,7 +90,7 @@ function createIndexedDb(options = {}) {
                 autoIncrement: true,
               });
             } catch (e) {
-              console.error("batch create objStore fail", objVal, e);
+              if (debug) console.error("batch create objStore fail", objVal, e);
               resolve(false);
             }
             if (store !== null) {
@@ -108,7 +111,7 @@ function createIndexedDb(options = {}) {
 
       if (options.batchCreate === undefined || !options.batchCreate) {
         if (storeName === undefined) {
-          console.error("storeName === undefined->");
+          if (debug) console.error("storeName === undefined->");
           resolve();
         }
         let store = null;
@@ -118,7 +121,7 @@ function createIndexedDb(options = {}) {
             autoIncrement: false,
           });
         } catch (e) {
-          console.error("db.createObjectStore->", e);
+          if (debug) console.error("db.createObjectStore->", e);
           resolve();
         }
 
@@ -155,7 +158,7 @@ function logAllDbVersions() {
           dbVersion: db.version,
         },
       }).catch((e) => {
-        console.error("logAllDbVersions->", e);
+        if (debug) console.error("logAllDbVersions->", e);
       });
     }
     resolve();

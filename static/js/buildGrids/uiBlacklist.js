@@ -1,5 +1,6 @@
 // uiBlacklist.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -188,7 +189,7 @@ async function showBlacklist(o = {}) {
           idbData: title, // {id: foo - bar}
           clearAll: false, // can also omit this prop if idbData
         }).catch((e) => {
-          console.error("delPropIdb->blacklist", e);
+          if (debug) console.error("delPropIdb->blacklist", e);
           resolve(false);
         });
       }

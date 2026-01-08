@@ -1,5 +1,6 @@
 // uiFileDownload.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -21,7 +22,6 @@
  *    You should have received a copy of the GNU General Public License
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
-
 import {
   createFeatureDivOutline,
   createFeatureDivSection,
@@ -37,10 +37,11 @@ export { dbsWithContent, uiWrapper };
 const parser = new DOMParser(); // sanitize html (placebo), else mozilla linter cries
 
 /**
- * Use Download icon to show div.
- * Each IDB store has options.
+ * Use Download icon on main UI to show dl div.
+ * Each IDB store has dl options.
  * (A) All files automated sequential.
  * (B) Zip all blobs and dl one compressed file.
+ * @returns {Promise<void>}
  */
 async function uiWrapper() {
   const parentId = "fixedPositionAnchor";
@@ -73,6 +74,11 @@ async function uiWrapper() {
   return;
 }
 
+/**
+ * No info to tell yet. So colorize the div.
+ * @param {HTMLDivElement} divHead
+ * @returns {Promise<void>}
+ */
 function fileDbHead(divHead) {
   return new Promise((resolve, _) => {
     divHead.style.backgroundColor = "#fc4a1a";
@@ -89,12 +95,20 @@ function fileDbHead(divHead) {
   });
 }
 
+/**
+ * Hint that we can not decompress our zipped dl container.
+ * @param {HTMLDivElement} divHint
+ * @returns {Promise<void>}
+ */
 function fileDbHint(divHint) {
   return new Promise((resolve, _) => {
     const info = document.createElement("div");
     info.innerText =
-      "Downloads. Use an external App to decompress ZIP(ed) downloads.";
+      "Downloads. Use your OS provided App to unzip ZIP(ed) downloads.";
     divHint.appendChild(info);
+    const emptyDownloads = document.createElement("div");
+    emptyDownloads.id = "emptyDownloads";
+    divHint.appendChild(emptyDownloads);
     resolve();
   });
 }
@@ -102,11 +116,17 @@ function fileDbHint(divHint) {
 /**
  * Only objectStores with recorded blobs.
  * @param {HTMLDivElement} anchor div
- * @returns {Promise<undefined>}
+ * @returns {Promise<void>}
  */
 async function showDownloads(anchor) {
   const blobStore = "content_blobs";
   const haveContent = await dbsWithContent(blobStore);
+
+  if (!haveContent) {
+    const showDownloads = document.getElementById("showDownloads");
+    showDownloads.innerText = "No downloads yet.";
+    return;
+  }
   for (const db of haveContent) {
     const { wrap, info, size } = await storeInfoDivs(db.id, db.name, anchor);
     await showTotalStorage(db.id, size);
@@ -116,7 +136,16 @@ async function showDownloads(anchor) {
   return;
 }
 
-function storeInfoDivs(dbID, dbName, dlSection) {
+/**
+ * Station dl store info with name, size, amount of files.
+ * Store name can be copied, store can be emptied.
+ * @type {Object} params
+ * @param {string} dbID
+ * @param {string} dbName
+ * @param {HTMLDivElement} anchor
+ * @returns {Promise<{wrap:HTMLDivElement,info:HTMLDivElement,size:HTMLDivElement,}>}
+ */
+function storeInfoDivs(dbID, dbName, anchor) {
   return new Promise((resolve, _) => {
     const wrapper = document.createElement("div"); // wrap to del store from dl list
     wrapper.id = "divStore_" + dbID;
@@ -127,7 +156,7 @@ function storeInfoDivs(dbID, dbName, dlSection) {
     const divStoreName = document.createElement("div");
     divStoreName.id = "divStoreName_" + dbID;
 
-    dlSection.appendChild(wrapper);
+    anchor.appendChild(wrapper);
     wrapper.appendChild(divStoreInfo);
     divStoreInfo.appendChild(divStoreName);
 
@@ -172,7 +201,7 @@ function storeInfoDivs(dbID, dbName, dlSection) {
     const imgDel = document.createElement("img");
     imgDel.classList.add("handCursor");
     imgDel.src = "./images/delete-store-icon.svg";
-    imgDel.style.height = "22px";
+    imgDel.style.height = "18px";
     spanDelImg.appendChild(imgDel);
 
     imgDel.addEventListener("click", async () => {
@@ -198,7 +227,7 @@ function storeInfoDivs(dbID, dbName, dlSection) {
  * Station DB has the "stationuuid" of the station JSON object.
  * Each DB has two objectStores: 'blacklist_name' & 'content_blobs'
  * @param {string} objectStore name 'blacklist_name' | 'content_blobs'
- * @returns {Promise<Array<{id: string, name: string}>>} array of IDB stores in use [{id: uuid, name: blacklist_name}, {}]
+ * @returns {Promise<Array<{id: string, name: string} | false>>} array of IDB stores in use [{id: uuid, name: blacklist_name}, {}]
  */
 async function dbsWithContent(objectStore) {
   const dbs = await getIndex({
@@ -206,7 +235,7 @@ async function dbsWithContent(objectStore) {
     // Filter store. Select * From <ever been used stations> alike.
     store: "uuid_name_dl",
   }).catch((e) => {
-    console.error("dbsWithContent->app_db", e);
+    if (debug) console.error("dbsWithContent->app_db", e);
   });
 
   const hasContent = [];
@@ -215,10 +244,11 @@ async function dbsWithContent(objectStore) {
       dbName: db.id,
       store: objectStore,
     }).catch((e) => {
-      console.error("dbsWithContent->db", e);
+      if (debug) console.error("dbsWithContent->db", e);
     });
     if (dictArray.length > 0) hasContent.push(db);
   }
+  if (hasContent.length <= 0) return false;
   return hasContent;
 }
 
@@ -248,14 +278,14 @@ async function showTotalStorage(dbId, spanStoreSize) {
   return;
 }
 /**
- * Android OS may use it.
- * Download blobs and remove them and "store section" from store.
+ * Android OS may use it, so it is a single dl then.
+ * Append to auto dump single files (PC user) div.
  * @type {Object} dict
  * @param {string} dbID string
  * @param {string} dbName string
  * @param {HTMLDivElement} wrap HTMLDivElement
  * @param {HTMLDivElement} info HTMLDivElement
- * @returns {Promise<undefined>}
+ * @returns {Promise<void>}
  */
 function showZIP({ dbID, dbName, wrap, info }) {
   return new Promise((resolve, _) => {
@@ -278,26 +308,18 @@ function showZIP({ dbID, dbName, wrap, info }) {
     divClick.appendChild(txt);
 
     divClick.addEventListener("click", async () => {
+      // Activate Boss, sends to worker.
+
+      // Worker
       const blobs = await getIndex({
         dbName: dbID,
         store: "content_blobs",
       });
-
       await downloadZIP(dbName, blobs, info);
       await cleanupStore(dbID, blobs, info); // del blobs
-      // No await for whatever reason!
+
+      // UI, No await for whatever reason!
       uiDelStation(wrap);
-      /*         
-        -- No space on disk, 4GB free for 2GB blobs, 32GB RAM, test with docker and fix
-        jszip.js:2960 Uncaught (in promise) RangeError: Array buffer allocation failed
-        at new ArrayBuffer (<anonymous>)
-        at new Uint8Array (<anonymous>)
-        at concat (jszip.js:2960:23)
-        at StreamHelper.<anonymous> (jszip.js:3003:23)
-        at jszip.js:3948:24
-        at run (jszip.js:12727:21)
-        at runIfPresent (jszip.js:12756:23)
-        at onGlobalMessage (jszip.js:12800:21) */
     });
 
     resolve();
@@ -311,7 +333,7 @@ function showZIP({ dbID, dbName, wrap, info }) {
  * @param {string} dbID string
  * @param {HTMLDivElement} wrap HTMLDivElement
  * @param {HTMLDivElement} info HTMLDivElement
- * @returns {Promise<undefined>}
+ * @returns {Promise<void>}
  */
 function showPC({ dbID, wrap, info }) {
   return new Promise((resolve, _) => {
@@ -320,7 +342,7 @@ function showPC({ dbID, wrap, info }) {
     wrap.appendChild(divClick);
 
     const txt = document.createElement("span");
-    txt.innerText = "ONLY for Linux, Windows single files. No mobile OS.";
+    txt.innerText = "ONLY Linux, Windows. Single files.";
 
     const img = document.createElement("img");
     img.classList.add("handCursor");
@@ -383,8 +405,8 @@ function populateDlArray(blobs) {
 
       const entry = {
         id: blobDict.id, // for removal from store
-        anchor: anchor, // auto clicker
-        remove: () => URL.revokeObjectURL(anchor.href),
+        anchor: anchor, // auto clicked by a loop
+        remove: () => URL.revokeObjectURL(anchor.href), // GC trigger
       };
       accu.push(entry);
       return accu;
@@ -394,6 +416,22 @@ function populateDlArray(blobs) {
   });
 }
 
+/**
+ * Auto dl the zipped content of a station store by help of JSzip.
+ * Would be a good idea to use zip.js instead.
+ * But use minimal version so we can use our own webWorker.
+ * Their's produces an error in a Browser extension.
+ *
+ * Can we del from store if blob was red by zip lib? Save space.
+ * Else blob in store, in mem, whole zipped store in mem.
+ * May
+ * Split zip archive to 500MB and show fragments. Or full option.
+ * @type {Object} params
+ * @param {string} dbName
+ * @param {Array<Blob>} blobs
+ * @param {HTMLDivElement} info
+ * @returns {Promise<void>}
+ */
 async function downloadZIP(dbName, blobs, info) {
   const statusBar = document.createElement("div");
   statusBar.id = "loaderZip";
@@ -405,7 +443,7 @@ async function downloadZIP(dbName, blobs, info) {
   loader.classList.add("loader");
   statusBar.appendChild(loader);
 
-  const zip = new JSZip();
+  let zip = new JSZip();
   for await (const blob of blobs) {
     zip.file(blob.id, blob.blob);
   }
@@ -413,15 +451,18 @@ async function downloadZIP(dbName, blobs, info) {
     .generateAsync({ type: "blob", compression: "STORE" }) // STORE no comp
     .then(function (content) {
       const anchorElement = document.createElement("a");
+      info.appendChild(anchorElement);
       anchorElement.href = URL.createObjectURL(content);
       anchorElement.download = dbName;
-      anchorElement.style.display = "none";
-      document.body.appendChild(anchorElement);
+      anchorElement.textContent = "Download " + dbName;
+      // document.body.appendChild(anchorElement);
       anchorElement.click();
       anchorElement.remove();
 
       statusBar.style.display = "none";
     });
+  zip = null;
+  return;
 }
 
 /**

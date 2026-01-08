@@ -1,5 +1,6 @@
 // mediaElements.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -196,7 +197,7 @@ function mediaConnectors(audio, video) {
   return new Promise((resolve, _) => {
     audioContext = new AudioContext();
     audioContext.onerror = (e) => {
-      console.error("audioContext->", e); //nothing so far, may be needed if load stream
+      if (debug) console.error("audioContext->", e); //nothing so far, may be needed if load stream
     };
 
     // Plug for the connector chain. Ends in audioContext.destination (speaker).

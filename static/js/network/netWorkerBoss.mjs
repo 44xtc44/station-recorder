@@ -49,49 +49,19 @@ export { NetWorker };
 
 class NetWorker {
   constructor() {
-    if (NetWorker.instance) {
-      return NetWorker.instance;
-    }
-    // Something to test.
-    this.config = {
-      host: "localhost",
-      port: 5432,
-    };
-    this.foo = "bar";
-    // Worker init.
+    if (NetWorker.instance) return NetWorker.instance;
     this.worker = null;
-
-    // .instance is arbitrary; means can be ".voodoo"
+    this.workerPath = "netWorker.mjs";
     NetWorker.instance = this;
   }
-
-  query(sql) {
-    console.log("Executing query:", sql);
-    // Actual database query logic
+  static getInstance() {
+    if (!NetWorker.instance) NetWorker.instance = new NetWorker();
+    return NetWorker.instance;
   }
-  // To test behaviour if OS killed our worker. Battery shortage?
-  killWorker() {
-    this.worker.postMessage({ txt: "dismissed", action: "close" });
-    this.worker.onmessage = (e) => {
-      if (e.data.txt === "closed") {
-        console.log("-> killWorker ", e.data);
-      }
-    };
-    this.worker.onerror = (e) => {
-      console.log("-> killWorker error. ", e);
-    };
-  }
-  /**
-   * Spawn is more descriptive for calling a new Process.
-   * Python uses/used fork (context inherited) and spawn (new dumb interpreter).
-   * Span has not a clue about previous global imports.
-   * Thats why Shaka player is not running in a new JS interpreter.
-   * You can not "import" (ES style) the Shaka library also.
-   */
   spawnWorker() {
     // First call.
     if (this.worker === null) {
-      this.worker = new Worker(new URL("worker.mjs", import.meta.url), {
+      this.worker = new Worker(new URL(this.workerPath, import.meta.url), {
         type: "module",
       });
     }
@@ -110,12 +80,17 @@ class NetWorker {
       });
     };
   }
-  static getInstance() {
-    if (!NetWorker.instance) {
-      NetWorker.instance = new NetWorker();
-      makeWorker();
-    }
-    return NetWorker.instance;
+
+  killWorker() {
+    this.worker.postMessage({ txt: "dismissed", action: "close" });
+    this.worker.onmessage = (e) => {
+      if (e.data.txt === "closed") {
+        console.log("-> killWorker ", e.data);
+      }
+    };
+    this.worker.onerror = (e) => {
+      console.log("-> killWorker error. ", e);
+    };
   }
 }
 

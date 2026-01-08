@@ -37,7 +37,7 @@ function createAppMenu() {
   // upload files to database
   const liUpload = document.getElementById("liUpload");
   liUpload.addEventListener("click", () => showFileUploadUi());
-  liUpload.style.display = "block";
+  liUpload.style.display = "none";
 
   // audio bar show/hide
   evtHamburgerMenu({ menuName: "liAudio", featureDivId: "audioBarContainer" });

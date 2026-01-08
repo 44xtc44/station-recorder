@@ -1,6 +1,6 @@
 // streamDetect.js
 "use strict";
-const debug = true;
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -95,7 +95,7 @@ async function getStream({ url, icyMetaint }) {
       return responseObj;
     }
   } catch (e) {
-    console.log("catch getStream->", e);
+    if (debug) console.log("catch getStream->", e);
     return e;
   }
 }
@@ -108,7 +108,6 @@ async function getStream({ url, icyMetaint }) {
  * @returns {Promise<{ url: string | false, text: string | false}>}
  */
 async function detectStream(stationuuid) {
-  console.log("-> streamdetect Begin ");
   const station = metaData.get().infoDb[stationuuid];
   const stationName = station.id;
   const abortController = new AbortController();
@@ -128,7 +127,7 @@ async function detectStream(stationuuid) {
 
   // Response must be aborted, kill fetch.
   const response = await fetch(url, fetchArgs).catch(async (e) => {
-    console.error("-> detectStream::NETWORK_ERROR ", e);
+    if (debug) console.error("-> detectStream::NETWORK_ERROR ", e);
     await recMsg({
       stationuuid: stationuuid,
       txt: "NETWORK_ERROR " + e + " " + url,
@@ -153,7 +152,6 @@ async function detectStream(stationuuid) {
     station: station,
     response: response,
   });
-  console.log("-> streamdetect contentType ", contentType);
 
   if (!contentType) {
     await abortConnection(abortController, "No header content-type " + url);
@@ -228,7 +226,7 @@ function archiveHeader(station, response) {
       metaData.set().infoDb[station.id].headers = headersTxt;
     } catch (e) {
       metaData.set().infoDb[station.id].headers = [{ headersTxt: false }];
-      console.error(
+      if (debug) console.error(
         "-> detectStreamjson defective header ",
         response.headers,
         e
@@ -300,13 +298,13 @@ async function urlAlive(url, checkContenType = true) {
     (response.status < 200 && response.status > 300) ||
     response.status === undefined
   ) {
-    console.error("status code not in range->code, url", response.status, url);
+    if (debug) console.error("status code not in range->code, url", response.status, url);
     isServing = false;
     abortController.abort();
   }
 
   if (response === "NETWORK_ERROR") {
-    console.error("urlAlive->::NETWORK_ERROR", url);
+    if (debug) console.error("urlAlive->::NETWORK_ERROR", url);
     isServing = false;
     abortController.abort();
   }

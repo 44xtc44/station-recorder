@@ -1,10 +1,10 @@
 // uiSettingsUrlsAdd.js
 "use strinct";
 /**
- *  This file is part of station-recorder. station-recorder is hereby called the app. 
+ *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
  *  TV station URLs. The cached DB copy can be used also if
- *  the public database fails. Additional features shall improve the 
+ *  the public database fails. Additional features shall improve the
  *  value of the application. Example is the vote, click statistic feature.
  *  Copyright (C) 2025 René Horn
  *
@@ -39,17 +39,17 @@ export { buildUrlsAdd };
 /**
  * Custom user URLs stored in the indexed DB of the browser.
  * URLs not existing in the public DB.
- * Can be URLs from station server playlists pls, m3u, m3u8 or 
+ * Can be URLs from station server playlists pls, m3u, m3u8 or
  * URLs found elsewhere.
- * 
+ *
  * This module should be the entry point for adding URLs
- * to the public DB API. 
+ * to the public DB API.
  * (A) A second module is needed to scan the
  * existing DB for station name -> URL combinations and allow/deny
- * the entry to the public DB if the entry already extists. 
- * The public DB does not own such a mechanism. There must also be 
+ * the entry to the public DB if the entry already extists.
+ * The public DB does not own such a mechanism. There must also be
  * a mandatory "tag" for genre/info to allow sorting.
- * 
+ *
  * (B) A Third module should be written to scan the indexed DB
  * (copy of public DB) for URLs with multiple station names.
  * Some smart people adding the same station name and URL to each and
@@ -190,7 +190,7 @@ function createInputElem(o = {}) {
     divWrapInputs.style.margin = "16px";
     divWrapInputs.style.padding = "10px 16px";
     divWrapInputs.style.borderRadius = "4px";
-  
+
     /* Name */
     const inputName = document.createElement("input");
     inputName.type = "text";
@@ -277,7 +277,7 @@ function createInputElem(o = {}) {
     const inputFavi = document.createElement("input");
     inputFavi.type = "text";
     inputFavi.style.height = inputHeight + "px";
-    inputFavi.size = (inputSize).toString();
+    inputFavi.size = inputSize.toString();
     inputFavi.placeholder = placeHolderFav;
     inputFavi.dataset.valid = true; // ---------------false------------------<
     inputFavi.style.border = "solid 1px " + nonRequiredCol;
@@ -483,8 +483,7 @@ function createSaveSection(o = {}) {
             spanSuccess.innerText = "Done";
             if (isAlive === false)
               spanSuccess.innerText = "No response from URL";
-            const stationuuid =
-              "sr-custom-" + boxRefs.inputName.value.trim();
+            const stationuuid = "sr-custom-" + boxRefs.inputName.value.trim();
             const customObj = {
               // append this obj to infoDb[stationuuid] = ...
               isPublic: false, // no votes badge
@@ -559,7 +558,9 @@ function createSaveSection(o = {}) {
                   boxRefs.inputTags.value = "";
                 }
               })
-              .catch((e) => console.error("Custom failed.", e));
+              .catch((e) => {
+                console.error("Custom failed.", e);
+              });
           };
           wait();
         });

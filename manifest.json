@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.0.0",
   "author": "René Horn",
   "name": "Station Recorder",
   "short_name": "station-recorder",
@@ -18,16 +18,18 @@
       "1536": "/static/images/default_icon.svg"
     }
   },
-  "background": {
-    "service_worker": "/static/js/background.js",
-    "type": "module"
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "station-recorder@extra-stark.1.0.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent", "websiteActivity", "browsingActivity"]
+      }
+    }
   },
-  "permissions": [
-    "unlimitedStorage",
-    "tabs"
-  ],
-  "host_permissions": ["<all_urls>"],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+
+  "background": {
+    "scripts": ["/static/js/background.js"]
+  },
+  "permissions": ["unlimitedStorage"],
+  "host_permissions": ["http://*/*", "https://*/*"]
 }

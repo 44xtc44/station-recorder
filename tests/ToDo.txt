@@ -48,9 +48,9 @@ Playwright in Kubernetes.
   Done:
 
 
-Documentation (may publish some)
----------------------------------
-Git docu add how to dl and choose branch.
+Documentation (may publish TypeDoc on github.io?)
+-------------------------------------------------
+Git docu, add how to dl and choose branch from repo.
 
 Developement pattern list and implementation.
   List:

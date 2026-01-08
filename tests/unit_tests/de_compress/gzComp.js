@@ -2,6 +2,14 @@
 "use strict";
 
 import {
+  BlobReader,
+  ZipReader,
+  ZipWriter
+} from "@zip.js/zip.js";
+console.log(ZipReader)
+
+
+import {
   readLocalToBlob,
   writeBlobToLocal,
   extension,

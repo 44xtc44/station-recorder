@@ -1,5 +1,6 @@
 // idbCreateDefaults.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -67,7 +68,7 @@ function createAppDb() {
     })
       .then(() => resolve())
       .catch((e) => {
-        console.error("createAppDb->", e);
+        if (debug) console.error("createAppDb->", e);
       });
   });
 }
@@ -89,7 +90,7 @@ function createVersionDb() {
     })
       .then(() => resolve())
       .catch((e) => {
-        console.error("createVersionDb->", e);
+        if (debug) console.error("createVersionDb->", e);
       });
   });
 }
@@ -137,7 +138,7 @@ function createRadioIdxDb() {
     })
       .then(() => resolve())
       .catch((e) => {
-        console.error("createIndexedDb->", e);
+        if (debug) console.error("createIndexedDb->", e);
       });
   });
 }
@@ -158,7 +159,7 @@ function createtStore(options = {}) {
     })
       .then(() => resolve())
       .catch((e) => {
-        console.error("createtStore->", e);
+        if (debug) console.error("createtStore->", e);
       });
   });
 }

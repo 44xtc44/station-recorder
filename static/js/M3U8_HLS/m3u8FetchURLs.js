@@ -1,5 +1,6 @@
 // m3u8FetchURLs.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -46,7 +47,7 @@ async function fetchURLs(url, playlist) {
     let lenChunkURLs = 2; // default multiply on error
     const response = await connectM3u8(url);
     if (!response) {
-      console.error("m3u8, fetchURLs->response error");
+      if (debug) console.error("m3u8, fetchURLs->response error");
       metaData.set().infoDb[stationuuid].isRecording = false;
       break;
     }
@@ -60,7 +61,7 @@ async function fetchURLs(url, playlist) {
       // Overwrite artist/pic info; sourceBuffer feeder module may display it.
       playlist.metadata = metadata;
     } catch (e) {
-      console.error("m3u8, fetchURLs->lenChunkURLs", lenChunkURLs);
+      if (debug) console.error("m3u8, fetchURLs->lenChunkURLs", lenChunkURLs);
     }
 
     // Fetch interval; no segment should exceed X seconds

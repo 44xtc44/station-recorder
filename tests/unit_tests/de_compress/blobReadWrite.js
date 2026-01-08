@@ -21,10 +21,12 @@ export { readLocalToBlob, writeBlobToLocal , extension};
  * readLocalToBlob("/js/assets/radios_europe.json", "json");
  */
 async function readLocalToBlob(relativePathToFile, fileExtension) {
+  const fileBuf = fs.readFileSync(relativePathToFile);
+  const blob = new Blob([fileBuf], { type: fileExtension });
+  return blob;
   try {
-    const fileBuf = fs.readFileSync(relativePathToFile);
-    const blob = new Blob([fileBuf], { type: fileExtension });
-    return blob;
+
+    
   } catch (e) {
     return false;
   }

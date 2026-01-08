@@ -30,9 +30,6 @@
   "background": {
     "scripts": ["../../../static/js/background.js"]
   },
-  "permissions": ["unlimitedStorage", "downloads"],
-  "host_permissions": ["http://*/*", "https://*/*"],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self';"
-  }
+  "permissions": ["unlimitedStorage"],
+  "host_permissions": ["http://*/*", "https://*/*"]
 }

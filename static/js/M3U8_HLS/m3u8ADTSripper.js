@@ -1,5 +1,6 @@
 // m3u8ADTSripper.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -136,7 +137,7 @@ async function removeADTS(chunk) {
     rawDataLenChk: 0,
   };
 
-  const { ID3Data , rawData } = await detachID3(stream.bytes);
+  const { ID3Data, rawData } = await detachID3(stream.bytes);
   await nextSync(stream);
   await rawDataGet(stream);
   stream.syncIdxsNUM = stream.syncIdxs.length;
@@ -253,7 +254,9 @@ async function nextSync({ bins, syncIdxs, frameHeaders }) {
         const header = await dumpFrameHeader(idx, frameHeaders, bins);
         syncIdxs.push(header);
       }
-      if (bins[idx + 1] === undefined) console.error("->idx undef");
+      if (bins[idx + 1] === undefined) {
+        if (debug) console.error("->idx undef");
+      }
     }
   }
 }

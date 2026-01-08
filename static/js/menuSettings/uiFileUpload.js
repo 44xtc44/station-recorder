@@ -1,5 +1,6 @@
 // uiFileUpload.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -144,7 +145,7 @@ function uploadFilesDb(fileUpload, divFileUpload) {
         name: "upload_dev",
       },
     }).catch((e) => {
-      console.error("fileUpload->ul", e);
+      if (debug) console.error("fileUpload->ul", e);
     });
 
     const ulVersion = await getIdbValue({
@@ -166,7 +167,7 @@ function uploadFilesDb(fileUpload, divFileUpload) {
           type: file.type,
         },
       }).catch((e) => {
-        console.error("fileUpload->blobs", e);
+        if (debug) console.error("fileUpload->blobs", e);
       });
       await setIdbValue({
         dbName: stationuuid,
@@ -176,7 +177,7 @@ function uploadFilesDb(fileUpload, divFileUpload) {
           id: file.name,
         },
       }).catch((e) => {
-        console.error("fileUpload->bl", e);
+        if (debug) console.error("fileUpload->bl", e);
       });
       statusBar.style.width = ((index + 1) / rowCount) * 100 + "%";
     }

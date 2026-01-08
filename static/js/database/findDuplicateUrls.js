@@ -1,5 +1,6 @@
 // findDuplicateUrl.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -111,7 +112,7 @@ async function cleanUpDb(db, delUuids) {
   const dbLenEnd = Object.keys(db).length;
   const diff = dbLenStart - dbLenEnd;
   if (diff !== delLen) {
-    console.error("cleanUpDb->stations missed. diff=", diff);
+    if (debug) console.error("cleanUpDb->stations missed. diff=", diff);
   }
 
   // console.log("findDuplicateUrl->cleanUpDb", dbLenStart, dbLenEnd, diff, delLen);

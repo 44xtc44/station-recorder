@@ -45,27 +45,10 @@ async function showPls(text, stationuuid) {
   const stationName = stationObj.name;
   const plsType = stationObj.isM3U ? ".m3u" : ".pls";
 
-  const plsOuter = await createPlsUiOuter({
+  const plsOuter = await createFeatureDivOutline({
     parentId: parentId,
     childId: "plsOuter",
   });
-
-  // remove X that hide the div
-  plsOuter.removeChild(plsOuter.firstElementChild);
-  document.getElementById("fixedPositionAnchor").style.height = "100%";
-  // X must remove div
-  const spanClose = document.createElement("span");
-  spanClose.classList.add("handCursor");
-  spanClose.innerText = "✖";
-  spanClose.style.textAlign = "right";
-  spanClose.style.paddingRight = "14px";
-  spanClose.style.display = "inline-block";
-  spanClose.style.width = "100%";
-  spanClose.style.backgroundColor = "#fc4a1a";
-  spanClose.addEventListener("click", () => {
-    plsOuter.remove();
-  });
-  plsOuter.appendChild(spanClose);
 
   const head = await createFeatureDivSection({
     parentId: "plsOuter",
@@ -150,7 +133,10 @@ function createPlsInfoBlock(o = {}) {
           metaData.set().infoDb[stationuuid].url = url;
           // streamdetect should not resolve pls again
           metaData.set().infoDb[stationuuid].isPlaylist = false;
-          await recMsg({ txt: "replace playlist URL with " + url, level: "success" });
+          await recMsg({
+            txt: "replace playlist URL with " + url,
+            level: "success",
+          });
 
           await sleep(100);
           document.getElementById("plsOuter").remove();
@@ -178,21 +164,5 @@ function createPlsUiHead(o = {}) {
       outerDiv.style.display = "none";
     });
     resolve();
-  });
-}
-
-function createPlsUiOuter(o = {}) {
-  return new Promise(async (resolve, _) => {
-    try {
-      document.getElementById(o.childId).remove();
-    } catch (e) {}
-    const divOutline = await createFeatureDivOutline({
-      parentId: o.parentId,
-      divOutline: o.childId,
-    });
-    divOutline.classList.add("column500");
-    divOutline.style.width = "500px";
-    divOutline.style.display = "block";
-    resolve(divOutline);
   });
 }

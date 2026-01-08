@@ -1,5 +1,6 @@
 // idbInitDb__v1.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -67,7 +68,9 @@ function createIndexedDb(options = {}) {
     // createObjectStore, createIndex
     open.onupgradeneeded = function (event) {
       const db = event.target.result;
-      db.onerror = (event) => console.error(event.target.error);
+      db.onerror = (event) => {
+        console.error(event.target.error);
+      };
 
       if (options.batchCreate) {
         // {1: {storeName: "dbVersions", primaryKey: "id",indexNames: ["dbVersionsIdx", "id"],},}

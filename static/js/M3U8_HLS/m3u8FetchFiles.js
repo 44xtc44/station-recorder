@@ -1,5 +1,6 @@
 // m3u8FetchFiles.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -64,11 +65,12 @@ async function fetchFiles(playlist) {
     const response = await connectM3u8(playlist.URLs[urlIdx]); // completed download
 
     if (response === undefined) {
-      console.error(
-        "fetchFiles-connectM3u8->",
-        "no connection to ",
-        playlist.URLs[urlIdx]
-      );
+      if (debug)
+        console.error(
+          "fetchFiles-connectM3u8->",
+          "no connection to ",
+          playlist.URLs[urlIdx]
+        );
       continue;
     }
     urlIdx++;
@@ -80,14 +82,15 @@ async function fetchFiles(playlist) {
       continue;
     }
     if (response === undefined) {
-      console.error(
-        "fetchFiles-response.body.getReader->",
-        playlist.URLs[urlIdx]
-      );
+      if (debug)
+        console.error(
+          "fetchFiles-response.body.getReader->",
+          playlist.URLs[urlIdx]
+        );
       continue;
     }
     if (chunk.done) {
-      console.error("fetchFiles-connectM3u8->chunk.done");
+      if (debug) console.error("fetchFiles-connectM3u8->chunk.done");
       break; // .done; Not an endless stream, but file.
     }
 

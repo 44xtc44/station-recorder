@@ -1,5 +1,6 @@
 // uiSettings.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -145,7 +146,7 @@ function featStatus(dbName, objectStoreName, id) {
 function featAssert(featStatus, defaultVal) {
   return new Promise((resolve, _) => {
     if (featStatus === undefined) {
-      console.error("featAssert->undefined, critical; DB not ready");
+      if (debug) console.error("featAssert->undefined, critical; DB not ready");
       resolve(defaultVal);
     }
     if (featStatus === "FAIL_NO_DATA_IN_STORE") resolve(defaultVal);
@@ -174,7 +175,7 @@ function featSwitchDbVal(dbName, objectStoreName, id, isActive) {
       objectStoreName: objectStoreName,
       data: { id: id, isActive: state },
     }).catch((e) => {
-      console.error("featSwitchDbVal->" + id, e);
+      if (debug) console.error("featSwitchDbVal->" + id, e);
     });
     resolve();
   });
@@ -262,9 +263,9 @@ function uiClicker(kwargs) {
         kwargs.objectStoreName,
         kwargs.id,
         switchState
-      ).catch((e) =>
-        console.error("uiClicker->featSwitchDbVal" + kwargs["id"], e)
-      );
+      ).catch((e) => {
+        console.error("uiClicker->featSwitchDbVal" + kwargs["id"], e);
+      });
       await featSwitchImg(kwargs, switchState);
     });
 

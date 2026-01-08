@@ -1,5 +1,6 @@
 // dbLoaderBoss.mjs
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -22,6 +23,8 @@
  *    along with the app. If not, see <http://www.gnu.org/licenses/>.
  */
 import { metaData } from "../central.js";
+import { featSettingStatus } from "../menuSettings/uiSettings.js";
+import { findDuplicateUrl } from "./findDuplicateUrls.js";
 export { DBLoader };
 
 /**
@@ -68,6 +71,7 @@ class DBLoader {
     if (DBLoader.instance) return DBLoader.instance;
     DBLoader.instance = this;
     this.worker = null;
+    this.workerPath = "dbLoader.mjs";
   }
   static getInstance() {
     if (!DBLoader.instance) DBLoader.instance = new DBLoader();
@@ -82,14 +86,16 @@ class DBLoader {
   spawnWorker({ msg, action }) {
     return new Promise((resolve, _) => {
       if (this.worker === null) {
-        this.worker = new Worker(new URL("dbLoader.mjs", import.meta.url), {
+        this.worker = new Worker(new URL(this.workerPath, import.meta.url), {
           type: "module",
         });
       }
 
       this.worker.postMessage({ msg: msg, action: action });
-      this.worker.onerror = (e) =>
-        console.error("-> DB worker reported error.", e);
+      this.worker.onerror = (e) => {
+        if (debug) console.error("-> DB worker reported error.", e);
+        this.killWorker();
+      };
 
       this.worker.onmessage = async (e) => {
         if (e.data.success === true) {
@@ -102,6 +108,14 @@ class DBLoader {
           e.data.countryNames = {};
           // .close() in worker to destroy process; .terminate() not reliable, Python like
           this.worker = null;
+
+          const urlFilter = await featSettingStatus(
+            "app_db",
+            "appSettings",
+            "filterDoubleUrl",
+            true
+          );
+          if (urlFilter) await findDuplicateUrl();
           resolve();
         }
         // Dump modified DB to file.
@@ -120,5 +134,9 @@ class DBLoader {
         }
       };
     });
+  }
+  killWorker() {
+    this.worker.terminate();
+    this.worker = null;
   }
 }

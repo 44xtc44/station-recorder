@@ -1,5 +1,6 @@
 //  stationContainer.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -525,7 +526,7 @@ function showM3uIcon(stationuuid, station, divTagWarn) {
   });
 }
 
-function showM3u8Icon(stationuuid, station, divTagWarn) {
+function showM3u8Icon(stationuuid, divTagWarn) {
   return new Promise((resolve, _) => {
     const divM3u8 = document.createElement("div");
     divM3u8.setAttribute("id", "divM3u8_" + stationuuid);
@@ -545,23 +546,6 @@ function showM3u8Icon(stationuuid, station, divTagWarn) {
       imgM3u8.style.width = "30px";
       imgM3u8.style.marginTop = "-4px";
       divM3u8.appendChild(imgM3u8);
-      // m3u8 event listener
-      divM3u8.addEventListener("click", () => {
-        const callPlaylist = async () => {
-          imgM3u8.src = "./images/m3u8-done-icon.svg";
-          await sleep(250);
-          imgM3u8.src = "./images/m3u8-icon.svg";
-
-          // get m3u8 file text from server
-          const m3u8UrlTxt = await detectStream(stationuuid);
-          showM3u8({
-            m3u8UrlTxt: m3u8UrlTxt.text,
-            radioName: station.name,
-            url: station.url,
-          });
-        };
-        callPlaylist();
-      });
     }
     resolve(divM3u8);
   });
@@ -715,7 +699,7 @@ function addFavorite(stationuuid) {
       objectStoreName: storeName,
       data: stationObj,
     }).catch((e) => {
-      console.error("addFavorite->", stationuuid, e);
+      if (debug) console.error("addFavorite->", stationuuid, e);
       resolve(false);
     });
     resolve(true);
@@ -745,7 +729,7 @@ function delFavorite(stationuuid) {
           txt: "fail del Favorites " + stationObj.name + e,
           level: "error",
         });
-      }
+      };
       wait();
       resolve(false);
     });
@@ -776,7 +760,7 @@ async function createBoxName(station, gridNameBox) {
   // M3u badge (on interaction bar)
   const divM3u = await showM3uIcon(stationuuid, station, divTagWarn);
   // M3u8 badge (on interaction bar)
-  const divM3u8 = await showM3u8Icon(stationuuid, station, divTagWarn);
+  const divM3u8 = await showM3u8Icon(stationuuid, divTagWarn);
   // copy URL badge (on interaction bar)
   const divCopy = await showCopy(stationuuid, station);
   // home badge (on interaction bar)

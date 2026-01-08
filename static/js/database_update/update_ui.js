@@ -36,30 +36,12 @@ function showDbpdateUi() {
       childId: "dbUpdOuter",
     });
 
-    // remove X that hide the div
-    dbUpdOuter.removeChild(dbUpdOuter.firstElementChild);
-    document.getElementById("fixedPositionAnchor").style.height = "100%";
-    // X must remove div
-    const spanClose = document.createElement("span");
-    spanClose.id = "dbUpdClose";
-    spanClose.classList.add("handCursor");
-    spanClose.innerText = "✖";
-    spanClose.style.textAlign = "right";
-    spanClose.style.paddingRight = "14px";
-    spanClose.style.display = "inline-block";
-    spanClose.style.width = "100%";
-    spanClose.style.backgroundColor = "#fc4a1a";
-    spanClose.addEventListener("click", () => {
-      dbUpdOuter.remove();
-    });
-    dbUpdOuter.appendChild(spanClose);
-    // caller enable
-    spanClose.style.display = "none";
-
-    const head = await createFeatureDivSection({
+    const divHead = await createFeatureDivSection({
       parentId: "dbUpdOuter",
       childId: "dbUpdHead",
     });
+    divHead.style.backgroundColor = "#fc4a1a";
+    divHead.style.border = "none";
 
     const hint = await createFeatureDivSection({
       parentId: "dbUpdOuter",
@@ -76,14 +58,14 @@ function showDbpdateUi() {
   });
 }
 
-function createdbUpdUiOuter(o = {}) {
+function createdbUpdUiOuter({parentId,childId}) {
   return new Promise(async (resolve, _) => {
     try {
-      document.getElementById(o.childId).remove();
+      document.getElementById(childId).remove();
     } catch (e) {}
     const divOutline = await createFeatureDivOutline({
-      parentId: o.parentId,
-      divOutline: o.childId,
+      parentId: parentId,
+      childId: childId,
     });
     divOutline.classList.add("column500");
     divOutline.style.width = "500px";

@@ -1,5 +1,6 @@
 // equalizer.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -130,10 +131,10 @@ function eqGrid(parent, equalizerSelect, divEqRange, divEqPresets) {
  */
 async function getEqalizerSettings() {
   const range = await getAppSettings({ id: "eqRange" }).catch((e) => {
-    console.error("getEqalizerSettings->catch range", e);
+    if (debug) console.error("getEqalizerSettings->catch range", e);
   });
   const preset = await getAppSettings({ id: "eqPresets" }).catch((e) => {
-    console.error("getEqalizerSettings->catch preset", e);
+    if (debug) console.error("getEqalizerSettings->catch preset", e);
   });
   return { range: range, preset: preset };
 }
@@ -236,12 +237,12 @@ function storeEqalizerSettings(rangeIdx, presetIdx) {
   return new Promise(async (resolve, _) => {
     await setAppSettings({ id: "eqRange", selectedIndex: rangeIdx }).catch(
       (e) => {
-        console.error("eqRange->DB not avail.", e);
+        if (debug) console.error("eqRange->DB not avail.", e);
       }
     );
     await setAppSettings({ id: "eqPresets", selectedIndex: presetIdx }).catch(
       (e) => {
-        console.error("eqRange->DB not avail.", e);
+        if (debug) console.error("eqRange->DB not avail.", e);
       }
     );
     resolve();

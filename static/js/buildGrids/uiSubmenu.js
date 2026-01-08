@@ -1,5 +1,6 @@
 // uiSubmenu.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -35,7 +36,7 @@ function createFeatureDivOutline({ parentId, childId }) {
   return new Promise((resolve, _) => {
     const parent = document.getElementById(parentId);
     if (parent === null) {
-      console.error("->featDivOut.. parent null ", parentId, childId)
+      if (debug) console.error("->featDivOut.. parent null ", parentId, childId)
       resolve(false);
     } 
     const outline = document.createElement("div");
@@ -81,7 +82,7 @@ function createFeatureDivSection({ parentId, childId }) {
   return new Promise((resolve, _) => {
     const parent = document.getElementById(parentId);
     if (parent === null) {
-      console.error("->featDivS.. parent null ", parentId, childId)
+      if (debug) console.error("->featDivS.. parent null ", parentId, childId)
       resolve(false);
     } 
     const inline = document.createElement("div");

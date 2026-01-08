@@ -1,5 +1,6 @@
 // uiDelRadio.js
 "use strict";
+const debug = false;
 /**
  *  This file is part of station-recorder. station-recorder is hereby called the app.
  *  The app is published to be a distributed database for public radio and
@@ -109,7 +110,9 @@ async function showDelMsg(stationuuid, parentDiv) {
       objectStoreName: stationObj.stationGroup,
       data: { id: stationuuid }, // [{ id: radioName }],
       // bulkInsert: true,
-    }).catch((e) => console.error("delete station failed.", e));
+    }).catch((e) => {
+      if (debug) console.error("delete station failed.", e);
+    });
 
     metaData.set().infoDb[stationuuid].isFavorite = false;
     await recMsg({
